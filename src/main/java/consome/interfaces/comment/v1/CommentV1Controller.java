@@ -83,8 +83,11 @@ public class CommentV1Controller {
     public ResponseEntity<CommentStatResponse> like(
             @PathVariable Long postId,
             @PathVariable Long commentId,
-            @RequestParam Long userId) {
+            @RequestParam(required = false) Long userId) {
 
+        if (userId == null) {
+            return ResponseEntity.badRequest().build();
+        }
         CommentStat stat = commentFacade.like(commentId, userId);
         return ResponseEntity.ok(CommentStatResponse.from(stat));
     }
@@ -93,8 +96,11 @@ public class CommentV1Controller {
     public ResponseEntity<CommentStatResponse> dislike(
             @PathVariable Long postId,
             @PathVariable Long commentId,
-            @RequestParam Long userId) {
+            @RequestParam(required = false) Long userId) {
 
+        if (userId == null) {
+            return ResponseEntity.badRequest().build();
+        }
         CommentStat stat = commentFacade.dislike(commentId, userId);
         return ResponseEntity.ok(CommentStatResponse.from(stat));
     }
