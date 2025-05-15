@@ -1,0 +1,103 @@
+Section: {
+  shape: sql_table
+  id: long {constraint: primary_key}
+  name: string
+  displayOrder: int
+  createdAt: timestamp
+  updatedAt: timestamp
+}
+
+Category: {
+  shape: sql_table
+  id: long {constraint: primary_key}
+  sectionId: long {constraint: foreign_key}
+  name: string
+  displayOrder: int
+  createdAt: timestamp
+  updatedAt: timestamp
+}
+
+Board: {
+  shape: sql_table
+  id: long {constraint: primary_key}
+  categoryId: long {constraint: foreign_key}
+  name: string
+  description: string
+  displayOrder: int
+  createdAt: timestamp
+  updatedAt: timestamp
+}
+
+PostCategory: {
+  shape: sql_table
+  id: long {constraint: primary_key}
+  boardId: long {constraint: foreign_key}
+  name: string
+  displayOrder: int
+  createdAt: timestamp
+}
+
+Post: {
+  shape: sql_table
+  id: long {constraint: primary_key}
+  boardId: long {constraint: foreign_key}
+  postCategoryId: long {constraint: foreign_key}
+  userId: long {constraint: foreign_key}
+  title: string
+  content: text
+  createdAt: timestamp
+  updatedAt: timestamp
+}
+
+Comment: {
+  shape: sql_table
+  id: long {constraint: primary_key}
+  postId: long {constraint: foreign_key}
+  userId: long {constraint: foreign_key}
+  parentId: long {constraint: foreign_key}
+  groupPath: string
+  content: text
+  createdAt: timestamp
+  updatedAt: timestamp
+}
+
+User: {
+  shape: sql_table
+  id: long {constraint: primary_key}
+  loginId: string {constraint: unique}
+  nickname: string {constraint: unique}
+  password: string
+  createdAt: timestamp
+  updatedAt: timestamp
+}
+
+UserPoint: {
+  shape: sql_table
+  id: long {constraint: primary_key}
+  userId: long {constraint: foreign_key}
+  point: int
+  updatedAt: timestamp
+}
+
+PointHistory: {
+  shape: sql_table
+  id: long {constraint: primary_key}
+  userId: long {constraint: foreign_key}
+  amount: int
+  type: enum {constraint: ('GAIN', 'SPEND', 'PENALTY')}
+  reason: string
+  balanceAfter: int
+  createdAt: timestamp
+}
+
+User -> UserPoint: has_point
+User -> PointHistory: logs
+User -> Post: writes
+User -> Comment: writes
+Section -> Category: groups
+Category -> Board: contains
+Board -> PostCategory: classifies
+Board -> Post: accepts
+PostCategory -> Post: tagged_as
+Post -> Comment: has
+Comment -> Comment: replies_to
