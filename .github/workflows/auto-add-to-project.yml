@@ -3,6 +3,7 @@ name: Auto-add issues to GitHub Project
 on:
   issues:
     types: [opened]
+  workflow_dispatch:
 
 jobs:
   add-to-project:

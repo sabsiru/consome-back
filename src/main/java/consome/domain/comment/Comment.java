@@ -36,6 +36,9 @@ public class Comment {
     @Column(nullable = false)
     private LocalDateTime updatedAt;
 
+    @Column(nullable = false)
+    private boolean deleted = false;
+
     private Comment(Long postId, Long userId, Long parentId, String groupPath, String content) {
         this.postId = postId;
         this.userId = userId;
@@ -48,6 +51,11 @@ public class Comment {
 
     public static Comment create(Long postId, Long userId, Long parentId, String groupPath, String content) {
         return new Comment(postId, userId, parentId, groupPath, content);
+    }
+
+    public void delete() {
+        this.deleted = true;
+        this.updatedAt = LocalDateTime.now();
     }
 
     public boolean isRoot() {

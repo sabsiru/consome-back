@@ -36,6 +36,9 @@ public class Post {
     @Column(nullable = false)
     private LocalDateTime updatedAt;
 
+    @Column(nullable = false)
+    private boolean deleted = false;
+
     private Post(Long boardId, Long postCategoryId, Long userId, String title, String content) {
         this.boardId = boardId;
         this.postCategoryId = postCategoryId;
@@ -48,6 +51,11 @@ public class Post {
 
     public static Post create(Long boardId, Long postCategoryId, Long userId, String title, String content) {
         return new Post(boardId, postCategoryId, userId, title, content);
+    }
+
+    public void delete() {
+        this.deleted = true;
+        this.updatedAt = LocalDateTime.now();
     }
 
     public void edit(String title, String content) {
