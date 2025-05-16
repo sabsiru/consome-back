@@ -47,4 +47,31 @@ class PostTest {
         assertThat(post.isAuthor(100L)).isTrue();
         assertThat(post.isAuthor(101L)).isFalse();
     }
+
+    @Test
+    public void 조회수_증가_성공() throws Exception{
+        //given
+        Post post = Post.create(1L, 2L, 3L, "제목", "본문");
+        //when
+        post.increaseView();
+        //then
+        assertThat(post.getViewCount()).isEqualTo(1);
+
+        post.increaseView();
+
+        assertThat(post.getViewCount()).isEqualTo(2);
+
+    }
+
+    @Test
+    void 게시글_삭제_성공_tester() {
+        // given
+        Post post = Post.create(1L, 2L, 3L, "제목", "본문");
+
+        // when
+        post.delete();
+
+        // then
+        assertThat(post.isDeleted()).isTrue();
+    }
 }
