@@ -31,6 +31,9 @@ public class Post {
     private String content;
 
     @Column(nullable = false)
+    private int viewCount = 0;
+
+    @Column(nullable = false)
     private LocalDateTime createdAt;
 
     @Column(nullable = false)
@@ -51,6 +54,11 @@ public class Post {
 
     public static Post create(Long boardId, Long postCategoryId, Long userId, String title, String content) {
         return new Post(boardId, postCategoryId, userId, title, content);
+    }
+
+    public void increaseView() {
+        this.viewCount += 1;
+        this.updatedAt = LocalDateTime.now();
     }
 
     public void delete() {
