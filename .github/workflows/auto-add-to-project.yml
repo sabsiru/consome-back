@@ -8,7 +8,7 @@ jobs:
   add-to-project:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/add-to-project@v0.4.0
+      - uses: actions/add-to-project@v1
         with:
-          project-url: https://github.com/users/sabsiru/projects/6
+          project-id: PVT_kwHOBwtDt84A5GmN
           github-token: ${{ secrets.GITHUB_TOKEN }}

@@ -1,0 +1,85 @@
+@startuml
+package "user" {
+  class User {
+    +Long id
+    +String loginId
+    +String nickname
+    +String password
+    +LocalDateTime createdAt
+    +LocalDateTime updatedAt
+
+    +changeNickname(String): void
+    +changePassword(String): void
+  }
+
+  class UserPoint {
+    +Long id
+    +Long userId
+    +int point
+    +LocalDateTime updatedAt
+
+    +increase(int amount): void
+    +decrease(int amount): void
+    +getPoint(): int
+  }
+
+ class PointHistory {
+  +Long id
+  +Long userId
+  +int amount
+  +PointHistoryType type
+  +String reason
+  +int pointAfter
+  +LocalDateTime createdAt
+
+  +static gain(Long, int, String, int): PointHistory
+  +static spend(Long, int, String, int): PointHistory
+  +static penalty(Long, int, String, int): PointHistory
+}
+
+  enum PointHistoryType {
+    GAIN
+    SPEND
+    PENALTY
+  }
+}
+
+package "post" {
+  class Post {
+    +Long id
+    +Long boardId
+    +Long postCategoryId
+    +Long userId
+    +String title
+    +String content
+    +LocalDateTime createdAt
+    +LocalDateTime updatedAt
+
+    +edit(String title, String content): void
+    +isAuthor(Long userId): boolean
+  }
+}
+
+package "comment" {
+  class Comment {
+    +Long id
+    +Long postId
+    +Long userId
+    +Long parentId
+    +String groupPath
+    +String content
+    +LocalDateTime createdAt
+    +LocalDateTime updatedAt
+
+    +isRoot(): boolean
+  }
+}
+
+' 관계
+User --> UserPoint
+User --> PointHistory
+User --> Post
+User --> Comment
+Post --> Comment
+Comment --> Comment : replies_to
+@enduml
