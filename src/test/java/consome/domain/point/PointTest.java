@@ -7,7 +7,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
 @ExtendWith(MockitoExtension.class)
-class UserPointTest {
+class PointTest {
 
     @Test
     void 유저포인트_초기화_성공_tester() {
@@ -15,7 +15,7 @@ class UserPointTest {
         Long userId = 1L;
 
         // when
-        UserPoint point = UserPoint.initialize(userId);
+        Point point = Point.initialize(userId);
 
         // then
         assertThat(point.getUserId()).isEqualTo(userId);
@@ -26,10 +26,10 @@ class UserPointTest {
     @Test
     void 포인트_증가_성공_tester() {
         // given
-        UserPoint point = UserPoint.initialize(1L);
+        Point point = Point.initialize(1L);
 
         // when
-        point.increase(50);
+        point.earn(50);
 
         // then
         assertThat(point.getPoint()).isEqualTo(50);
@@ -38,11 +38,11 @@ class UserPointTest {
     @Test
     void 포인트_감소_성공_tester() {
         // given
-        UserPoint point = UserPoint.initialize(1L);
-        point.increase(100);
+        Point point = Point.initialize(1L);
+        point.earn(100);
 
         // when
-        point.decrease(30);
+        point.penalize(30);
 
         // then
         assertThat(point.getPoint()).isEqualTo(70);
