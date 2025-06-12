@@ -17,26 +17,20 @@ class PointHistoryTest {
         int pointAfter = 80;
 
         // when
-        PointHistory history = PointHistory.gain(userId, amount, reason, pointAfter);
+        PointHistory history = PointHistory.earn(userId, amount, reason, pointAfter);
 
         // then
         assertThat(history.getUserId()).isEqualTo(userId);
         assertThat(history.getAmount()).isEqualTo(amount);
-        assertThat(history.getType()).isEqualTo(PointHistoryType.GAIN);
+        assertThat(history.getType()).isEqualTo(PointHistoryType.EARN);
         assertThat(history.getReason()).isEqualTo(reason);
-        assertThat(history.getPointAfter()).isEqualTo(pointAfter);
+        assertThat(history.getCurrentPoint()).isEqualTo(pointAfter);
         assertThat(history.getCreatedAt()).isNotNull();
     }
 
     @Test
-    void 포인트_사용_기록_생성_tester() {
-        PointHistory history = PointHistory.spend(2L, 20, "댓글 작성", 40);
-        assertThat(history.getType()).isEqualTo(PointHistoryType.SPEND);
-    }
-
-    @Test
     void 포인트_벌점_기록_생성_tester() {
-        PointHistory history = PointHistory.penalty(3L, 10, "비추천 누적", 15);
-        assertThat(history.getType()).isEqualTo(PointHistoryType.PENALTY);
+        PointHistory history = PointHistory.penalize(3L, 10, "비추천 누적", 15);
+        assertThat(history.getType()).isEqualTo(PointHistoryType.PENALIZE);
     }
 }

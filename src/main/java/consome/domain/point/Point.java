@@ -10,7 +10,7 @@ import java.time.LocalDateTime;
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class UserPoint {
+public class Point {
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -24,22 +24,28 @@ public class UserPoint {
     @Column(nullable = false)
     private LocalDateTime updatedAt;
 
-    private UserPoint(Long userId) {
+    private Point(Long userId) {
         this.userId = userId;
-        this.point = 0;
+        this.point = 100;
         this.updatedAt = LocalDateTime.now();
     }
 
-    public static UserPoint initialize(Long userId) {
-        return new UserPoint(userId);
+    public static Point initialize(Long userId) {
+        return new Point(userId);
     }
 
-    public void increase(int amount) {
+    public void earn(int amount) {
+        if (amount < 0) {
+            throw new IllegalArgumentException("적립할 포인트는 0 이상이어야 합니다.");
+        }
         this.point += amount;
         this.updatedAt = LocalDateTime.now();
     }
 
-    public void decrease(int amount) {
+    public void penalize(int amount) {
+        if (amount < 0) {
+            throw new IllegalArgumentException("차감할 포인트는 0 이상이어야 합니다.");
+        }
         this.point -= amount;
         this.updatedAt = LocalDateTime.now();
     }
