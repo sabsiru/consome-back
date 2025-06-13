@@ -7,25 +7,29 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class PointService {
 
-    private final UserPointRepository userPointRepository;
+    private final PointRepository pointRepository;
+    private final PointHistoryRepository pointHistoryRepository;
 
     public int initialize(Long userId) {
         Point point = Point.initialize(userId);
-        Point initializedPoint = userPointRepository.save(point);
+        Point initializedPoint = pointRepository.save(point);
+        pointHistoryRepository.save(PointHistory.create(userId, initializedPoint.getPoint(), PointHistoryType.SIGNUP, 0, initializedPoint.getPoint()));
         return initializedPoint.getPoint();
     }
 
-    public int earn(Long userId, int amount) {
+    public int earn(Long userId, int amount, PointHistoryType pointHistoryType) {
         Point point = findPointByUserId(userId);
         point.earn(amount);
-        Point earnPoint = userPointRepository.save(point);
+        Point earnPoint = pointRepository.save(point);
+        pointHistoryRepository.save(PointHistory.create(userId, amount, pointHistoryType, point.getPoint(), earnPoint.getPoint()));
         return earnPoint.getPoint();
     }
 
-    public int penalize(Long userId, int amount) {
+    public int penalize(Long userId, int amount, PointHistoryType pointHistoryType) {
         Point point = findPointByUserId(userId);
         point.penalize(amount);
-        Point penalizedPoint = userPointRepository.save(point);
+        Point penalizedPoint = pointRepository.save(point);
+        pointHistoryRepository.save(PointHistory.create(userId, amount, pointHistoryType, point.getPoint(), penalizedPoint.getPoint()));
         return penalizedPoint.getPoint();
     }
 
@@ -34,7 +38,7 @@ public class PointService {
     }
 
     public Point findPointByUserId(Long userId) {
-        return userPointRepository.findByUserId(userId)
+        return pointRepository.findByUserId(userId)
                 .orElseThrow(() -> new IllegalStateException("사용자를 찾을 수 없습니다."));
     }
 }

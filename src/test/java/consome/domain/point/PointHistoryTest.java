@@ -4,33 +4,33 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import java.time.LocalDateTime;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 @ExtendWith(MockitoExtension.class)
 class PointHistoryTest {
+
+
     @Test
-    void 포인트_획득_기록_생성_tester() {
+    public void 회원가입_히스토리_저장_확인() throws Exception{
         // given
         Long userId = 1L;
-        int amount = 30;
-        String reason = "게시글 작성";
-        int pointAfter = 80;
+        int amount = 100;
+        PointHistoryType type = PointHistoryType.SIGNUP;
+        int beforePoint = 0;
+        int afterPoint = 100;
 
         // when
-        PointHistory history = PointHistory.earn(userId, amount, reason, pointAfter);
+        PointHistory pointHistory = PointHistory.create(userId,amount, type,beforePoint ,afterPoint);
 
         // then
-        assertThat(history.getUserId()).isEqualTo(userId);
-        assertThat(history.getAmount()).isEqualTo(amount);
-        assertThat(history.getType()).isEqualTo(PointHistoryType.EARN);
-        assertThat(history.getReason()).isEqualTo(reason);
-        assertThat(history.getCurrentPoint()).isEqualTo(pointAfter);
-        assertThat(history.getCreatedAt()).isNotNull();
+        assertThat(pointHistory.getUserId()).isEqualTo(userId);
+        assertThat(pointHistory.getAmount()).isEqualTo(amount);
+        assertThat(pointHistory.getType()).isEqualTo(type);
+        assertThat(pointHistory.getDescription()).isEqualTo(type.getDescription());
+        assertThat(pointHistory.getAfterPoint()).isEqualTo(afterPoint);
+        assertThat(pointHistory.getCreatedAt()).isBeforeOrEqualTo(LocalDateTime.now());
     }
 
-    @Test
-    void 포인트_벌점_기록_생성_tester() {
-        PointHistory history = PointHistory.penalize(3L, 10, "비추천 누적", 15);
-        assertThat(history.getType()).isEqualTo(PointHistoryType.PENALIZE);
-    }
 }
