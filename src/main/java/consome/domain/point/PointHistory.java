@@ -27,29 +27,29 @@ public class PointHistory {
     private PointHistoryType type;
 
     @Column(nullable = false)
-    private String reason;
+    private String description;
 
     @Column(nullable = false)
-    private int currentPoint;
+    private int beforePoint;
+
+    @Column(nullable = false)
+    private int afterPoint;
 
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
-    private PointHistory(Long userId, int amount, PointHistoryType type, String reason, int currentPoint) {
+    private PointHistory(Long userId, int amount, PointHistoryType type, int beforePoint, int afterPoint) {
         this.userId = userId;
         this.amount = amount;
         this.type = type;
-        this.reason = reason;
-        this.currentPoint = currentPoint;
+        this.description = type.getDescription();
+        this.beforePoint = beforePoint;
+        this.afterPoint = afterPoint;
         this.createdAt = LocalDateTime.now();
     }
 
-    public static PointHistory earn(Long userId, int amount, String reason, int currentPoint) {
-        return new PointHistory(userId, amount, PointHistoryType.EARN, reason, currentPoint);
-    }
-
-    public static PointHistory penalize(Long userId, int amount, String reason, int currentPoint) {
-        return new PointHistory(userId, amount, PointHistoryType.PENALIZE, reason, currentPoint);
+    public static PointHistory create(Long userId, int amount, PointHistoryType type, int beforePoint, int afterPoint) {
+        return new PointHistory(userId, amount, type, beforePoint, afterPoint);
     }
 
 }
