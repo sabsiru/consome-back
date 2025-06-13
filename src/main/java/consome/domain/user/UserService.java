@@ -11,8 +11,8 @@ public class UserService {
     private final UserRepository userRepository;
 
     @Transactional
-    public User create(String nickname, String loginId, String password) {
-        User user = User.create(nickname, loginId, password);
+    public User create(String loginId, String nickname, String password) {
+        User user = User.create(loginId, nickname, password);
         return userRepository.save(user);
     }
 
