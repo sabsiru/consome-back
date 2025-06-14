@@ -42,7 +42,7 @@ class UserFacadeIntegrationTest {
     @Test
     void 회원가입_요청시_사용자가_생성되고_포인트가_초기화되며_히스토리가_생성된다() {
         // when
-        Long userId = userFacade.create(userCommand);
+        Long userId = userFacade.register(userCommand);
         int initialPoint = 100;
         int beforePoint = 0;
         int afterPoint = beforePoint+initialPoint;

@@ -4,7 +4,6 @@ import consome.domain.point.PointService;
 import consome.domain.user.User;
 import consome.domain.user.UserService;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -44,16 +43,16 @@ class UserFacadeTest {
     @Test
     void 회원가입시_userService_pointService_호출하고_userId를_반환한다() {
         // given
-        when(userService.create(anyString(), anyString(), anyString())).thenReturn(mockUser);
+        when(userService.register(anyString(), anyString(), anyString())).thenReturn(mockUser);
         when(pointService.initialize(anyLong())).thenReturn(100);
 
         // when
-        Long userId = userFacade.create(userCommand);
+        Long userId = userFacade.register(userCommand);
 
         // then
         assertThat(userId).isEqualTo(1L);
 
-        verify(userService).create(
+        verify(userService).register(
                 userCommand.getNickname(),
                 userCommand.getLoginId(),
                 userCommand.getPassword()
