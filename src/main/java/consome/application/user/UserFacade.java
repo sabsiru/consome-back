@@ -14,8 +14,8 @@ public class UserFacade {
     private final UserService userService;
     private final PointService pointService;
 
-    public Long create(UserCommand command) {
-        User user = userService.create(command.getLoginId(), command.getNickname(), command.getPassword());
+    public Long register(UserCommand command) {
+        User user = userService.register(command.getLoginId(), command.getNickname(), command.getPassword());
         pointService.initialize(user.getId());
         return user.getId();
     }
