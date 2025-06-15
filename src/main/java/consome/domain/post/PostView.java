@@ -22,8 +22,24 @@ public class PostView {
     private Long postId;
 
     @Column(nullable = false)
+    private String userIp;
+
     private Long userId;
 
     @Column(nullable = false)
     private LocalDateTime lastViewedAt;
+
+    private PostView(Long postId, String userIp, Long userId) {
+        this.postId = postId;
+        this.userIp = userIp;
+        this.userId = userId;
+        this.lastViewedAt = LocalDateTime.now();
+    }
+
+    public static PostView create(Long postId, String userIp, Long userId) {
+        Long resolvedUserId = (userId == null) ? 0L : userId;
+        return new PostView(postId, userIp, resolvedUserId);
+    }
+
+
 }
