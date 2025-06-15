@@ -19,12 +19,12 @@ class PostTest {
         String content = "내용입니다";
 
         // when
-        Post post = Post.create(boardId, categoryId, userId, title, content);
+        Post post = Post.write(boardId, categoryId, userId, title, content);
 
         // then
         assertThat(post.getBoardId()).isEqualTo(boardId);
-        assertThat(post.getPostCategoryId()).isEqualTo(categoryId);
-        assertThat(post.getUserId()).isEqualTo(userId);
+        assertThat(post.getCategoryId()).isEqualTo(categoryId);
+        assertThat(post.getAuthorId()).isEqualTo(userId);
         assertThat(post.getTitle()).isEqualTo(title);
         assertThat(post.getContent()).isEqualTo(content);
         assertThat(post.getCreatedAt()).isNotNull();
@@ -33,7 +33,7 @@ class PostTest {
 
     @Test
     void 게시글_수정_성공_tester() {
-        Post post = Post.create(1L, 2L, 3L, "제목", "본문");
+        Post post = Post.write(1L, 2L, 3L, "제목", "본문");
         post.edit("수정된 제목", "수정된 내용");
 
         assertThat(post.getTitle()).isEqualTo("수정된 제목");
@@ -42,7 +42,7 @@ class PostTest {
 
     @Test
     void 작성자_확인_성공_tester() {
-        Post post = Post.create(1L, 2L, 100L, "제목", "내용");
+        Post post = Post.write(1L, 2L, 100L, "제목", "내용");
 
         assertThat(post.isAuthor(100L)).isTrue();
         assertThat(post.isAuthor(101L)).isFalse();
@@ -51,7 +51,7 @@ class PostTest {
     @Test
     void 게시글_삭제_성공_tester() {
         // given
-        Post post = Post.create(1L, 2L, 3L, "제목", "본문");
+        Post post = Post.write(1L, 2L, 3L, "제목", "본문");
 
         // when
         post.delete();
