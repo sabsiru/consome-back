@@ -30,4 +30,39 @@ public class PostStat {
     @Column(nullable = false)
     private int commentCount = 0;
 
+    public static PostStat init(Post post) {
+        PostStat postStat = new PostStat();
+        postStat.post = post;
+        postStat.postId = post.getId();
+        return postStat;
+    }
+
+    public void increaseViewCount() {
+        this.viewCount++;
+    }
+
+    public void increaseLikeCount() {
+        this.likeCount++;
+    }
+
+    public void decreaseLikeCount() {
+        if (this.likeCount > 0) this.likeCount--;
+    }
+
+    public void increaseDislikeCount() {
+        this.dislikeCount++;
+    }
+
+    public void decreaseDislikeCount() {
+        if (this.dislikeCount > 0) this.dislikeCount--;
+    }
+
+    public void increaseCommentCount() {
+        this.commentCount++;
+    }
+
+    public void decreaseCommentCount() {
+        if (this.commentCount > 0) this.commentCount--;
+    }
+
 }

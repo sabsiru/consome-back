@@ -6,23 +6,25 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.Collection;
 
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Post {
 
-    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @Column(nullable = false)
     private Long boardId;
 
     @Column(nullable = false)
-    private Long postCategoryId;
+    private Long categoryId;
 
     @Column(nullable = false)
-    private Long userId;
+    private Long authorId; // userId
 
     @Column(nullable = false)
     private String title;
@@ -39,18 +41,18 @@ public class Post {
     @Column(nullable = false)
     private boolean deleted = false;
 
-    private Post(Long boardId, Long postCategoryId, Long userId, String title, String content) {
+    private Post(Long boardId, Long categoryId, Long authorId, String title, String content) {
         this.boardId = boardId;
-        this.postCategoryId = postCategoryId;
-        this.userId = userId;
+        this.categoryId = categoryId;
+        this.authorId = authorId;
         this.title = title;
         this.content = content;
         this.createdAt = LocalDateTime.now();
         this.updatedAt = LocalDateTime.now();
     }
 
-    public static Post create(Long boardId, Long postCategoryId, Long userId, String title, String content) {
-        return new Post(boardId, postCategoryId, userId, title, content);
+    public static Post write(Long boardId, Long categoryId, Long authorId, String title, String content) {
+        return new Post(boardId, categoryId, authorId, title, content);
     }
 
 
@@ -66,6 +68,6 @@ public class Post {
     }
 
     public boolean isAuthor(Long userId) {
-        return this.userId.equals(userId);
+        return this.authorId.equals(userId);
     }
 }
