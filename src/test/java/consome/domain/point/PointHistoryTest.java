@@ -17,7 +17,7 @@ class PointHistoryTest {
         // given
         Long userId = 1L;
         int amount = 100;
-        PointHistoryType type = PointHistoryType.SIGNUP;
+        PointHistoryType type = PointHistoryType.REGISTER;
         int beforePoint = 0;
         int afterPoint = 100;
 

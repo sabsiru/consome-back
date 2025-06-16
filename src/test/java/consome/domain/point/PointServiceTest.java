@@ -46,7 +46,7 @@ class PointServiceTest {
         int earnAmount = 100;
         PointHistoryType pointHistoryType = PointHistoryType.POST_WRITE;
         // when
-        int resultPoint = pointService.earn(userId, earnAmount, pointHistoryType);
+        int resultPoint = pointService.earn(userId, pointHistoryType);
 
         // then
         assertThat(resultPoint).isEqualTo(initialPoint + earnAmount);
@@ -61,7 +61,7 @@ class PointServiceTest {
         when(pointRepository.findByUserId(userId)).thenReturn(Optional.empty());
 
         // when & then
-        assertThatThrownBy(() -> pointService.earn(userId, 100,PointHistoryType.POST_WRITE))
+        assertThatThrownBy(() -> pointService.earn(userId,PointHistoryType.POST_WRITE))
                 .isInstanceOf(IllegalStateException.class)
                 .hasMessage("사용자를 찾을 수 없습니다.");
 
@@ -80,7 +80,7 @@ class PointServiceTest {
         int penalizeAmount = 50;
         PointHistoryType pointHistoryType = PointHistoryType.POST_WRITE;
         // when
-        int resultPoint = pointService.penalize(userId, penalizeAmount, pointHistoryType);
+        int resultPoint = pointService.penalize(userId, pointHistoryType);
 
         // then
         assertThat(resultPoint).isEqualTo(100 - penalizeAmount);
@@ -95,7 +95,7 @@ class PointServiceTest {
         when(pointRepository.findByUserId(userId)).thenReturn(Optional.empty());
 
         // when & then
-        assertThatThrownBy(() -> pointService.penalize(userId, 50, PointHistoryType.POST_WRITE))
+        assertThatThrownBy(() -> pointService.penalize(userId, PointHistoryType.POST_WRITE))
                 .isInstanceOf(IllegalStateException.class)
                 .hasMessage("사용자를 찾을 수 없습니다.");
 
