@@ -282,4 +282,135 @@ class PostServiceIntegrationTest {
         List<PostLike> likes = likeRepository.findByPostIdAndType(post.getId(), LikeType.LIKE);
         assertThat(likes).hasSize(userCount);
     }
+
+    @Test
+    void 게시글_수정_성공() {
+        // given
+        Long boardId = 1L;
+        Long categoryId = 2L;
+        String title = "수정 전 제목";
+        String content = "수정 전 내용";
+        Long authorId = 100L;
+
+        Post post = Post.write(boardId, categoryId, authorId, title, content);
+        postService.write(post);
+
+        String newTitle = "수정된 제목";
+        String newContent = "수정된 내용";
+
+        // when
+        postService.edit(newTitle, newContent, post.getId(),100L);
+
+        // then
+        Post updatedPost = postRepository.findById(post.getId()).orElseThrow();
+        assertThat(updatedPost.getTitle()).isEqualTo(newTitle);
+        assertThat(updatedPost.getContent()).isEqualTo(newContent);
+    }
+
+    // 게시글 수정시 작성자와 현재 사용자가 일치하지 않으면 예외 발생
+    @Test
+    void 게시글_수정_작성자_불일치시_예외발생() {
+        // given
+        Long boardId = 1L;
+        Long categoryId = 2L;
+        String title = "수정 전 제목";
+        String content = "수정 전 내용";
+        Long authorId = 100L;
+
+        Post post = Post.write(boardId, categoryId, authorId, title, content);
+        postService.write(post);
+
+        String newTitle = "수정된 제목";
+        String newContent = "수정된 내용";
+
+        // when/then
+        assertThatThrownBy(() -> postService.edit(newTitle, newContent, post.getId(), 101L))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessage("작성자만 게시글을 수정할 수 있습니다.");
+    }
+
+    // delete
+    @Test
+    void 게시글_삭제_성공() {
+        // given
+        Long boardId = 1L;
+        Long categoryId = 2L;
+        String title = "삭제 테스트 제목";
+        String content = "삭제 테스트 내용";
+        Long authorId = 100L;
+
+        Post post = Post.write(boardId, categoryId, authorId, title, content);
+        postService.write(post);
+
+        // when
+        postService.delete(post.getId(), 100L);
+
+        // then
+        Optional<Post> deletedPost = postRepository.findByPostIdAndDeletedFalse(post.getId());
+        assertThat(deletedPost.isEmpty()).isTrue();
+    }
+
+    // delete 시 작성자와 현재 사용자가 일치하지 않으면 예외 발생
+    @Test
+    void 게시글_삭제_작성자_불일치시_예외발생() {
+        // given
+        Long boardId = 1L;
+        Long categoryId = 2L;
+        String title = "삭제 테스트 제목";
+        String content = "삭제 테스트 내용";
+        Long authorId = 100L;
+
+        Post post = Post.write(boardId, categoryId, authorId, title, content);
+        postService.write(post);
+
+        // when/then
+        assertThatThrownBy(() -> postService.delete(post.getId(), 101L))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessage("작성자만 게시글을 삭제할 수 있습니다.");
+    }
+
+    // increase view count test
+    @Test
+    void 게시글_조회수_증가_성공() {
+        // given
+        Long boardId = 1L;
+        Long categoryId = 2L;
+        String title = "조회수 증가 테스트";
+        String content = "테스트 내용";
+        Long authorId = 100L;
+        Long userId = null;
+        String userIp = "123.123.123.123";
+        Post post = Post.write(boardId, categoryId, authorId, title, content);
+        postService.write(post);
+
+        // when
+        postService.increaseViewCount(post.getId(), userId, userIp);
+
+        // then
+        PostStat stat = statRepository.findById(post.getId()).orElseThrow();
+        assertThat(stat.getViewCount()).isEqualTo(1);
+    }
+
+    // 중복 아이피로 2회 조회시 증가 x
+    @Test
+    void 중복_IP로_조회수_증가_방지() {
+        // given
+        Long boardId = 1L;
+        Long categoryId = 2L;
+        String title = "중복 IP 조회수 증가 방지 테스트";
+        String content = "테스트 내용";
+        Long authorId = 100L;
+        Long userId = null;
+        String userIp = "123.123.123.123";
+        Post post = Post.write(boardId, categoryId, authorId, title, content);
+        postService.write(post);
+
+        // when
+        postService.increaseViewCount(post.getId(), userId, userIp);
+        postService.increaseViewCount(post.getId(), userId, userIp);
+
+        // then
+        PostStat stat = statRepository.findById(post.getId()).orElseThrow();
+        assertThat(stat.getViewCount()).isEqualTo(1);
+    }
 }
