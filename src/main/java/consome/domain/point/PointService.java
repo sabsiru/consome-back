@@ -13,23 +13,23 @@ public class PointService {
     public int initialize(Long userId) {
         Point point = Point.initialize(userId);
         Point initializedPoint = pointRepository.save(point);
-        pointHistoryRepository.save(PointHistory.create(userId, initializedPoint.getPoint(), PointHistoryType.SIGNUP, 0, initializedPoint.getPoint()));
+        pointHistoryRepository.save(PointHistory.create(userId, initializedPoint.getPoint(), PointHistoryType.REGISTER, 0, initializedPoint.getPoint()));
         return initializedPoint.getPoint();
     }
 
-    public int earn(Long userId, int amount, PointHistoryType pointHistoryType) {
+    public int earn(Long userId, PointHistoryType pointHistoryType) {
         Point point = findPointByUserId(userId);
-        point.earn(amount);
+        point.earn(pointHistoryType.getPoint());
         Point earnPoint = pointRepository.save(point);
-        pointHistoryRepository.save(PointHistory.create(userId, amount, pointHistoryType, point.getPoint(), earnPoint.getPoint()));
+        pointHistoryRepository.save(PointHistory.create(userId, pointHistoryType.getPoint(), pointHistoryType, point.getPoint(), earnPoint.getPoint()));
         return earnPoint.getPoint();
     }
 
-    public int penalize(Long userId, int amount, PointHistoryType pointHistoryType) {
+    public int penalize(Long userId, PointHistoryType pointHistoryType) {
         Point point = findPointByUserId(userId);
-        point.penalize(amount);
+        point.penalize(pointHistoryType.getPoint());
         Point penalizedPoint = pointRepository.save(point);
-        pointHistoryRepository.save(PointHistory.create(userId, amount, pointHistoryType, point.getPoint(), penalizedPoint.getPoint()));
+        pointHistoryRepository.save(PointHistory.create(userId, pointHistoryType.getPoint(), pointHistoryType, point.getPoint(), penalizedPoint.getPoint()));
         return penalizedPoint.getPoint();
     }
 
