@@ -23,6 +23,7 @@ class UserTest {
         assertThat(user.getLoginId()).isEqualTo(loginId);
         assertThat(user.getNickname()).isEqualTo(nickname);
         assertThat(user.getPassword()).isEqualTo(password);
+        assertThat(user.getRole()).isEqualTo(Role.USER);
 
     }
     @Test
