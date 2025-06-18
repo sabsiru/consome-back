@@ -2,6 +2,8 @@ package consome.application.user;
 
 import consome.domain.point.*;
 import consome.domain.post.Post;
+import consome.domain.post.PostService;
+import consome.domain.post.PostStat;
 import consome.domain.user.User;
 import consome.domain.user.UserRepository;
 import org.assertj.core.api.Assert;
@@ -24,6 +26,9 @@ class UserFacadeIntegrationTest {
 
     @Autowired
     private UserFacade userFacade;
+
+    @Autowired
+    private PostService postService;
 
     @Autowired
     private UserRepository userRepository;
@@ -87,7 +92,7 @@ class UserFacadeIntegrationTest {
         UserCommand duplicateUserCommand = UserCommand.of("다른아이디", "테스트닉네임", "다른비밀번호");
 
         //then
-        assertThatThrownBy(() ->userFacade.register(duplicateUserCommand))
+        assertThatThrownBy(() -> userFacade.register(duplicateUserCommand))
                 .isInstanceOf(IllegalStateException.class)
                 .hasMessage("이미 사용 중인 닉네임입니다.");
 
@@ -260,5 +265,62 @@ class UserFacadeIntegrationTest {
         assertThatThrownBy(() -> userFacade.delete(post.getId(), otherUser))
                 .isInstanceOf(IllegalStateException.class)
                 .hasMessage("작성자만 게시글을 삭제할 수 있습니다.");
+    }
+
+    @Test
+    void 게시글_조회수_증가_확인() {
+        // given
+        Long authorId = userFacade.register(userCommand);
+        long boardId = 1L;
+        long categoryId = 1L;
+        Post post = Post.write(boardId, categoryId, authorId, "테스트 제목", "테스트 내용");
+        Post savedPost = userFacade.write(post);
+        String userIp = "127.0.0.1";
+
+        // when
+        userFacade.increaseViewCount(savedPost.getId(), authorId, userIp);
+
+        // then
+        PostStat postStat = postService.getPostStat(savedPost.getId());
+        assertThat(postStat.getViewCount()).isEqualTo(1);
+    }
+
+    @Test
+    void 같은Ip나_같은Id일_경우_조회수가_증가하지_않음() {
+        //given
+        Long authorId = userFacade.register(userCommand);
+        long boardId = 1L;
+        long categoryId = 1L;
+        Post post = Post.write(boardId, categoryId, authorId, "테스트 제목", "테스트 내용");
+        Post savedPost = userFacade.write(post);
+        String userIp = "127.0.0.1";
+        String otherIp = "127.0.0.2";
+
+        //when
+        userFacade.increaseViewCount(savedPost.getId(), authorId, userIp);
+        userFacade.increaseViewCount(savedPost.getId(), 2L, userIp);
+        userFacade.increaseViewCount(savedPost.getId(), authorId, otherIp);
+
+        //then
+        assertThat(postService.getPostStat(savedPost.getId()).getViewCount()).isEqualTo(1);
+    }
+
+    @Test
+    void 다른_Ip와_다른Id일_경우_조회수_증가() {
+        //given
+        Long authorId = userFacade.register(userCommand);
+        long boardId = 1L;
+        long categoryId = 1L;
+        Post post = Post.write(boardId, categoryId, authorId, "테스트 제목", "테스트 내용");
+        Post savedPost = userFacade.write(post);
+        String userIp = "127.0.0.1";
+        String otherIp = "127.0.0.2";
+
+        //when
+        userFacade.increaseViewCount(savedPost.getId(), authorId, userIp);
+        userFacade.increaseViewCount(savedPost.getId(), 2L, otherIp);
+
+        //then
+        assertThat(postService.getPostStat(savedPost.getId()).getViewCount()).isEqualTo(2);
     }
 }
