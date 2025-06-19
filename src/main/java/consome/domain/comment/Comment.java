@@ -12,7 +12,8 @@ import java.time.LocalDateTime;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Comment {
 
-    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @Column(nullable = false)
@@ -25,7 +26,13 @@ public class Comment {
     private Long parentId;
 
     @Column(nullable = false)
-    private String groupPath;
+    private int ref = 0;
+
+    @Column(nullable = false)
+    private int step = 0;
+
+    @Column(nullable = false)
+    private int depth = 0;
 
     @Column(nullable = false, columnDefinition = "TEXT")
     private String content;
@@ -33,24 +40,32 @@ public class Comment {
     @Column(nullable = false)
     private LocalDateTime createdAt;
 
-    @Column(nullable = false)
     private LocalDateTime updatedAt;
 
     @Column(nullable = false)
     private boolean deleted = false;
 
-    private Comment(Long postId, Long userId, Long parentId, String groupPath, String content) {
+    public Comment(Long postId, Long userId, Long parentId,
+                   int ref, int step, int depth, String content) {
         this.postId = postId;
         this.userId = userId;
         this.parentId = parentId;
-        this.groupPath = groupPath;
+        this.ref = ref;
+        this.step = step;
+        this.depth = depth;
         this.content = content;
         this.createdAt = LocalDateTime.now();
-        this.updatedAt = LocalDateTime.now();
     }
 
-    public static Comment create(Long postId, Long userId, Long parentId, String groupPath, String content) {
-        return new Comment(postId, userId, parentId, groupPath, content);
+    public static Comment reply(Long postId, Long userId, Comment parent, String content) {
+        if (parent == null) {
+            // 일반 댓글 생성
+            return new Comment(postId, userId, null, 0, 0, 0, content);
+        } else {
+            // 대댓글 생성
+            return new Comment(postId, userId, parent.getId(), parent.getRef(),
+                    parent.getStep() + 1, parent.getDepth() + 1, content);
+        }
     }
 
     public void delete() {
@@ -58,7 +73,4 @@ public class Comment {
         this.updatedAt = LocalDateTime.now();
     }
 
-    public boolean isRoot() {
-        return this.parentId == null;
-    }
 }
