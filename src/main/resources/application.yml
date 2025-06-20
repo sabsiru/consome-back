@@ -8,9 +8,9 @@ spring:
       ddl-auto: create
     properties:
       hibernate:
-        format_sql: true
+        format_sql: false
     open-in-view: false
 
 logging:
-  level:
-    org.hibernate.SQL: debug
+  #level:
+    #org.hibernate.SQL: debug

@@ -57,14 +57,19 @@ public class Comment {
         this.createdAt = LocalDateTime.now();
     }
 
-    public static Comment reply(Long postId, Long userId, Comment parent, String content) {
+    @PostPersist
+    public void setRefAfterPersist() {
+        if (this.parentId == null) {
+            this.ref = this.id.intValue();
+        }
+    }
+
+    public static Comment reply(Long postId, Long userId, Comment parent, String content, int step) {
         if (parent == null) {
-            // 일반 댓글 생성
-            return new Comment(postId, userId, null, 0, 0, 0, content);
+            return new Comment(postId, userId, null, 0, step, 0, content);
         } else {
-            // 대댓글 생성
             return new Comment(postId, userId, parent.getId(), parent.getRef(),
-                    parent.getStep() + 1, parent.getDepth() + 1, content);
+                    step + 1, parent.getDepth() + 1, content);
         }
     }
 
@@ -72,5 +77,6 @@ public class Comment {
         this.deleted = true;
         this.updatedAt = LocalDateTime.now();
     }
+
 
 }
