@@ -1,5 +1,5 @@
 package consome.domain.post;
 
-public enum LikeType {
+public enum ReactionType {
     LIKE, DISLIKE
 }
