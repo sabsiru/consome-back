@@ -1,19 +1,22 @@
 package consome.domain.comment;
 
+import consome.domain.post.ReactionType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
 public class CommentService {
 
     private final CommentRepository commentRepository;
+    private final CommentReactionRepository commentReactionRepository;
 
     @Transactional
-    public Comment write(Long postId, Long userId, Long parentId, String content) {
+    public Comment reply(Long postId, Long userId, Long parentId, String content) {
 
         if (parentId == null) {
             Comment comment = Comment.reply(postId, userId, null, content, 0);
@@ -55,4 +58,44 @@ public class CommentService {
         comment.delete();
         commentRepository.save(comment);
     }
+
+    @Transactional
+    public CommentReaction like(Long commentId, Long userId) {
+        ReactionType reactionType = reaction(commentId, userId);
+        if (reactionType == null) {
+            CommentReaction reaction = CommentReaction.like(commentId, userId);
+            return commentReactionRepository.save(reaction);
+        } else if (reactionType == ReactionType.LIKE) {
+            throw new IllegalStateException("이미 좋아요를 눌렀습니다.");
+        } else {
+            commentReactionRepository.deleteByCommentIdAndUserId(commentId, userId);
+            CommentReaction reaction = CommentReaction.like(commentId, userId);
+            return commentReactionRepository.save(reaction);
+        }
+    }
+
+    @Transactional
+    public CommentReaction dislike(Long commentId, Long userId) {
+        ReactionType reactionType = reaction(commentId, userId);
+        if (reactionType == null) {
+            CommentReaction reaction = CommentReaction.dislike(commentId, userId);
+            return commentReactionRepository.save(reaction);
+        } else if (reactionType == ReactionType.DISLIKE) {
+            throw new IllegalStateException("이미 싫어요를 눌렀습니다.");
+        } else {
+            commentReactionRepository.deleteByCommentIdAndUserId(commentId, userId);
+            CommentReaction reaction = CommentReaction.dislike(commentId, userId);
+            return commentReactionRepository.save(reaction);
+        }
+    }
+
+    @Transactional
+    public ReactionType reaction(Long commentId, Long userId) {
+        Optional<CommentReaction> byPostIdAndUserId = commentReactionRepository.findByCommentIdAndUserId(commentId, userId);
+        if (byPostIdAndUserId.isPresent()) {
+            return byPostIdAndUserId.get().getType();
+        }
+        return null;
+    }
+
 }
