@@ -28,7 +28,7 @@ class PostServiceIntegrationTest {
     private PostStatRepository statRepository;
 
     @Autowired
-    private PostLikeRepository likeRepository;
+    private PostReactionRepository likeRepository;
 
     @Test
     void 게시글_작성_성공() {
@@ -74,7 +74,7 @@ class PostServiceIntegrationTest {
         postService.like(post, userId);
 
         // then
-        List<PostLike> likes = likeRepository.findByPostIdAndType(post.getId(), LikeType.LIKE);
+        List<PostReaction> likes = likeRepository.findByPostIdAndType(post.getId(), ReactionType.LIKE);
         assertThat(likes).hasSize(1);
         assertThat(likes.get(0).getPostId()).isEqualTo(post.getId());
         assertThat(likes.get(0).getUserId()).isEqualTo(userId);
@@ -100,7 +100,7 @@ class PostServiceIntegrationTest {
         postService.dislike(post, userId);
 
         // then
-        List<PostLike> dislikes = likeRepository.findByPostIdAndType(post.getId(), LikeType.DISLIKE);
+        List<PostReaction> dislikes = likeRepository.findByPostIdAndType(post.getId(), ReactionType.DISLIKE);
         assertThat(dislikes).hasSize(1);
         assertThat(dislikes.get(0).getPostId()).isEqualTo(post.getId());
         assertThat(dislikes.get(0).getUserId()).isEqualTo(userId);
@@ -179,7 +179,7 @@ class PostServiceIntegrationTest {
         postService.cancelLike(post, userId);
 
         // then
-        Optional<PostLike> likeOpt = likeRepository.findByIdForUpdate(post.getId(), userId, LikeType.LIKE);
+        Optional<PostReaction> likeOpt = likeRepository.findByIdForUpdate(post.getId(), userId, ReactionType.LIKE);
         assertThat(likeOpt.isEmpty());
 
         PostStat afterStat = statRepository.findById(post.getId()).orElseThrow();
@@ -208,7 +208,7 @@ class PostServiceIntegrationTest {
         postService.cancelDislike(post, userId);
 
         // then
-        Optional<PostLike> dislikeOpt = likeRepository.findByIdForUpdate(post.getId(), userId, LikeType.DISLIKE);
+        Optional<PostReaction> dislikeOpt = likeRepository.findByIdForUpdate(post.getId(), userId, ReactionType.DISLIKE);
         assertThat(dislikeOpt.isEmpty());
 
         PostStat afterStat = statRepository.findById(post.getId()).orElseThrow();
@@ -279,7 +279,7 @@ class PostServiceIntegrationTest {
         PostStat finalStat = statRepository.findById(post.getId()).orElseThrow();
         assertThat(finalStat.getLikeCount()).isEqualTo(userCount);
 
-        List<PostLike> likes = likeRepository.findByPostIdAndType(post.getId(), LikeType.LIKE);
+        List<PostReaction> likes = likeRepository.findByPostIdAndType(post.getId(), ReactionType.LIKE);
         assertThat(likes).hasSize(userCount);
     }
 
