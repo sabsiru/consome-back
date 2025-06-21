@@ -1,4 +1,4 @@
-package consome.domain.comment;
+package consome.domain.post;
 
 import jakarta.persistence.*;
 import lombok.AccessLevel;
@@ -10,16 +10,21 @@ import java.time.LocalDateTime;
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class CommentLike {
+public class PostReaction {
 
-    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @Column(nullable = false)
-    private Long commentId;
+    private Long postId;
 
     @Column(nullable = false)
     private Long userId;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private ReactionType type;
 
     @Column(nullable = false)
     private boolean deleted = false;
@@ -27,18 +32,21 @@ public class CommentLike {
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
-    @Column(nullable = false)
     private LocalDateTime updatedAt;
 
-    private CommentLike(Long commentId, Long userId) {
-        this.commentId = commentId;
+    private PostReaction(Long postId, Long userId, ReactionType type) {
+        this.postId = postId;
         this.userId = userId;
+        this.type = type;
         this.createdAt = LocalDateTime.now();
-        this.updatedAt = LocalDateTime.now();
     }
 
-    public static CommentLike create(Long commentId, Long userId) {
-        return new CommentLike(commentId, userId);
+    public static PostReaction like(Long postId, Long userId) {
+        return new PostReaction(postId, userId, ReactionType.LIKE);
+    }
+
+    public static PostReaction disLike(Long postId, Long userId) {
+        return new PostReaction(postId, userId, ReactionType.DISLIKE);
     }
 
     public void cancel() {
@@ -46,8 +54,5 @@ public class CommentLike {
         this.updatedAt = LocalDateTime.now();
     }
 
-    public void restore() {
-        this.deleted = false;
-        this.updatedAt = LocalDateTime.now();
-    }
+
 }
