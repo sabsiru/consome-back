@@ -82,13 +82,7 @@ class CommentServiceIntegrationTest {
 
         //then
         List<Comment> comments = commentService.findByPostIdOrderByRefAscStepAsc(postId);
-        for (Comment comment : comments) {
-            System.out.println("Comment ID: " + comment.getId() +
-                    ", Content: " + comment.getContent() +
-                    ", Ref: " + comment.getRef() +
-                    ", Step: " + comment.getStep() +
-                    ", Depth: " + comment.getDepth());
-        }
+
         /*
          * 댓글1
          *  ㄴ 댓글1의 대댓글1
