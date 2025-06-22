@@ -39,10 +39,9 @@ class PostServiceIntegrationTest {
         String content = "테스트 내용";
         Long authorId = 100L;
 
-        Post post = Post.write(boardId, categoryId, authorId, title, content);
 
         // when
-        postService.write(post);
+        Post post = postService.post(boardId, categoryId, authorId, title, content);
 
         // then
         Post savedPost = postRepository.findById(post.getId()).orElseThrow();
@@ -67,8 +66,7 @@ class PostServiceIntegrationTest {
         Long authorId = 100L; // 작성자
         Long userId = 101L; // 다른 사용자
 
-        Post post = Post.write(boardId, categoryId, authorId, title, content);
-        postService.write(post);
+        Post post = postService.post(boardId, categoryId, authorId, title, content);
 
         // when
         postService.like(post, userId);
@@ -93,8 +91,7 @@ class PostServiceIntegrationTest {
         Long authorId = 100L; // 작성자
         Long userId = 101L; // 다른 사용자
 
-        Post post = Post.write(boardId, categoryId, authorId, title, content);
-        postService.write(post);
+        Post post = postService.post(boardId, categoryId, authorId, title, content);
 
         // when
         postService.dislike(post, userId);
@@ -119,8 +116,7 @@ class PostServiceIntegrationTest {
         Long authorId = 100L; // 작성자
         Long userId = 101L; // 다른 사용자
 
-        Post post = Post.write(boardId, categoryId, authorId, title, content);
-        postService.write(post);
+        Post post = postService.post(boardId, categoryId, authorId, title, content);
 
         postService.like(post, userId);
 
@@ -143,8 +139,7 @@ class PostServiceIntegrationTest {
         Long authorId = 100L; // 작성자
         Long userId = 101L; // 다른 사용자
 
-        Post post = Post.write(boardId, categoryId, authorId, title, content);
-        postService.write(post);
+        Post post = postService.post(boardId, categoryId, authorId, title, content);
 
         postService.dislike(post, userId);
 
@@ -167,8 +162,7 @@ class PostServiceIntegrationTest {
         Long authorId = 100L; // 작성자
         Long userId = 101L; // 다른 사용자
 
-        Post post = Post.write(boardId, categoryId, authorId, title, content);
-        postService.write(post);
+        Post post = postService.post(boardId, categoryId, authorId, title, content);
 
         postService.like(post, userId);
 
@@ -196,8 +190,7 @@ class PostServiceIntegrationTest {
         Long authorId = 100L; // 작성자
         Long userId = 101L; // 다른 사용자
 
-        Post post = Post.write(boardId, categoryId, authorId, title, content);
-        postService.write(post);
+        Post post = postService.post(boardId, categoryId, authorId, title, content);
 
         postService.dislike(post, userId);
 
@@ -225,8 +218,7 @@ class PostServiceIntegrationTest {
         Long authorId = 100L; // 작성자
         Long userId = 101L; // 다른 사용자
 
-        Post post = Post.write(boardId, categoryId, authorId, title, content);
-        postService.write(post);
+        Post post = postService.post(boardId, categoryId, authorId, title, content);
 
         // when/then
         assertThatThrownBy(() -> postService.cancelLike(post, userId))
@@ -244,8 +236,7 @@ class PostServiceIntegrationTest {
         Long authorId = 100L; // 작성자
         Long userId = 101L; // 다른 사용자
 
-        Post post = Post.write(boardId, categoryId, authorId, title, content);
-        postService.write(post);
+        Post post = postService.post(boardId, categoryId, authorId, title, content);
 
         // when/then
         assertThatThrownBy(() -> postService.cancelDislike(post, userId))
@@ -263,8 +254,7 @@ class PostServiceIntegrationTest {
         Long authorId = 100L; // 작성자
         int userCount = 5;
 
-        Post post = Post.write(boardId, categoryId, authorId, title, content);
-        postService.write(post);
+        Post post = postService.post(boardId, categoryId, authorId, title, content);
 
         // when
         for (int i = 1; i <= userCount; i++) {
@@ -292,8 +282,7 @@ class PostServiceIntegrationTest {
         String content = "수정 전 내용";
         Long authorId = 100L;
 
-        Post post = Post.write(boardId, categoryId, authorId, title, content);
-        postService.write(post);
+        Post post = postService.post(boardId, categoryId, authorId, title, content);
 
         String newTitle = "수정된 제목";
         String newContent = "수정된 내용";
@@ -317,8 +306,7 @@ class PostServiceIntegrationTest {
         String content = "수정 전 내용";
         Long authorId = 100L;
 
-        Post post = Post.write(boardId, categoryId, authorId, title, content);
-        postService.write(post);
+        Post post = postService.post(boardId, categoryId, authorId, title, content);
 
         String newTitle = "수정된 제목";
         String newContent = "수정된 내용";
@@ -339,8 +327,7 @@ class PostServiceIntegrationTest {
         String content = "삭제 테스트 내용";
         Long authorId = 100L;
 
-        Post post = Post.write(boardId, categoryId, authorId, title, content);
-        postService.write(post);
+        Post post = postService.post(boardId, categoryId, authorId, title, content);
 
         // when
         postService.delete(post.getId(), 100L);
@@ -360,8 +347,7 @@ class PostServiceIntegrationTest {
         String content = "삭제 테스트 내용";
         Long authorId = 100L;
 
-        Post post = Post.write(boardId, categoryId, authorId, title, content);
-        postService.write(post);
+        Post post = postService.post(boardId, categoryId, authorId, title, content);
 
         // when/then
         assertThatThrownBy(() -> postService.delete(post.getId(), 101L))
@@ -380,8 +366,7 @@ class PostServiceIntegrationTest {
         Long authorId = 100L;
         Long userId = null;
         String userIp = "123.123.123.123";
-        Post post = Post.write(boardId, categoryId, authorId, title, content);
-        postService.write(post);
+        Post post = postService.post(boardId, categoryId, authorId, title, content);
 
         // when
         postService.increaseViewCount(post.getId(), userId, userIp);
@@ -402,8 +387,7 @@ class PostServiceIntegrationTest {
         Long authorId = 100L;
         Long userId = null;
         String userIp = "123.123.123.123";
-        Post post = Post.write(boardId, categoryId, authorId, title, content);
-        postService.write(post);
+        Post post = postService.post(boardId, categoryId, authorId, title, content);
 
         // when
         postService.increaseViewCount(post.getId(), userId, userIp);

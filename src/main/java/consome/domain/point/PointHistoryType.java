@@ -15,9 +15,13 @@ public enum PointHistoryType {
     COMMENT_WRITE("댓글 작성", EARN, 10),
     POST_LIKE("게시글 추천", EARN, 3),
     COMMENT_LIKE("댓글 추천", EARN, 1),
+    COMMENT_DISLIKE_CANCEL("댓글 비추천 취소", EARN, 1),
     POST_DISLIKE("게시글 비추천", PENALIZE, 3),
     COMMENT_DISLIKE("댓글 비추천", PENALIZE, 1),
-    POST_DEL("게시글 삭제", PENALIZE, 50);
+    POST_DEL("게시글 삭제", PENALIZE, 50),
+    COMMENT_LIKE_CANCEL("댓글 추천 취소", PENALIZE, 1),
+    COMMENT_DEL("댓글 삭제", PENALIZE, 10);
+
 
     private final String description;
     private final PointHistoryType baseType;

@@ -29,6 +29,22 @@ class CommentTest {
     }
 
     @Test
+    void 댓글_수정_정상완료(){
+        //given
+        Long postId = 1L;
+        Long userId = 1L;
+        String originalContent = "원본 댓글 내용";
+        String updatedContent = "수정된 댓글 내용";
+        //when
+        Comment comment = new Comment(postId, userId, null, 0, 0, 0, originalContent);
+        comment.edit(updatedContent);
+
+        //then
+        assertThat(comment.getPostId()).isEqualTo(postId);
+        assertThat(comment.getContent()).isEqualTo(updatedContent);
+    }
+
+    @Test
     void 대댓글_생성_테스트() {
         // given
         Long postId = 1L;

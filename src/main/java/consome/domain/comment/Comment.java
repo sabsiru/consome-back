@@ -73,6 +73,11 @@ public class Comment {
         }
     }
 
+    public void edit(String content) {
+        this.content = content;
+        this.updatedAt = LocalDateTime.now();
+    }
+
     public void delete() {
         this.deleted = true;
         this.updatedAt = LocalDateTime.now();

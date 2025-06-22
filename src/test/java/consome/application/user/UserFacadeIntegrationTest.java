@@ -1,12 +1,16 @@
 package consome.application.user;
 
+import consome.domain.comment.Comment;
+import consome.domain.comment.CommentReactionRepository;
+import consome.domain.comment.CommentRepository;
+import consome.domain.comment.CommentService;
 import consome.domain.point.*;
 import consome.domain.post.Post;
 import consome.domain.post.PostService;
 import consome.domain.post.PostStat;
+import consome.domain.post.ReactionType;
 import consome.domain.user.User;
 import consome.domain.user.UserRepository;
-import org.assertj.core.api.Assert;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,6 +18,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -31,6 +36,9 @@ class UserFacadeIntegrationTest {
     private PostService postService;
 
     @Autowired
+    private CommentService commentService;
+
+    @Autowired
     private UserRepository userRepository;
 
     @Autowired
@@ -39,7 +47,16 @@ class UserFacadeIntegrationTest {
     @Autowired
     private PointHistoryRepository pointHistoryRepository;
 
+    @Autowired
+    private CommentRepository commentRepository;
+
+    @Autowired
+    private CommentReactionRepository commentReactionRepository;
+
     private UserCommand userCommand;
+
+    private long boardId = 1L;
+    private long categoryId = 1L;
 
     @BeforeEach
     void setUp() {
@@ -102,14 +119,11 @@ class UserFacadeIntegrationTest {
     void 게시글_작성후_포인트조회() {
         // given
         Long userId = userFacade.register(userCommand);
-        long boardId = 1L;
-        long categoryId = 1L;
         int initialPoint = PointHistoryType.REGISTER.getPoint();
         int postPoint = PointHistoryType.POST_WRITE.getPoint();
         int expectedPoint = initialPoint + postPoint;
-        Post post = Post.write(boardId, categoryId, userId, "테스트 제목", "테스트 내용");
         // when
-        userFacade.write(post);
+        userFacade.post(boardId, categoryId, userId, "테스트 제목", "테스트 내용");
 
         // then
         Point point = pointRepository.findByUserId(userId).orElseThrow();
@@ -120,13 +134,10 @@ class UserFacadeIntegrationTest {
     void 게시글_정상_수정_확인() {
         // given
         Long userId = userFacade.register(userCommand);
-        long boardId = 1L;
-        long categoryId = 1L;
-        Post post = Post.write(boardId, categoryId, userId, "테스트 제목", "테스트 내용");
-        userFacade.write(post);
+        Post post = userFacade.post(boardId, categoryId, userId, "테스트 제목", "테스트 내용");
 
         // when
-        Post edited = userFacade.edit("수정된 제목", "수정된 내용", post.getId(), userId);
+        Post edited = userFacade.editPost("수정된 제목", "수정된 내용", post.getId(), userId);
 
         // then
         assertThat(post.getTitle()).isEqualTo(edited.getTitle());
@@ -137,13 +148,10 @@ class UserFacadeIntegrationTest {
     void 게시글_삭제시_포인트_차감_확인() {
         //given
         Long userId = userFacade.register(userCommand);
-        long boardId = 1L;
-        long categoryId = 1L;
-        Post post = Post.write(boardId, categoryId, userId, "테스트 제목", "테스트 내용");
-        userFacade.write(post);
+        Post post = userFacade.post(boardId, categoryId, userId, "테스트 제목", "테스트 내용");
 
         //when
-        userFacade.delete(post.getId(), userId);
+        userFacade.deletePost(post.getId(), userId);
 
         //then
         Point point = pointRepository.findByUserId(userId).orElseThrow();
@@ -155,17 +163,14 @@ class UserFacadeIntegrationTest {
         //given
         Long authorId = userFacade.register(userCommand);
         Long otherUser = userFacade.register(UserCommand.of("likerid", "좋아요닉네임", "likerpassword"));
-        long boardId = 1L;
-        long categoryId = 1L;
         int initialPoint = PointHistoryType.REGISTER.getPoint();
         int postPoint = PointHistoryType.POST_WRITE.getPoint();
         int likePoint = PointHistoryType.POST_LIKE.getPoint();
         int expectedPoint = initialPoint + postPoint + likePoint;
-        Post post = Post.write(boardId, categoryId, authorId, "테스트 제목", "테스트 내용");
-        userFacade.write(post);
+        Post post = userFacade.post(boardId, categoryId, authorId, "테스트 제목", "테스트 내용");
         //when
 
-        userFacade.like(post, otherUser);
+        userFacade.likePost(post, otherUser);
 
         //then
         Point authorPoint = pointRepository.findByUserId(authorId).orElseThrow();
@@ -177,16 +182,13 @@ class UserFacadeIntegrationTest {
         //given
         Long authorId = userFacade.register(userCommand);
         Long otherUser = userFacade.register(UserCommand.of("likerid", "좋아요닉네임", "likerpassword"));
-        long boardId = 1L;
-        long categoryId = 1L;
-        Post post = Post.write(boardId, categoryId, authorId, "테스트 제목", "테스트 내용");
-        userFacade.write(post);
+        Post post = userFacade.post(boardId, categoryId, authorId, "테스트 제목", "테스트 내용");
 
         //when
-        userFacade.like(post, otherUser);
+        userFacade.likePost(post, otherUser);
 
         //then
-        assertThatThrownBy(() -> userFacade.like(post, otherUser))
+        assertThatThrownBy(() -> userFacade.likePost(post, otherUser))
                 .isInstanceOf(IllegalStateException.class)
                 .hasMessage("이미 좋아요를 누른 게시글입니다.");
 
@@ -197,17 +199,14 @@ class UserFacadeIntegrationTest {
         //given
         Long authorId = userFacade.register(userCommand);
         Long otherUser = userFacade.register(UserCommand.of("dislikerid", "싫어요닉네임", "dislikerpassword"));
-        long boardId = 1L;
-        long categoryId = 1L;
         int initialPoint = PointHistoryType.REGISTER.getPoint();
         int postPoint = PointHistoryType.POST_WRITE.getPoint();
         int dislikePoint = PointHistoryType.POST_DISLIKE.getPoint();
         int expectedPoint = initialPoint + postPoint - dislikePoint;
-        Post post = Post.write(boardId, categoryId, authorId, "테스트 제목", "테스트 내용");
-        userFacade.write(post);
+        Post post = userFacade.post(boardId, categoryId, authorId, "테스트 제목", "테스트 내용");
 
         //when
-        userFacade.dislike(post, otherUser);
+        userFacade.dislikePost(post, otherUser);
 
         //then
         Point authorPoint = pointRepository.findByUserId(authorId).orElseThrow();
@@ -219,16 +218,13 @@ class UserFacadeIntegrationTest {
         //given
         Long authorId = userFacade.register(userCommand);
         Long otherUser = userFacade.register(UserCommand.of("dislikerid", "싫어요닉네임", "dislikerpassword"));
-        long boardId = 1L;
-        long categoryId = 1L;
-        Post post = Post.write(boardId, categoryId, authorId, "테스트 제목", "테스트 내용");
-        userFacade.write(post);
+        Post post = userFacade.post(boardId, categoryId, authorId, "테스트 제목", "테스트 내용");
 
         //when
-        userFacade.dislike(post, otherUser);
+        userFacade.dislikePost(post, otherUser);
 
         //then
-        assertThatThrownBy(() -> userFacade.dislike(post, otherUser))
+        assertThatThrownBy(() -> userFacade.dislikePost(post, otherUser))
                 .isInstanceOf(IllegalStateException.class)
                 .hasMessage("이미 싫어요를 누른 게시글입니다.");
     }
@@ -238,15 +234,12 @@ class UserFacadeIntegrationTest {
         //given
         Long authorId = userFacade.register(userCommand);
         Long otherUser = userFacade.register(UserCommand.of("otherid", "다른닉네임", "otherpassword"));
-        long boardId = 1L;
-        long categoryId = 1L;
-        Post post = Post.write(boardId, categoryId, authorId, "테스트 제목", "테스트 내용");
-        userFacade.write(post);
+        Post post = userFacade.post(boardId, categoryId, authorId, "테스트 제목", "테스트 내용");
 
         //when
 
         //then
-        assertThatThrownBy(() -> userFacade.edit("수정된 제목", "수정된 내용", post.getId(), otherUser))
+        assertThatThrownBy(() -> userFacade.editPost("수정된 제목", "수정된 내용", post.getId(), otherUser))
                 .isInstanceOf(IllegalStateException.class)
                 .hasMessage("작성자만 게시글을 수정할 수 있습니다.");
     }
@@ -256,13 +249,10 @@ class UserFacadeIntegrationTest {
         //given
         Long authorId = userFacade.register(userCommand);
         Long otherUser = userFacade.register(UserCommand.of("otherid", "다른닉네임", "otherpassword"));
-        long boardId = 1L;
-        long categoryId = 1L;
-        Post post = Post.write(boardId, categoryId, authorId, "테스트 제목", "테스트 내용");
-        userFacade.write(post);
+        Post post = userFacade.post(boardId, categoryId, authorId, "테스트 제목", "테스트 내용");
 
         //then
-        assertThatThrownBy(() -> userFacade.delete(post.getId(), otherUser))
+        assertThatThrownBy(() -> userFacade.deletePost(post.getId(), otherUser))
                 .isInstanceOf(IllegalStateException.class)
                 .hasMessage("작성자만 게시글을 삭제할 수 있습니다.");
     }
@@ -271,17 +261,14 @@ class UserFacadeIntegrationTest {
     void 게시글_조회수_증가_확인() {
         // given
         Long authorId = userFacade.register(userCommand);
-        long boardId = 1L;
-        long categoryId = 1L;
-        Post post = Post.write(boardId, categoryId, authorId, "테스트 제목", "테스트 내용");
-        Post savedPost = userFacade.write(post);
+        Post post = userFacade.post(boardId, categoryId, authorId, "테스트 제목", "테스트 내용");
         String userIp = "127.0.0.1";
 
         // when
-        userFacade.increaseViewCount(savedPost.getId(), authorId, userIp);
+        userFacade.increaseViewCount(post.getId(), authorId, userIp);
 
         // then
-        PostStat postStat = postService.getPostStat(savedPost.getId());
+        PostStat postStat = postService.getPostStat(post.getId());
         assertThat(postStat.getViewCount()).isEqualTo(1);
     }
 
@@ -289,38 +276,165 @@ class UserFacadeIntegrationTest {
     void 같은Ip나_같은Id일_경우_조회수가_증가하지_않음() {
         //given
         Long authorId = userFacade.register(userCommand);
-        long boardId = 1L;
-        long categoryId = 1L;
-        Post post = Post.write(boardId, categoryId, authorId, "테스트 제목", "테스트 내용");
-        Post savedPost = userFacade.write(post);
+        Post post = userFacade.post(boardId, categoryId, authorId, "테스트 제목", "테스트 내용");
         String userIp = "127.0.0.1";
         String otherIp = "127.0.0.2";
 
         //when
-        userFacade.increaseViewCount(savedPost.getId(), authorId, userIp);
-        userFacade.increaseViewCount(savedPost.getId(), 2L, userIp);
-        userFacade.increaseViewCount(savedPost.getId(), authorId, otherIp);
+        userFacade.increaseViewCount(post.getId(), authorId, userIp);
+        userFacade.increaseViewCount(post.getId(), 2L, userIp);
+        userFacade.increaseViewCount(post.getId(), authorId, otherIp);
 
         //then
-        assertThat(postService.getPostStat(savedPost.getId()).getViewCount()).isEqualTo(1);
+        assertThat(postService.getPostStat(post.getId()).getViewCount()).isEqualTo(1);
     }
 
     @Test
     void 다른_Ip와_다른Id일_경우_조회수_증가() {
         //given
         Long authorId = userFacade.register(userCommand);
-        long boardId = 1L;
-        long categoryId = 1L;
-        Post post = Post.write(boardId, categoryId, authorId, "테스트 제목", "테스트 내용");
-        Post savedPost = userFacade.write(post);
+        Post post = userFacade.post(boardId, categoryId, authorId, "테스트 제목", "테스트 내용");
         String userIp = "127.0.0.1";
         String otherIp = "127.0.0.2";
 
         //when
-        userFacade.increaseViewCount(savedPost.getId(), authorId, userIp);
-        userFacade.increaseViewCount(savedPost.getId(), 2L, otherIp);
+        userFacade.increaseViewCount(post.getId(), authorId, userIp);
+        userFacade.increaseViewCount(post.getId(), 2L, otherIp);
 
         //then
-        assertThat(postService.getPostStat(savedPost.getId()).getViewCount()).isEqualTo(2);
+        assertThat(postService.getPostStat(post.getId()).getViewCount()).isEqualTo(2);
+    }
+
+    /*
+    * 포인트 검증도 전부 추가 해야함.
+    * */
+
+    @Test
+    void 댓글_정상_작성(){
+        //given
+        Long authorId = userFacade.register(userCommand);
+        Long commenterId = userFacade.register(UserCommand.of("commenterid", "댓글작성자", "1234"));
+        Post post = userFacade.post(boardId, categoryId, authorId, "테스트 제목", "테스트 내용");
+
+        //when
+        userFacade.comment(post.getId(), commenterId, null, "테스트 댓글 내용");
+
+        //then
+        assertThat(commentRepository.findByPostIdOrderByRefAscStepAsc(post.getId())).hasSize(1);
+    }
+
+    @Test
+    void 대댓글_정상_작성(){
+        //given
+        Long authorId = userFacade.register(userCommand);
+        Long commenterId = userFacade.register(UserCommand.of("commenterid", "댓글작성자", "1234"));
+        Post post = userFacade.post(boardId, categoryId, authorId, "테스트 제목", "테스트 내용");
+
+        //when
+        Comment comment = userFacade.comment(post.getId(), commenterId, null, "테스트 댓글 내용");
+        userFacade.comment(post.getId(), commenterId, null, "테스트 댓글 내용2");
+        userFacade.comment(post.getId(), commenterId, comment.getId(), "테스트 대댓글 내용");
+
+        List<Comment> comments= commentRepository.findByPostIdOrderByRefAscStepAsc(post.getId());
+        //then
+        // 댓글 대댓글 댓글 순서 확인
+        assertThat(commentRepository.findByPostIdOrderByRefAscStepAsc(post.getId())).hasSize(3);
+        assertThat(comments.get(0).getContent()).isEqualTo("테스트 댓글 내용");
+        assertThat(comments.get(1).getContent()).isEqualTo("테스트 대댓글 내용");
+        assertThat(comments.get(2).getContent()).isEqualTo("테스트 댓글 내용2");
+
+    }
+
+    @Test
+    void 댓글_수정_테스트(){
+        //given
+        Long authorId = userFacade.register(userCommand);
+        Long commenterId = userFacade.register(UserCommand.of("commenterid", "댓글작성자", "1234"));
+        String newContent = "수정된 댓글 내용";
+        Post post = userFacade.post(boardId, categoryId, authorId, "테스트 제목", "테스트 내용");
+        Comment comment = userFacade.comment(post.getId(), commenterId, null, "테스트 댓글 내용");
+
+        //when
+        Comment editComment = userFacade.editComment(commenterId, comment.getId(), newContent);
+
+        //then
+        assertThat(editComment.getContent()).isEqualTo(newContent);
+    }
+
+    @Test
+    void 댓글_삭제_테스트(){
+        //given
+        Long authorId = userFacade.register(userCommand);
+        Long commenterId = userFacade.register(UserCommand.of("commenterid", "댓글작성자", "1234"));
+        Post post = userFacade.post(boardId, categoryId, authorId, "테스트 제목", "테스트 내용");
+        Comment comment = userFacade.comment(post.getId(), commenterId, null, "테스트 댓글 내용");
+        userFacade.deleteComment(commenterId, comment.getId());
+
+        //when&then
+        assertThat(comment.getContent()).isEqualTo("삭제된 댓글입니다.");
+    }
+
+    @Test
+    void 다른_유저의_댓글_수정시_예외발생(){
+        //given
+        Long authorId = userFacade.register(userCommand);
+        Long commenterId = userFacade.register(UserCommand.of("commenterid", "댓글작성자", "1234"));
+        Long otherUserId = 100L;
+        Post post = userFacade.post(boardId, categoryId, authorId, "테스트 제목", "테스트 내용");
+        Comment comment = userFacade.comment(post.getId(), commenterId, null, "테스트 댓글 내용");
+
+        //when&then
+        assertThatThrownBy(() -> userFacade.editComment(otherUserId, comment.getId(), "수정된 댓글 내용"))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessage("작성자만 댓글을 수정할 수 있습니다.");
+    }
+
+    @Test
+    void 다른_유저의_댓글_삭제시_예외발생(){
+        //given
+        Long authorId = userFacade.register(userCommand);
+        Long commenterId = userFacade.register(UserCommand.of("commenterid", "댓글작성자", "1234"));
+        Long otherUserId = 100L;
+        Post post = userFacade.post(boardId, categoryId, authorId, "테스트 제목", "테스트 내용");
+        Comment comment = userFacade.comment(post.getId(), commenterId, null, "테스트 댓글 내용");
+
+        //when&then
+         assertThatThrownBy(() -> userFacade.deleteComment(otherUserId, comment.getId()))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessage("작성자만 댓글을 삭제할 수 있습니다.");
+    }
+
+    @Test
+    void 댓글_좋아요_성공(){
+        //given
+        Long authorId = userFacade.register(userCommand);
+        Long commenterId = userFacade.register(UserCommand.of("commenterid", "댓글작성자", "1234"));
+        Long likerId = userFacade.register(UserCommand.of("likerid", "좋아요닉네임", "likerpassword"));
+        Post post = userFacade.post(boardId, categoryId, authorId, "테스트 제목", "테스트 내용");
+        Comment comment = userFacade.comment(post.getId(), commenterId, null, "테스트 댓글 내용");
+
+        //when
+        userFacade.likeComment(comment.getId(), likerId);
+        long likeCount = commentService.countReactions(comment.getId(), ReactionType.LIKE);
+
+        //then
+        assertThat(likeCount).isEqualTo(1);
+    }
+
+    @Test
+    void 댓글_싫어요_성공(){
+        //given
+        Long authorId = userFacade.register(userCommand);
+        Long commenterId = userFacade.register(UserCommand.of("commenterid", "댓글작성자", "1234"));
+        Long dislikerId = userFacade.register(UserCommand.of("dislikerid", "싫어요닉네임", "dislikerpassword"));
+        Post post = userFacade.post(boardId, categoryId, authorId, "테스트 제목", "테스트 내용");
+        Comment comment = userFacade.comment(post.getId(), commenterId, null, "테스트 댓글 내용");
+
+        //when
+        userFacade.dislikeComment(comment.getId(), dislikerId);
+        long dislikeCount = commentService.countReactions(comment.getId(), ReactionType.DISLIKE);
+
+        //then
+        assertThat(dislikeCount).isEqualTo(1);
     }
 }

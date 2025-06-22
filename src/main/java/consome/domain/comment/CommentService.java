@@ -16,7 +16,7 @@ public class CommentService {
     private final CommentReactionRepository commentReactionRepository;
 
     @Transactional
-    public Comment reply(Long postId, Long userId, Long parentId, String content) {
+    public Comment comment(Long postId, Long userId, Long parentId, String content) {
 
         if (parentId == null) {
             Comment comment = Comment.reply(postId, userId, null, content, 0);
@@ -36,6 +36,20 @@ public class CommentService {
         }
     }
 
+    @Transactional
+    public Comment edit(Long userId, Long commentId, String content) {
+        Comment comment = commentRepository.findById(commentId)
+                .orElseThrow(() -> new IllegalArgumentException("잘못된 댓글입니다."));
+        if (comment.isDeleted()) {
+            throw new IllegalStateException("삭제된 댓글은 수정할 수 없습니다.");
+        }
+        if (!comment.getUserId().equals(userId)) {
+            throw new IllegalStateException("작성자만 댓글을 수정할 수 있습니다.");
+        }
+        comment.edit(content);
+        return commentRepository.save(comment);
+    }
+
     @Transactional(readOnly = true)
     public List<Comment> findByPostIdOrderByRefAscStepAsc(Long postId) {
         return commentRepository.findByPostIdOrderByRefAscStepAsc(postId).stream()
@@ -52,9 +66,12 @@ public class CommentService {
     }
 
     @Transactional
-    public void delete(Long commentId) {
+    public void delete(Long userId, Long commentId) {
         Comment comment = commentRepository.findById(commentId)
                 .orElseThrow(() -> new IllegalArgumentException("잘못된 댓글입니다."));
+        if (!comment.getUserId().equals(userId)) {
+            throw new IllegalStateException("작성자만 댓글을 삭제할 수 있습니다.");
+        }
         comment.delete();
         commentRepository.save(comment);
     }
@@ -91,11 +108,29 @@ public class CommentService {
 
     @Transactional
     public ReactionType reaction(Long commentId, Long userId) {
-        Optional<CommentReaction> byPostIdAndUserId = commentReactionRepository.findByCommentIdAndUserId(commentId, userId);
-        if (byPostIdAndUserId.isPresent()) {
-            return byPostIdAndUserId.get().getType();
+        Optional<CommentReaction> reaction = commentReactionRepository.findByCommentIdAndUserId(commentId, userId);
+        if (reaction.isPresent()) {
+            return reaction.get().getType();
         }
         return null;
     }
+
+    @Transactional
+    public CommentReaction cancel(Long commentId, Long userId) {
+        Optional<CommentReaction> reaction = commentReactionRepository.findByCommentIdAndUserId(commentId, userId);
+        if (reaction.isEmpty()) {
+            throw new IllegalStateException("좋아요나 싫어요를 누르지 않았습니다.");
+        }
+        commentReactionRepository.deleteByCommentIdAndUserId(commentId, userId);
+
+        return commentReactionRepository.save(reaction.get());
+    }
+
+    // 댓글의 좋아요, 싫어요 수를 조회하는 메소드 추가
+    @Transactional
+    public long countReactions(Long commentId, ReactionType type) {
+        return commentReactionRepository.countByCommentIdAndType(commentId, type);
+    }
+
 
 }
