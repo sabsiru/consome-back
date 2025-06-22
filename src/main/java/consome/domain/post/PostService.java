@@ -14,7 +14,8 @@ public class PostService {
     private final PostReactionRepository likeRepository;
     private final PostViewRepository viewRepository;
 
-    public Post write(Post post) {
+    public Post post(long boardId, long categoryId, Long authorId, String title, String content) {
+        Post post = Post.write(boardId, categoryId, authorId, title, content);
         PostStat stat = PostStat.init(post);
         postRepository.save(post);
         statRepository.save(stat);
