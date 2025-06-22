@@ -34,7 +34,6 @@ class CommentServiceIntegrationTest {
     private Long boardId = 1L;
     private Long userId = 100L;
     private Long postId = 1L;
-    private Long commentId = 1L;
 
     @Test
     void 대댓글_작성시_step과depth_정상적용() {
@@ -42,7 +41,7 @@ class CommentServiceIntegrationTest {
         String content = "테스트 댓글";
 
         //when
-        Comment parentComment = commentService.reply(boardId, userId, null, content);
+        Comment parentComment = commentService.comment(boardId, userId, null, content);
         //then
         assertThat(parentComment.getStep()).isEqualTo(0);
         assertThat(parentComment.getDepth()).isEqualTo(0);
@@ -53,12 +52,12 @@ class CommentServiceIntegrationTest {
         //given
         String content = "테스트 댓글";
 
-        Comment parentComment = commentService.reply(boardId, userId, null, content);
+        Comment parentComment = commentService.comment(boardId, userId, null, content);
 
         System.out.println("parentComment.getRef() = " + parentComment.getRef());
 
         //when
-        Comment replyComment = commentService.reply(boardId, userId, parentComment.getId(), "답글 댓글");
+        Comment replyComment = commentService.comment(boardId, userId, parentComment.getId(), "답글 댓글");
 
         System.out.println("get Ref: " + replyComment.getRef() +
                 ", get Step: " + replyComment.getStep() +
@@ -74,15 +73,15 @@ class CommentServiceIntegrationTest {
         //given
 
         //when
-        Comment parentComment = commentService.reply(postId, userId, null, "댓글1");
-        Comment parentComment2 = commentService.reply(postId, userId, null, "댓글2");
-        Comment parentComment3 = commentService.reply(postId, userId, null, "댓글3");
-        Comment replyComment = commentService.reply(postId, userId, parentComment.getId(), "댓글1의 대댓글1");
-        Comment replyComment2 = commentService.reply(postId, 101L, parentComment2.getId(), "댓글2의 대댓글2");
-        Comment replyReplyComment = commentService.reply(postId, userId, replyComment2.getId(), "대댓글2의 댓글1");
-        Comment replyComment3 = commentService.reply(postId, 101L, parentComment.getId(), "댓글1의 대댓글2");
-        Comment replyReplyComment2 = commentService.reply(postId, userId, replyComment.getId(), "대댓글1의 대대댓글1");
-        Comment replyReplyComment3 = commentService.reply(postId, userId, replyReplyComment2.getId(), "대대댓글1의 대대대댓글1");
+        Comment parentComment = commentService.comment(postId, userId, null, "댓글1");
+        Comment parentComment2 = commentService.comment(postId, userId, null, "댓글2");
+        Comment parentComment3 = commentService.comment(postId, userId, null, "댓글3");
+        Comment replyComment = commentService.comment(postId, userId, parentComment.getId(), "댓글1의 대댓글1");
+        Comment replyComment2 = commentService.comment(postId, 101L, parentComment2.getId(), "댓글2의 대댓글2");
+        Comment replyReplyComment = commentService.comment(postId, userId, replyComment2.getId(), "대댓글2의 댓글1");
+        Comment replyComment3 = commentService.comment(postId, 101L, parentComment.getId(), "댓글1의 대댓글2");
+        Comment replyReplyComment2 = commentService.comment(postId, userId, replyComment.getId(), "대댓글1의 대대댓글1");
+        Comment replyReplyComment3 = commentService.comment(postId, userId, replyReplyComment2.getId(), "대대댓글1의 대대대댓글1");
 
         //then
         List<Comment> comments = commentService.findByPostIdOrderByRefAscStepAsc(postId);
@@ -106,14 +105,27 @@ class CommentServiceIntegrationTest {
     }
 
     @Test
+    void 댓글_수정_테스트(){
+        //given
+        String originalContent = "원본 댓글 내용";
+        String updatedContent = "수정된 댓글 내용";
+        Comment comment = commentService.comment(postId, userId, null, originalContent);
+
+        //when
+        Comment edit = commentService.edit(userId, comment.getId(), updatedContent);
+
+        //then
+        assertThat(edit.getContent()).isEqualTo(updatedContent);
+    }
+
+    @Test
     void 댓글_삭제_테스트() {
         // given
-
-        Comment comment1 = commentService.reply(postId, userId, null, "댓글1");
-        Comment comment2 = commentService.reply(postId, userId, null, "댓글2");
+        Comment comment1 = commentService.comment(postId, userId, null, "댓글1");
+        Comment comment2 = commentService.comment(postId, userId, null, "댓글2");
 
         // when
-        commentService.delete(comment1.getId());
+        commentService.delete(userId, comment1.getId());
         List<Comment> comments = commentService.findByPostIdOrderByRefAscStepAsc(postId);
 
         // then
@@ -125,7 +137,7 @@ class CommentServiceIntegrationTest {
     @Test
     void 좋아요_생성_성공() {
         // given
-        Comment comment = commentService.reply(postId, userId, null, "테스트 댓글");
+        Comment comment = commentService.comment(postId, userId, null, "테스트 댓글");
 
         // when
         CommentReaction likeReaction = commentService.like(comment.getId(), userId);
@@ -138,9 +150,12 @@ class CommentServiceIntegrationTest {
     @Test
     void 좋아요_중복시_IllegalStateException_발생(){
         //given
-        Comment comment = commentService.reply(postId, userId, null, "테스트 댓글");
+        Comment comment = commentService.comment(postId, userId, null, "테스트 댓글");
 
-        //when&then
+        //when
+        CommentReaction likeReaction = commentService.like(comment.getId(), userId);
+
+        //then
         assertThatThrownBy(() -> commentService.like(comment.getId(), userId))
                 .isInstanceOf(IllegalStateException.class)
                 .hasMessageContaining("이미 좋아요를 눌렀습니다.");
@@ -150,7 +165,7 @@ class CommentServiceIntegrationTest {
     @Test
     void 싫어요_생성_성공() {
         // given
-        Comment comment = commentService.reply(postId, userId, null, "테스트 댓글");
+        Comment comment = commentService.comment(postId, userId, null, "테스트 댓글");
 
         // when
         CommentReaction dislikeReaction = commentService.dislike(comment.getId(), userId);
@@ -162,9 +177,12 @@ class CommentServiceIntegrationTest {
     @Test
     void 싫어요_중복시_IllegalStateException_발생(){
         //given
-        Comment comment = commentService.reply(postId, userId, null, "테스트 댓글");
+        Comment comment = commentService.comment(postId, userId, null, "테스트 댓글");
 
-        //when&then
+        //when
+        CommentReaction dislikeReaction = commentService.dislike(comment.getId(), userId);
+
+        //then
         assertThatThrownBy(() -> commentService.dislike(comment.getId(), userId))
                 .isInstanceOf(IllegalStateException.class)
                 .hasMessageContaining("이미 싫어요를 눌렀습니다.");
@@ -173,7 +191,7 @@ class CommentServiceIntegrationTest {
     @Test
     void 싫어요에서_좋아요_전환_테스트() {
         // given
-        Comment comment = commentService.reply(postId, userId, null, "테스트 댓글");
+        Comment comment = commentService.comment(postId, userId, null, "테스트 댓글");
         CommentReaction dislikeReaction = commentService.dislike(comment.getId(), userId);
         assertThat(dislikeReaction.getType()).isEqualTo(ReactionType.DISLIKE);
 
@@ -188,15 +206,66 @@ class CommentServiceIntegrationTest {
     @Test
     void 좋아요에서_싫어요_전환_테스트() {
         //given
-        commentService.reply(postId, userId, null, "테스트 댓글");
-        CommentReaction likeReaction = commentService.like(commentId, userId);
+        Comment comment = commentService.comment(postId, userId, null, "테스트 댓글");
+        CommentReaction likeReaction = commentService.like(comment.getId(), userId);
         assertThat(likeReaction.getType()).isEqualTo(ReactionType.LIKE);
 
         //when
-        CommentReaction dislikeReaction = commentService.dislike(commentId, userId);
+        CommentReaction dislikeReaction = commentService.dislike(comment.getId(), userId);
 
         //then
         assertThat(dislikeReaction.getType()).isEqualTo(ReactionType.DISLIKE);
-        assertThat(commentReactionRepository.findByCommentIdAndUserId(commentId, userId)).isPresent();
+        assertThat(commentReactionRepository.findByCommentIdAndUserId(comment.getId(), userId)).isPresent();
+    }
+    @Test
+    void 좋아요_취소_테스트(){
+        //given
+        Comment comment = commentService.comment(postId, userId, null, "테스트 댓글");
+        commentService.like(comment.getId(), userId);
+
+        //when
+        commentService.cancel(comment.getId(), userId);
+
+        //then
+        assertThat(commentReactionRepository.findByCommentIdAndUserId(comment.getId(), userId)).isEmpty();
+    }
+
+    @Test
+    void 싫어요_취소_테스트(){
+        //given
+        Comment comment = commentService.comment(postId, userId, null, "테스트 댓글");
+        commentService.dislike(comment.getId(), userId);
+
+        //when
+        commentService.cancel(comment.getId(), userId);
+
+        //then
+        assertThat(commentReactionRepository.findByCommentIdAndUserId(comment.getId(), userId)).isEmpty();
+    }
+
+    @Test
+    void 좋아요_취소_예외발생(){
+        //given
+        Comment comment = commentService.comment(postId, userId, null, "테스트 댓글");
+        commentService.like(comment.getId(), userId);
+        commentService.cancel(comment.getId(), userId);
+
+        //when&then
+        assertThatThrownBy(() -> commentService.cancel(comment.getId(), userId))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("이미 취소되었습니다.");
+    }
+
+    @Test
+    void 싫어요_취소_예외발생(){
+        //given
+        Comment comment = commentService.comment(postId, userId, null, "테스트 댓글");
+        commentService.dislike(comment.getId(), userId);
+        commentService.cancel(comment.getId(), userId);
+
+        //when&then
+        assertThatThrownBy(() -> commentService.cancel(comment.getId(), userId))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("이미 취소되었습니다.");
     }
 }
