@@ -37,7 +37,7 @@ public class CommentService {
     }
 
     @Transactional
-    public Comment edit(Long userId, Long commentId, String content) {
+    public Comment edit(Long commentId, Long userId, String content) {
         Comment comment = commentRepository.findById(commentId)
                 .orElseThrow(() -> new IllegalArgumentException("잘못된 댓글입니다."));
         if (comment.isDeleted()) {
@@ -66,14 +66,16 @@ public class CommentService {
     }
 
     @Transactional
-    public void delete(Long userId, Long commentId) {
+    public Comment delete(Long commentId, Long userId) {
         Comment comment = commentRepository.findById(commentId)
                 .orElseThrow(() -> new IllegalArgumentException("잘못된 댓글입니다."));
         if (!comment.getUserId().equals(userId)) {
             throw new IllegalStateException("작성자만 댓글을 삭제할 수 있습니다.");
         }
         comment.delete();
-        commentRepository.save(comment);
+        Comment save = commentRepository.save(comment);
+
+        return save;
     }
 
     @Transactional
