@@ -288,7 +288,7 @@ class PostServiceIntegrationTest {
         String newContent = "수정된 내용";
 
         // when
-        postService.edit(newTitle, newContent, post.getId(),100L);
+        postService.edit(newTitle, newContent, post.getId(), 100L);
 
         // then
         Post updatedPost = postRepository.findById(post.getId()).orElseThrow();
@@ -369,7 +369,7 @@ class PostServiceIntegrationTest {
         Post post = postService.post(boardId, categoryId, authorId, title, content);
 
         // when
-        postService.increaseViewCount(post.getId(), userId, userIp);
+        postService.increaseViewCount(post.getId(), userIp, userId);
 
         // then
         PostStat stat = statRepository.findById(post.getId()).orElseThrow();
@@ -390,8 +390,8 @@ class PostServiceIntegrationTest {
         Post post = postService.post(boardId, categoryId, authorId, title, content);
 
         // when
-        postService.increaseViewCount(post.getId(), userId, userIp);
-        postService.increaseViewCount(post.getId(), userId, userIp);
+        postService.increaseViewCount(post.getId(), userIp, userId);
+        postService.increaseViewCount(post.getId(), userIp, userId);
 
         // then
         PostStat stat = statRepository.findById(post.getId()).orElseThrow();

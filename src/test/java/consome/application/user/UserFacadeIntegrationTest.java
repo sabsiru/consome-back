@@ -265,7 +265,7 @@ class UserFacadeIntegrationTest {
         String userIp = "127.0.0.1";
 
         // when
-        userFacade.increaseViewCount(post.getId(), authorId, userIp);
+        userFacade.increaseViewCount(post.getId(), userIp, authorId);
 
         // then
         PostStat postStat = postService.getPostStat(post.getId());
@@ -281,9 +281,9 @@ class UserFacadeIntegrationTest {
         String otherIp = "127.0.0.2";
 
         //when
-        userFacade.increaseViewCount(post.getId(), authorId, userIp);
-        userFacade.increaseViewCount(post.getId(), 2L, userIp);
-        userFacade.increaseViewCount(post.getId(), authorId, otherIp);
+        userFacade.increaseViewCount(post.getId(), userIp, authorId);
+        userFacade.increaseViewCount(post.getId(), userIp, 2L);
+        userFacade.increaseViewCount(post.getId(), otherIp, authorId);
 
         //then
         assertThat(postService.getPostStat(post.getId()).getViewCount()).isEqualTo(1);
@@ -298,19 +298,19 @@ class UserFacadeIntegrationTest {
         String otherIp = "127.0.0.2";
 
         //when
-        userFacade.increaseViewCount(post.getId(), authorId, userIp);
-        userFacade.increaseViewCount(post.getId(), 2L, otherIp);
+        userFacade.increaseViewCount(post.getId(), userIp, authorId);
+        userFacade.increaseViewCount(post.getId(), otherIp, 2L);
 
         //then
         assertThat(postService.getPostStat(post.getId()).getViewCount()).isEqualTo(2);
     }
 
     /*
-    * 포인트 검증도 전부 추가 해야함.
-    * */
+     * 포인트 검증도 전부 추가 해야함.
+     * */
 
     @Test
-    void 댓글_정상_작성(){
+    void 댓글_정상_작성() {
         //given
         Long authorId = userFacade.register(userCommand);
         Long commenterId = userFacade.register(UserCommand.of("commenterid", "댓글작성자", "1234"));
@@ -324,7 +324,7 @@ class UserFacadeIntegrationTest {
     }
 
     @Test
-    void 대댓글_정상_작성(){
+    void 대댓글_정상_작성() {
         //given
         Long authorId = userFacade.register(userCommand);
         Long commenterId = userFacade.register(UserCommand.of("commenterid", "댓글작성자", "1234"));
@@ -335,7 +335,7 @@ class UserFacadeIntegrationTest {
         userFacade.comment(post.getId(), commenterId, null, "테스트 댓글 내용2");
         userFacade.comment(post.getId(), commenterId, comment.getId(), "테스트 대댓글 내용");
 
-        List<Comment> comments= commentRepository.findByPostIdOrderByRefAscStepAsc(post.getId());
+        List<Comment> comments = commentRepository.findByPostIdOrderByRefAscStepAsc(post.getId());
         //then
         // 댓글 대댓글 댓글 순서 확인
         assertThat(commentRepository.findByPostIdOrderByRefAscStepAsc(post.getId())).hasSize(3);
@@ -346,7 +346,7 @@ class UserFacadeIntegrationTest {
     }
 
     @Test
-    void 댓글_수정_테스트(){
+    void 댓글_수정_테스트() {
         //given
         Long authorId = userFacade.register(userCommand);
         Long commenterId = userFacade.register(UserCommand.of("commenterid", "댓글작성자", "1234"));
@@ -362,7 +362,7 @@ class UserFacadeIntegrationTest {
     }
 
     @Test
-    void 댓글_삭제_테스트(){
+    void 댓글_삭제_테스트() {
         //given
         Long authorId = userFacade.register(userCommand);
         Long commenterId = userFacade.register(UserCommand.of("commenterid", "댓글작성자", "1234"));
@@ -375,7 +375,7 @@ class UserFacadeIntegrationTest {
     }
 
     @Test
-    void 다른_유저의_댓글_수정시_예외발생(){
+    void 다른_유저의_댓글_수정시_예외발생() {
         //given
         Long authorId = userFacade.register(userCommand);
         Long commenterId = userFacade.register(UserCommand.of("commenterid", "댓글작성자", "1234"));
@@ -390,7 +390,7 @@ class UserFacadeIntegrationTest {
     }
 
     @Test
-    void 다른_유저의_댓글_삭제시_예외발생(){
+    void 다른_유저의_댓글_삭제시_예외발생() {
         //given
         Long authorId = userFacade.register(userCommand);
         Long commenterId = userFacade.register(UserCommand.of("commenterid", "댓글작성자", "1234"));
@@ -399,13 +399,13 @@ class UserFacadeIntegrationTest {
         Comment comment = userFacade.comment(post.getId(), commenterId, null, "테스트 댓글 내용");
 
         //when&then
-         assertThatThrownBy(() -> userFacade.deleteComment(otherUserId, comment.getId()))
+        assertThatThrownBy(() -> userFacade.deleteComment(otherUserId, comment.getId()))
                 .isInstanceOf(IllegalStateException.class)
                 .hasMessage("작성자만 댓글을 삭제할 수 있습니다.");
     }
 
     @Test
-    void 댓글_좋아요_성공(){
+    void 댓글_좋아요_성공() {
         //given
         Long authorId = userFacade.register(userCommand);
         Long commenterId = userFacade.register(UserCommand.of("commenterid", "댓글작성자", "1234"));
@@ -422,7 +422,7 @@ class UserFacadeIntegrationTest {
     }
 
     @Test
-    void 댓글_싫어요_성공(){
+    void 댓글_싫어요_성공() {
         //given
         Long authorId = userFacade.register(userCommand);
         Long commenterId = userFacade.register(UserCommand.of("commenterid", "댓글작성자", "1234"));
