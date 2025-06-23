@@ -8,6 +8,7 @@ import consome.domain.point.PointHistoryType;
 import consome.domain.point.PointService;
 import consome.domain.post.Post;
 import consome.domain.post.PostService;
+import consome.domain.post.PostStat;
 import consome.domain.post.ReactionType;
 import consome.domain.user.User;
 import consome.domain.user.UserService;
@@ -42,26 +43,32 @@ public class UserFacade {
     }
 
     @Transactional
-    public void deletePost(Long postId, Long userId) {
-        postService.delete(postId, userId);
+    public Post deletePost(Long postId, Long userId) {
         pointService.penalize(userId, PointHistoryType.POST_DEL);
+        return postService.delete(postId, userId);
     }
 
     @Transactional
-    public void likePost(Post post, Long userId) {
-        postService.like(post, userId);
+    public PostStat likePost(Post post, Long userId) {
         pointService.earn(post.getAuthorId(), PointHistoryType.POST_LIKE);
+        postService.like(post, userId);
+
+        return postService.getPostStat(post.getId());
     }
 
     @Transactional
-    public void dislikePost(Post post, Long userId) {
+    public PostStat dislikePost(Post post, Long userId) {
         postService.dislike(post, userId);
         pointService.penalize(post.getAuthorId(), PointHistoryType.POST_DISLIKE);
+
+        return postService.getPostStat(post.getId());
     }
 
     @Transactional
-    public void increaseViewCount(Long postId, Long userId, String userIp) {
-        postService.increaseViewCount(postId, userId, userIp);
+    public PostStat increaseViewCount(Long postId, String userIp, Long userId) {
+        postService.increaseViewCount(postId, userIp, userId);
+
+        return postService.getPostStat(postId);
     }
 
     @Transactional
@@ -80,30 +87,37 @@ public class UserFacade {
     }
 
     @Transactional
-    public void deleteComment(Long userId, Long commentId) {
-        commentService.delete(userId, commentId);
+    public Comment deleteComment(Long userId, Long commentId) {
         pointService.penalize(commentId, PointHistoryType.COMMENT_DEL);
+        return commentService.delete(userId, commentId);
     }
 
     @Transactional
-    public void likeComment(Long commentId, Long userId) {
+    public long likeComment(Long commentId, Long userId) {
         commentService.like(commentId, userId);
         pointService.earn(userId, PointHistoryType.COMMENT_LIKE);
+
+        return commentService.countReactions(commentId, ReactionType.LIKE);
     }
 
     @Transactional
-    public void dislikeComment(Long commentId, Long userId) {
+    public long dislikeComment(Long commentId, Long userId) {
         commentService.dislike(commentId, userId);
         pointService.penalize(userId, PointHistoryType.COMMENT_DISLIKE);
+
+        return commentService.countReactions(commentId, ReactionType.DISLIKE);
     }
 
     @Transactional
-    public void cancelReactionComment(Long commentId, Long userId) {
+    public long cancelReactionComment(Long commentId, Long userId) {
         CommentReaction commentReaction = commentService.cancel(commentId, userId);
         if (commentReaction.getType() == ReactionType.LIKE) {
             pointService.penalize(userId, PointHistoryType.COMMENT_LIKE_CANCEL);
+            return commentService.countReactions(commentId, ReactionType.LIKE);
         } else if (commentReaction.getType() == ReactionType.DISLIKE) {
             pointService.penalize(userId, PointHistoryType.COMMENT_DISLIKE_CANCEL);
+            return commentService.countReactions(commentId, ReactionType.DISLIKE);
         }
+        return 0;
     }
 }
