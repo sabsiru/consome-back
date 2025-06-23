@@ -9,6 +9,6 @@ import java.util.Optional;
 
 public interface PostViewRepository extends JpaRepository<PostView, Long> {
     @Lock(LockModeType.PESSIMISTIC_WRITE)
-    @Query("SELECT pv FROM PostView pv WHERE pv.postId = :postId AND (pv.userId = :userId OR pv.userIp = :userIp)")
-    Optional<PostView> findByPostIdAndUserIdOrUserIp(Long postId, Long userId, String userIp);
+    @Query("SELECT pv FROM PostView pv WHERE pv.postId = :postId AND (pv.userIp = :userIp OR pv.userId = :userId)")
+    Optional<PostView> findByPostIdAndUserIdOrUserIp(Long postId, String userIp, Long userId);
 }

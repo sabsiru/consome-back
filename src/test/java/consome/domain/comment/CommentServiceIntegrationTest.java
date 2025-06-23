@@ -105,14 +105,14 @@ class CommentServiceIntegrationTest {
     }
 
     @Test
-    void 댓글_수정_테스트(){
+    void 댓글_수정_테스트() {
         //given
         String originalContent = "원본 댓글 내용";
         String updatedContent = "수정된 댓글 내용";
         Comment comment = commentService.comment(postId, userId, null, originalContent);
 
         //when
-        Comment edit = commentService.edit(userId, comment.getId(), updatedContent);
+        Comment edit = commentService.edit(comment.getId(), userId, updatedContent);
 
         //then
         assertThat(edit.getContent()).isEqualTo(updatedContent);
@@ -125,7 +125,7 @@ class CommentServiceIntegrationTest {
         Comment comment2 = commentService.comment(postId, userId, null, "댓글2");
 
         // when
-        commentService.delete(userId, comment1.getId());
+        commentService.delete(comment1.getId(), userId);
         List<Comment> comments = commentService.findByPostIdOrderByRefAscStepAsc(postId);
 
         // then
@@ -148,7 +148,7 @@ class CommentServiceIntegrationTest {
     }
 
     @Test
-    void 좋아요_중복시_IllegalStateException_발생(){
+    void 좋아요_중복시_IllegalStateException_발생() {
         //given
         Comment comment = commentService.comment(postId, userId, null, "테스트 댓글");
 
@@ -175,7 +175,7 @@ class CommentServiceIntegrationTest {
     }
 
     @Test
-    void 싫어요_중복시_IllegalStateException_발생(){
+    void 싫어요_중복시_IllegalStateException_발생() {
         //given
         Comment comment = commentService.comment(postId, userId, null, "테스트 댓글");
 
@@ -188,6 +188,7 @@ class CommentServiceIntegrationTest {
                 .hasMessageContaining("이미 싫어요를 눌렀습니다.");
 
     }
+
     @Test
     void 싫어요에서_좋아요_전환_테스트() {
         // given
@@ -217,8 +218,9 @@ class CommentServiceIntegrationTest {
         assertThat(dislikeReaction.getType()).isEqualTo(ReactionType.DISLIKE);
         assertThat(commentReactionRepository.findByCommentIdAndUserId(comment.getId(), userId)).isPresent();
     }
+
     @Test
-    void 좋아요_취소_테스트(){
+    void 좋아요_취소_테스트() {
         //given
         Comment comment = commentService.comment(postId, userId, null, "테스트 댓글");
         commentService.like(comment.getId(), userId);
@@ -231,7 +233,7 @@ class CommentServiceIntegrationTest {
     }
 
     @Test
-    void 싫어요_취소_테스트(){
+    void 싫어요_취소_테스트() {
         //given
         Comment comment = commentService.comment(postId, userId, null, "테스트 댓글");
         commentService.dislike(comment.getId(), userId);
@@ -244,7 +246,7 @@ class CommentServiceIntegrationTest {
     }
 
     @Test
-    void 좋아요_취소_예외발생(){
+    void 좋아요_취소_예외발생() {
         //given
         Comment comment = commentService.comment(postId, userId, null, "테스트 댓글");
         commentService.like(comment.getId(), userId);
@@ -257,7 +259,7 @@ class CommentServiceIntegrationTest {
     }
 
     @Test
-    void 싫어요_취소_예외발생(){
+    void 싫어요_취소_예외발생() {
         //given
         Comment comment = commentService.comment(postId, userId, null, "테스트 댓글");
         commentService.dislike(comment.getId(), userId);
