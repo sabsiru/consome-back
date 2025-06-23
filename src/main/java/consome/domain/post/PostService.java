@@ -36,19 +36,20 @@ public class PostService {
         return post;
     }
 
-    public void delete(Long postId, Long userId) {
+    public Post delete(Long postId, Long userId) {
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new IllegalArgumentException("게시글을 찾을 수 없습니다."));
-        if(!post.getAuthorId().equals(userId)){
+        if (!post.getAuthorId().equals(userId)) {
             throw new IllegalStateException("작성자만 게시글을 삭제할 수 있습니다.");
         }
         post.delete();
-        postRepository.save(post);
+
+
+        return postRepository.save(post);
     }
 
-    public void like(Post post, Long userId) {
+    public PostStat like(Post post, Long userId) {
         PostStat postStat = getPostStat(post.getId());
-
 
         if (likeRepository.findByIdForUpdate(post.getId(), userId, ReactionType.LIKE).isPresent()) {
             throw new IllegalStateException("이미 좋아요를 누른 게시글입니다.");
@@ -57,10 +58,11 @@ public class PostService {
         postStat.increaseLikeCount();
 
         likeRepository.save(postReaction);
-        statRepository.save(postStat);
+
+        return statRepository.save(postStat);
     }
 
-    public void dislike(Post post, Long userId) {
+    public PostStat dislike(Post post, Long userId) {
         PostStat postStat = getPostStat(post.getId());
 
         if (likeRepository.findByIdForUpdate(post.getId(), userId, ReactionType.DISLIKE).isPresent()) {
@@ -70,10 +72,10 @@ public class PostService {
         postStat.increaseDislikeCount();
 
         likeRepository.save(postReaction);
-        statRepository.save(postStat);
+        return statRepository.save(postStat);
     }
 
-    public void cancelLike(Post post, Long userId) {
+    public PostStat cancelLike(Post post, Long userId) {
         PostStat postStat = getPostStat(post.getId());
         Optional<PostReaction> existingLike = likeRepository.findByIdForUpdate(post.getId(), userId, ReactionType.LIKE);
         if (likeRepository.findByIdForUpdate(post.getId(), userId, ReactionType.LIKE).isEmpty()) {
@@ -84,10 +86,10 @@ public class PostService {
         postStat.decreaseLikeCount();
 
         likeRepository.save(postReaction);
-        statRepository.save(postStat);
+        return statRepository.save(postStat);
     }
 
-    public void cancelDislike(Post post, Long userId) {
+    public PostStat cancelDislike(Post post, Long userId) {
         PostStat postStat = getPostStat(post.getId());
         Optional<PostReaction> existingDislike = likeRepository.findByIdForUpdate(post.getId(), userId, ReactionType.DISLIKE);
         if (existingDislike.isEmpty()) {
@@ -98,19 +100,19 @@ public class PostService {
         postStat.decreaseDislikeCount();
 
         likeRepository.save(postReaction);
-        statRepository.save(postStat);
+        return statRepository.save(postStat);
     }
 
-    public void increaseViewCount(Long postId, Long userId, String userIp) {
+    public PostStat increaseViewCount(Long postId, String userIp, Long userId) {
         PostStat postStat = getPostStat(postId);
-        Optional<PostView> byPostIdAndUserIp = viewRepository.findByPostIdAndUserIdOrUserIp(postId, userId, userIp);
+        Optional<PostView> byPostIdAndUserIp = viewRepository.findByPostIdAndUserIdOrUserIp(postId, userIp, userId);
         if (byPostIdAndUserIp.isPresent()) {
-            return;
+            return postStat;
         }
         postStat.increaseViewCount();
         PostView postView = PostView.create(postId, userIp, userId);
         viewRepository.save(postView);
-        statRepository.save(postStat);
+        return statRepository.save(postStat);
 
     }
 
