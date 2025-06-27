@@ -33,7 +33,7 @@ class UserFacadeTest {
     @BeforeEach
     void setUp() {
         // 테스트용 UserCommand 생성
-        userCommand = UserCommand.of("테스트닉네임", "testid", "password123");
+        userCommand = UserCommand.of("testId", "testid", "password123");
 
         // 목 User 객체 생성
         mockUser = mock(User.class);
@@ -53,8 +53,8 @@ class UserFacadeTest {
         assertThat(userId).isEqualTo(1L);
 
         verify(userService).register(
-                userCommand.getNickname(),
                 userCommand.getLoginId(),
+                userCommand.getNickname(),
                 userCommand.getPassword()
         );
 
