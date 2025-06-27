@@ -21,6 +21,8 @@ public class UserService {
     }
 
     public Boolean userValidate(String loginId, String nickname) {
+        User.validateLoginId(loginId);
+        User.validateNickname(nickname);
         boolean loginIdIsEmpty = userRepository.findByLoginId(loginId).isEmpty();
         boolean nicknameIsEmpty = userRepository.findByNickname(nickname).isEmpty();
 
