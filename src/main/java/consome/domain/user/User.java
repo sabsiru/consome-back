@@ -47,7 +47,6 @@ public class User {
         return new User(loginId, nickname, password);
     }
 
-    // 사용자의 아이디 길이 및 영어 검증 메서드
     public static void validateLoginId(String loginId) {
         if (loginId.length() < 4 || loginId.length() > 15) {
             throw new IllegalArgumentException("아이디는 4자 이상 15자 이하이어야 합니다.");
@@ -57,13 +56,21 @@ public class User {
         }
     }
 
-    // 사용자의 닉네임 길이 및 한글 검증 메서드
     public static void validateNickname(String nickname) {
         if (nickname.length() < 2 || nickname.length() > 8) {
             throw new IllegalArgumentException("닉네임은 2자 이상 8자 이하이어야 합니다.");
         }
         if (!nickname.matches("^[가-힣a-zA-Z0-9]+$")) {
             throw new IllegalArgumentException("닉네임은 한글, 영문 대소문자, 숫자만 포함해야 합니다.");
+        }
+    }
+
+    public static void validatePassword(String password) {
+        if (password.length() < 8 || password.length() > 20) {
+            throw new IllegalArgumentException("비밀번호는 8자 이상 20자 이하이어야 합니다.");
+        }
+        if (!password.matches("^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d).+$")) {
+            throw new IllegalArgumentException("비밀번호는 영문 대소문자와 숫자를 포함해야 합니다.");
         }
     }
 
