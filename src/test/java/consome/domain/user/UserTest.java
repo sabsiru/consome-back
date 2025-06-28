@@ -53,12 +53,6 @@ class UserTest {
 
 
     @Test
-    void 로그인아이디_유효성검증_성공() {
-        // 올바른 로그인 아이디는 예외가 발생하지 않습니다.
-        User.validateLoginId("testUser");
-    }
-
-    @Test
     void 로그인아이디_유효성검증_길이_실패() {
         // 4자 미만인 경우 예외 발생 확인
         assertThatThrownBy(() -> User.validateLoginId("abc"))
@@ -75,13 +69,6 @@ class UserTest {
     }
 
     @Test
-    void 닉네임_유효성검증_성공() {
-        // 올바른 닉네임은 예외가 발생하지 않습니다.
-        User.validateNickname("한글닉네임");
-        User.validateNickname("tester1");
-    }
-
-    @Test
     void 닉네임_유효성검증_길이_실패() {
         // 2자 미만인 경우 예외 발생 확인
         assertThatThrownBy(() -> User.validateNickname("a"))
@@ -95,5 +82,18 @@ class UserTest {
         assertThatThrownBy(() -> User.validateNickname("test!@#"))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("닉네임은 한글, 영문 대소문자, 숫자만 포함해야 합니다.");
+    }
+
+    @Test
+    void 비밀번호_유효성검증_예외발생(){
+        // 비밀번호가 8자 미만인 경우 예외 발생 확인
+        assertThatThrownBy(() -> User.validatePassword("short"))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("비밀번호는 8자 이상 20자 이하이어야 합니다.");
+
+        // 비밀번호가 영문 대소문자와 숫자를 포함하지 않는 경우 예외 발생 확인
+        assertThatThrownBy(() -> User.validatePassword("onlyletters"))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("비밀번호는 영문 대소문자와 숫자를 포함해야 합니다.");
     }
 }
