@@ -10,7 +10,8 @@ public class UserService {
     private final UserRepository userRepository;
 
     public User register(String loginId, String nickname, String password) {
-        userValidate(loginId, nickname);
+        validateUser(loginId, nickname, password);
+        validateDuplicate(loginId, nickname, password);
         User user = User.create(loginId, nickname, password);
         return userRepository.save(user);
     }
@@ -20,9 +21,7 @@ public class UserService {
                 .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다. id = " + userId));
     }
 
-    public Boolean userValidate(String loginId, String nickname) {
-        User.validateLoginId(loginId);
-        User.validateNickname(nickname);
+    public Boolean validateDuplicate(String loginId, String nickname, String password) {
         boolean loginIdIsEmpty = userRepository.findByLoginId(loginId).isEmpty();
         boolean nicknameIsEmpty = userRepository.findByNickname(nickname).isEmpty();
 
@@ -32,6 +31,14 @@ public class UserService {
         if (!nicknameIsEmpty) {
             throw new IllegalStateException("이미 사용 중인 닉네임입니다.");
         }
+
+        return true;
+    }
+
+    public boolean validateUser(String loginId, String nickname, String password) {
+        User.validateLoginId(loginId);
+        User.validateNickname(nickname);
+        User.validatePassword(password);
 
         return true;
     }
