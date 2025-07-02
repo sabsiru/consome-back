@@ -10,12 +10,14 @@ public class SectionService {
     private final SectionRepository sectionRepository;
 
     public Section create(String name, int displayOrder) {
+        isNameDuplicate(name);
         Section section = Section.create(name, displayOrder);
         return sectionRepository.save(section);
     }
 
     public Section rename(Long sectionId, String newName) {
         Section section = findById(sectionId);
+        isNameDuplicate(newName);
         section.rename(newName);
         return sectionRepository.save(section);
     }
@@ -30,6 +32,16 @@ public class SectionService {
         Section section = findById(sectionId);
         section.delete();
         sectionRepository.save(section);
+    }
+
+    public boolean isNameDuplicate(String name) {
+        if (sectionRepository.existsByName(name)) {
+            throw new IllegalArgumentException("이미 존재하는 섹션 이름입니다.");
+        }
+        if (name == null || name.trim().isEmpty() || name.length() < 1 || name.length() > 10) {
+            throw new IllegalArgumentException("섹션 이름은 1자 이상 10자 이하로 입력해야 합니다.");
+        }
+        return sectionRepository.existsByName(name);
     }
 
     public Section findById(Long sectionId) {
