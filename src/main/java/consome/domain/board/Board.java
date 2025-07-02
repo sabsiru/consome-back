@@ -1,14 +1,20 @@
 package consome.domain.board;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Size;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 
 import java.time.LocalDateTime;
 
 @Entity
 @Getter
+@EntityListeners(AuditingEntityListener.class)
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Board {
 
@@ -18,7 +24,8 @@ public class Board {
     @Column(nullable = false)
     private Long categoryId;
 
-    @Column(nullable = false)
+    @Size(min = 1, max = 20)
+    @Column(nullable = false, unique = true, length = 20)
     private String name;
 
     @Column(nullable = false)
@@ -30,10 +37,11 @@ public class Board {
     @Column(nullable = false)
     private boolean deleted = false;
 
+    @CreatedDate
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
-    @Column(nullable = false)
+    @LastModifiedDate
     private LocalDateTime updatedAt;
 
     private Board(Long categoryId, String name, String description, int displayOrder) {
@@ -41,8 +49,6 @@ public class Board {
         this.name = name;
         this.description = description;
         this.displayOrder = displayOrder;
-        this.createdAt = LocalDateTime.now();
-        this.updatedAt = LocalDateTime.now();
     }
 
     public static Board create(Long categoryId, String name, String description, int displayOrder) {
@@ -51,21 +57,17 @@ public class Board {
 
     public void rename(String newName) {
         this.name = newName;
-        this.updatedAt = LocalDateTime.now();
     }
 
     public void changeOrder(int newOrder) {
         this.displayOrder = newOrder;
-        this.updatedAt = LocalDateTime.now();
     }
 
     public void changeDescription(String newDescription) {
         this.description = newDescription;
-        this.updatedAt = LocalDateTime.now();
     }
 
     public void delete() {
         this.deleted = true;
-        this.updatedAt = LocalDateTime.now();
     }
 }

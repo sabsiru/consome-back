@@ -22,8 +22,6 @@ class SectionTest {
         assertThat(section.getName()).isEqualTo(name);
         assertThat(section.getDisplayOrder()).isEqualTo(order);
         assertThat(section.isDeleted()).isFalse();
-        assertThat(section.getCreatedAt()).isNotNull();
-        assertThat(section.getUpdatedAt()).isNotNull();
     }
 
     @Test

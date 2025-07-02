@@ -1,14 +1,20 @@
 package consome.domain.board;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Size;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 
 import java.time.LocalDateTime;
 
 @Entity
 @Getter
+@EntityListeners(AuditingEntityListener.class)
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Category {
 
@@ -18,7 +24,8 @@ public class Category {
     @Column(nullable = false)
     private Long sectionId;
 
-    @Column(nullable = false)
+    @Size(min = 1, max = 20)
+    @Column(nullable = false, unique = true, length = 20)
     private String name;
 
     @Column(nullable = false)
@@ -27,18 +34,17 @@ public class Category {
     @Column(nullable = false)
     private boolean deleted = false;
 
+    @CreatedDate
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
-    @Column(nullable = false)
+    @LastModifiedDate
     private LocalDateTime updatedAt;
 
     private Category(Long sectionId, String name, int displayOrder) {
         this.sectionId = sectionId;
         this.name = name;
         this.displayOrder = displayOrder;
-        this.createdAt = LocalDateTime.now();
-        this.updatedAt = LocalDateTime.now();
     }
 
     public static Category create(Long sectionId, String name, int displayOrder) {
@@ -47,16 +53,13 @@ public class Category {
 
     public void rename(String newName) {
         this.name = newName;
-        this.updatedAt = LocalDateTime.now();
     }
 
     public void changeOrder(int newOrder) {
         this.displayOrder = newOrder;
-        this.updatedAt = LocalDateTime.now();
     }
 
     public void delete() {
         this.deleted = true;
-        this.updatedAt = LocalDateTime.now();
     }
 }
