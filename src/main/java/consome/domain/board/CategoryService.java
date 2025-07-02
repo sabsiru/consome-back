@@ -10,12 +10,14 @@ public class CategoryService {
     private final CategoryRepository categoryRepository;
 
     public Category create(Long sectionId, String name, int displayOrder) {
+        isNameDuplicate(name);
         Category category = Category.create(sectionId, name, displayOrder);
         return categoryRepository.save(category);
     }
 
     public Category rename(Long categoryId, String newName) {
         Category category = findById(categoryId);
+        isNameDuplicate(newName);
         category.rename(newName);
         return categoryRepository.save(category);
     }
@@ -30,6 +32,16 @@ public class CategoryService {
         Category category = findById(categoryId);
         category.delete();
         categoryRepository.save(category);
+    }
+
+    public boolean isNameDuplicate(String name) {
+        if (categoryRepository.existsByName(name)) {
+            throw new IllegalArgumentException("이미 존재하는 카테고리 이름입니다.");
+        }
+        if (name == null || name.trim().isEmpty() || name.length() < 1 || name.length() > 10) {
+            throw new IllegalArgumentException("카테고리 이름은 1자 이상 10자 이하로 입력해야 합니다.");
+        }
+        return categoryRepository.existsByName(name);
     }
 
     public Category findById(Long categoryId) {
