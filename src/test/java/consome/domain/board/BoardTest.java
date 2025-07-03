@@ -12,16 +12,16 @@ class BoardTest {
     @Test
     void 게시판_생성_성공_tester() {
         // given
-        Long categoryId = 1L;
+        Long sectionId = 1L;
         String name = "LOL 자유 게시판";
         String description = "자유롭게 이야기하세요";
         int order = 1;
 
         // when
-        Board board = Board.create(categoryId, name, description, order);
+        Board board = Board.create(sectionId, name, description, order);
 
         // then
-        assertThat(board.getCategoryId()).isEqualTo(categoryId);
+        assertThat(board.getSectionId()).isEqualTo(sectionId);
         assertThat(board.getName()).isEqualTo(name);
         assertThat(board.getDescription()).isEqualTo(description);
         assertThat(board.getDisplayOrder()).isEqualTo(order);

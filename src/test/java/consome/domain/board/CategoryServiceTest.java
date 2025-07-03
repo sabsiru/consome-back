@@ -22,21 +22,21 @@ class CategoryServiceTest {
     private CategoryService categoryService;
 
     @Test
-    void 유효한_섹션ID와_이름과_순서로_생성할_때_저장된_카테고리를_반환한다() {
+    void 유효한_보드ID와_이름과_순서로_생성할_때_저장된_카테고리를_반환한다() {
         // given
-        Long sectionId = 10L;
+        Long categoryId = 10L;
         String name = "롤";
         int order = 2;
-        Category saved = Category.create(sectionId, name, order);
+        Category saved = Category.create(categoryId, name, order);
         when(categoryRepository.save(any(Category.class))).thenReturn(saved);
 
         // when
-        Category result = categoryService.create(sectionId, name, order);
+        Category result = categoryService.create(categoryId, name, order);
 
         // then
         assertThat(result).isSameAs(saved);
         verify(categoryRepository).save(argThat(cat ->
-                cat.getSectionId().equals(sectionId) &&
+                cat.getBoardId().equals(categoryId) &&
                         cat.getName().equals(name) &&
                         cat.getDisplayOrder() == order
         ));

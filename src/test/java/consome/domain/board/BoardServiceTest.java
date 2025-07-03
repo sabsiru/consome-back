@@ -22,22 +22,22 @@ class BoardServiceTest {
     private BoardService boardService;
 
     @Test
-    void 유효한_카테고리ID와_이름과_설명과_순서로_생성할_때_저장된_보드를_반환한다() {
+    void 유효한_섹션ID와_이름과_설명과_순서로_생성할_때_저장된_보드를_반환한다() {
         // given
-        Long categoryId = 5L;
+        Long sectionId = 5L;
         String name = "자유게시판";
         String description = "자유로운 이야기를 나눠요";
         int order = 1;
-        Board saved = Board.create(categoryId, name, description, order);
+        Board saved = Board.create(sectionId, name, description, order);
         when(boardRepository.save(any(Board.class))).thenReturn(saved);
 
         // when
-        Board result = boardService.create(categoryId, name, description, order);
+        Board result = boardService.create(sectionId, name, description, order);
 
         // then
         assertThat(result).isSameAs(saved);
         verify(boardRepository).save(argThat(b ->
-                b.getCategoryId().equals(categoryId) &&
+                b.getSectionId().equals(sectionId) &&
                         b.getName().equals(name) &&
                         b.getDescription().equals(description) &&
                         b.getDisplayOrder() == order

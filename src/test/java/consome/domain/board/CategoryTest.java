@@ -12,15 +12,15 @@ class CategoryTest {
     @Test
     void 카테고리_생성_성공_tester() {
         // given
-        Long sectionId = 1L;
+        Long categoryId = 1L;
         String name = "LOL";
         int order = 2;
 
         // when
-        Category category = Category.create(sectionId, name, order);
+        Category category = Category.create(categoryId, name, order);
 
         // then
-        assertThat(category.getSectionId()).isEqualTo(sectionId);
+        assertThat(category.getBoardId()).isEqualTo(categoryId);
         assertThat(category.getName()).isEqualTo(name);
         assertThat(category.getDisplayOrder()).isEqualTo(order);
         assertThat(category.isDeleted()).isFalse();
