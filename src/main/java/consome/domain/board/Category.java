@@ -8,7 +8,6 @@ import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
-import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 
 import java.time.LocalDateTime;
 
@@ -22,7 +21,7 @@ public class Category {
     private Long id;
 
     @Column(nullable = false)
-    private Long sectionId;
+    private Long boardId;
 
     @Size(min = 1, max = 20)
     @Column(nullable = false, unique = true, length = 20)
@@ -41,14 +40,14 @@ public class Category {
     @LastModifiedDate
     private LocalDateTime updatedAt;
 
-    private Category(Long sectionId, String name, int displayOrder) {
-        this.sectionId = sectionId;
+    private Category(Long boardId, String name, int displayOrder) {
+        this.boardId = boardId;
         this.name = name;
         this.displayOrder = displayOrder;
     }
 
-    public static Category create(Long sectionId, String name, int displayOrder) {
-        return new Category(sectionId, name, displayOrder);
+    public static Category create(Long boardId, String name, int displayOrder) {
+        return new Category(boardId, name, displayOrder);
     }
 
     public void rename(String newName) {
