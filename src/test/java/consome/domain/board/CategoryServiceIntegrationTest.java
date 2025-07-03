@@ -21,16 +21,16 @@ public class CategoryServiceIntegrationTest {
     @Test
     void 카테고리_생성시_DB에_저장된다() {
         //given
-        Long sectionId = 1L;
+        Long categoryId = 1L;
         String name = "게임";
         int displayOrder = 1;
 
         //when
-        Category category = categoryService.create(sectionId, name, displayOrder);
+        Category category = categoryService.create(categoryId, name, displayOrder);
 
         //then
         assertThat(category.getId()).isNotNull();
-        assertThat(category.getBoardId()).isEqualTo(sectionId);
+        assertThat(category.getBoardId()).isEqualTo(categoryId);
         assertThat(category.getName()).isEqualTo(name);
         assertThat(category.getDisplayOrder()).isEqualTo(displayOrder);
         assertThat(category.isDeleted()).isFalse();
@@ -60,13 +60,13 @@ public class CategoryServiceIntegrationTest {
     @Test
     void 중복된_name은_예외발생() {
         //given
-        Long sectionId = 1L;
+        Long categoryId = 1L;
         String name = "중복";
         int displayOrder = 1;
-        categoryService.create(sectionId, name, displayOrder);
+        categoryService.create(categoryId, name, displayOrder);
 
         //when & then
-        assertThatThrownBy(() -> categoryService.create(sectionId, name, displayOrder))
+        assertThatThrownBy(() -> categoryService.create(categoryId, name, displayOrder))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("이미 존재하는 카테고리 이름입니다.");
     }
@@ -74,10 +74,10 @@ public class CategoryServiceIntegrationTest {
     @Test
     void 카테고리_이름_변경_성공() {
         //given
-        Long sectionId = 1L;
+        Long categoryId = 1L;
         String name = "게임";
         int displayOrder = 1;
-        Category category = categoryService.create(sectionId, name, displayOrder);
+        Category category = categoryService.create(categoryId, name, displayOrder);
 
         //when
         String newName = "스포츠";
@@ -90,13 +90,13 @@ public class CategoryServiceIntegrationTest {
     @Test
     void name_을_수정시_중복되면_예외발생() {
         //given
-        Long sectionId = 1L;
+        Long categoryId = 1L;
         String name = "카테고리1";
         int displayOrder = 1;
-        Category category1 = categoryService.create(sectionId, name, displayOrder);
+        Category category1 = categoryService.create(categoryId, name, displayOrder);
 
         String duplicateName = "카테고리2";
-        categoryService.create(sectionId, duplicateName, displayOrder + 1);
+        categoryService.create(categoryId, duplicateName, displayOrder + 1);
 
         //when & then
         assertThatThrownBy(() -> categoryService.rename(category1.getId(), duplicateName))
@@ -107,10 +107,10 @@ public class CategoryServiceIntegrationTest {
     @Test
     void 카테고리_정렬순서_변경_성공() {
         // given
-        Long sectionId = 1L;
+        Long categoryId = 1L;
         String name = "카테고리1";
         int originalOrder = 1;
-        Category category = categoryService.create(sectionId, name, originalOrder);
+        Category category = categoryService.create(categoryId, name, originalOrder);
 
         // when
         int newOrder = 2;
