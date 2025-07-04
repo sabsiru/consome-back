@@ -9,9 +9,9 @@ public class CategoryService {
 
     private final CategoryRepository categoryRepository;
 
-    public Category create(Long sectionId, String name, int displayOrder) {
+    public Category create(Long boardId, String name, int displayOrder) {
         isNameDuplicate(name);
-        Category category = Category.create(sectionId, name, displayOrder);
+        Category category = Category.create(boardId, name, displayOrder);
         return categoryRepository.save(category);
     }
 
