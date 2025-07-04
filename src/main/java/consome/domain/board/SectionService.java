@@ -3,6 +3,8 @@ package consome.domain.board;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 public class SectionService {
@@ -47,5 +49,9 @@ public class SectionService {
     public Section findById(Long sectionId) {
         return sectionRepository.findById(sectionId)
                 .orElseThrow(() -> new IllegalArgumentException("잘못된 접근입니다."));
+    }
+
+    public List<Section> getSections() {
+        return sectionRepository.findAllByDeletedFalseOrderByDisplayOrder();
     }
 }
