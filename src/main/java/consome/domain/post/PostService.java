@@ -1,8 +1,11 @@
 package consome.domain.post;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -13,6 +16,7 @@ public class PostService {
     private final PostStatRepository statRepository;
     private final PostReactionRepository likeRepository;
     private final PostViewRepository viewRepository;
+    private final PostQueryRepository postQueryRepository;
 
     public Post post(long boardId, long categoryId, Long authorId, String title, String content) {
         Post post = Post.write(boardId, categoryId, authorId, title, content);
@@ -125,5 +129,9 @@ public class PostService {
     public Post getPost(Long postId) {
         return postRepository.findById(postId)
                 .orElseThrow(() -> new IllegalArgumentException("게시글을 찾을 수 없습니다."));
+    }
+
+    public Page<PostSummary> getPostByBoard(Long boardId, Pageable pageable) {
+        return postQueryRepository.findPostWithStatsByBoardId(boardId, pageable);
     }
 }
