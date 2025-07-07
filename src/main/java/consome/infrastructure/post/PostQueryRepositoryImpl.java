@@ -30,14 +30,17 @@ public class PostQueryRepositoryImpl  implements PostQueryRepository {
                         PostSummary.class,
                         post.id,
                         post.title,
-                        postStat.likeCount,
-                        postStat.viewCount,
-                        postStat.dislikeCount,
-                        postStat.commentCount
+                        post.authorId,
+                        post.createdAt,
+                        postStat.likeCount.intValue(),
+                        postStat.viewCount.intValue(),
+                        postStat.dislikeCount.intValue(),
+                        postStat.commentCount.intValue()
                 ))
                 .from(post)
                 .leftJoin(postStat).on(post.id.eq(postStat.postId))
                 .where(post.boardId.eq(boardId))
+                .orderBy(post.createdAt.desc())
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
                 .fetch();
