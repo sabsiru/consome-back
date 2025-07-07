@@ -3,14 +3,16 @@ package consome.domain.board;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 public class BoardService {
     private final BoardRepository boardRepository;
 
-    public Board create(Long categoryId, String name, String description, int displayOrder) {
+    public Board create(Long sectionId, String name, String description, int displayOrder) {
         isNameDuplicate(name);
-        Board board = Board.create(categoryId, name, description, displayOrder);
+        Board board = Board.create(sectionId, name, description, displayOrder);
         return boardRepository.save(board);
     }
 
@@ -46,6 +48,10 @@ public class BoardService {
     public Board findById(Long boardId) {
         return boardRepository.findById(boardId)
                 .orElseThrow(() -> new IllegalArgumentException("잘못된 접근입니다."));
+    }
+
+    public List<Board> getBoards(Long sectionId) {
+        return boardRepository.findBySectionIdAndDeletedFalseOrderByDisplayOrder(sectionId);
     }
 
 }
