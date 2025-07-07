@@ -10,7 +10,7 @@ import java.time.LocalDateTime;
 public class PostSummary {
     private final Long postId;
     private final String title;
-    private final String authorId;
+    private final Long authorId;
     private final LocalDateTime createdAt;
     private final int viewCount;
     private final int likeCount;
