@@ -5,6 +5,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
@@ -396,5 +399,30 @@ class PostServiceIntegrationTest {
         // then
         PostStat stat = statRepository.findById(post.getId()).orElseThrow();
         assertThat(stat.getViewCount()).isEqualTo(1);
+    }
+
+    @Test
+    void 게시글_페이징_정렬_조회() {
+        //given
+        Long boardId = 1L;
+        Long categoryId = 1L;
+        Long authorId = 1L;
+        Long userId = 100L;
+        Pageable pageable = PageRequest.of(0, 15);
+
+        String title = "테스트 제목";
+        String content = "테스트 내용";
+
+        //when
+        for (int i = 0; i < 20; i++) {
+            postService.post(boardId, categoryId, authorId, title + i, content + i);
+        }
+        Page<PostSummary> postByBoard = postService.getPostByBoard(boardId, pageable);
+
+        //then
+        assertThat(postByBoard.getContent()).hasSize(15);
+        assertThat(postByBoard.getTotalElements()).isEqualTo(20);
+        assertThat(postByBoard.getContent().get(0).getTitle()).isEqualTo("테스트 제목19");
+
     }
 }
