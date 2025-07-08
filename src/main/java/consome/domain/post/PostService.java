@@ -30,7 +30,6 @@ public class PostService {
     public Post edit(String title, String content, Long postId, Long userId) {
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new IllegalArgumentException("게시글을 찾을 수 없습니다."));
-        // 게시글 작성자와 현재 사용자가 일치하는지 확인
         if (!post.getAuthorId().equals(userId)) {
             throw new IllegalStateException("작성자만 게시글을 수정할 수 있습니다.");
         }
@@ -118,6 +117,11 @@ public class PostService {
         viewRepository.save(postView);
         return statRepository.save(postStat);
 
+    }
+    public PostStat increaseCommentCount(Long postId) {
+        PostStat postStat = getPostStat(postId);
+        postStat.increaseCommentCount();
+        return statRepository.save(postStat);
     }
 
     public PostStat getPostStat(Long postId) {
