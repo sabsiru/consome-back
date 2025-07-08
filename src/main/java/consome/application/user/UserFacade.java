@@ -1,6 +1,7 @@
 package consome.application.user;
 
 
+import consome.domain.board.BoardService;
 import consome.domain.comment.Comment;
 import consome.domain.comment.CommentReaction;
 import consome.domain.comment.CommentService;
@@ -74,6 +75,7 @@ public class UserFacade {
     @Transactional
     public Comment comment(Long postId, Long userId, Long parentId, String content) {
         postService.getPost(postId);
+        postService.increaseCommentCount(postId);
         Comment comment = commentService.comment(postId, userId, parentId, content);
         pointService.earn(userId, PointHistoryType.COMMENT_WRITE);
         return comment;
