@@ -57,7 +57,7 @@ class UserTest {
         // 4자 미만인 경우 예외 발생 확인
         assertThatThrownBy(() -> User.validateLoginId("abc"))
                 .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("아이디는 4자 이상 15자 이하이어야 합니다.");
+                .hasMessageContaining("로그인 아이디는 4자 이상 20자 이하로 입력해주세요.");
     }
 
     @Test
@@ -73,7 +73,7 @@ class UserTest {
         // 2자 미만인 경우 예외 발생 확인
         assertThatThrownBy(() -> User.validateNickname("a"))
                 .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("닉네임은 2자 이상 8자 이하이어야 합니다.");
+                .hasMessageContaining("닉네임은 2자 이상 20자 이하로 입력해주세요.");
     }
 
     @Test
