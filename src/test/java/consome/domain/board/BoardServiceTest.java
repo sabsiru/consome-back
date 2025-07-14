@@ -121,4 +121,24 @@ class BoardServiceTest {
                 .hasMessage("잘못된 접근입니다.");
         verify(boardRepository).findById(id);
     }
+
+    @Test
+    void rename_할_때_이미_존재하는_이름이면_예외를_던진다() {
+        // given
+        Long id = 1L;
+        String duplicateName = "중복된게시판";
+        Board existing = Board.create(5L, "자유게시판", "설명", 1);
+        Board another = Board.create(5L, duplicateName, "다른설명", 2);
+
+        when(boardRepository.findById(id)).thenReturn(Optional.of(existing));
+        when(boardRepository.existsByName(duplicateName)).thenReturn(true);
+
+        // when / then
+        assertThatThrownBy(() -> boardService.rename(id, duplicateName))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("이미 존재하는 게시판 이름입니다.");
+
+        verify(boardRepository).findById(id);
+    }
+
 }
