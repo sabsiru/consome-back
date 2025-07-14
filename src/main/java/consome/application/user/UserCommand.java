@@ -10,7 +10,6 @@ public class UserCommand {
     private String nickname;
     private String password;
 
-
     public static UserCommand of(String loginId, String nickname, String password) {
         return new UserCommand(loginId, nickname, password);
     }

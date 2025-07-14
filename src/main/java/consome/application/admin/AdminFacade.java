@@ -36,6 +36,7 @@ public class AdminFacade {
     public Board renameBoard(Long boardId, String newName) {
         return boardService.rename(boardId, newName);
     }
+
     public Board changeBoardOrder(Long boardId, int newOrder) {
         return boardService.changeOrder(boardId, newOrder);
     }
