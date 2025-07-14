@@ -37,6 +37,9 @@ dependencies {
 	// instancio
 	implementation ('org.instancio:instancio-core:2.0.0')
 
+	// 암호화
+	implementation ('org.springframework.security:spring-security-crypto')
+
 	compileOnly 'org.projectlombok:lombok'
 	developmentOnly 'org.springframework.boot:spring-boot-devtools'
 	runtimeOnly 'com.mysql:mysql-connector-j'
