@@ -48,8 +48,8 @@ public class User {
     }
 
     public static void validateLoginId(String loginId) {
-        if (loginId.length() < 4 || loginId.length() > 15) {
-            throw new IllegalArgumentException("아이디는 4자 이상 15자 이하이어야 합니다.");
+        if (loginId.length() < 4 || loginId.length() > 20) {
+            throw new IllegalArgumentException("로그인 아이디는 4자 이상 20자 이하로 입력해주세요.");
         }
         if (!loginId.matches("^[a-zA-Z0-9]+$")) {
             throw new IllegalArgumentException("아이디는 영문 대소문자와 숫자만 포함해야 합니다.");
@@ -57,8 +57,8 @@ public class User {
     }
 
     public static void validateNickname(String nickname) {
-        if (nickname.length() < 2 || nickname.length() > 8) {
-            throw new IllegalArgumentException("닉네임은 2자 이상 8자 이하이어야 합니다.");
+        if (nickname.length() < 2 || nickname.length() > 20) {
+            throw new IllegalArgumentException("닉네임은 2자 이상 20자 이하로 입력해주세요.");
         }
         if (!nickname.matches("^[가-힣a-zA-Z0-9]+$")) {
             throw new IllegalArgumentException("닉네임은 한글, 영문 대소문자, 숫자만 포함해야 합니다.");

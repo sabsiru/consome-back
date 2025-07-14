@@ -1,5 +1,6 @@
 package consome.domain.user;
 
+import consome.domain.auth.PasswordPolicy;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -57,7 +58,7 @@ class UserTest {
         // 4자 미만인 경우 예외 발생 확인
         assertThatThrownBy(() -> User.validateLoginId("abc"))
                 .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("아이디는 4자 이상 15자 이하이어야 합니다.");
+                .hasMessageContaining("로그인 아이디는 4자 이상 20자 이하로 입력해주세요.");
     }
 
     @Test
@@ -73,7 +74,7 @@ class UserTest {
         // 2자 미만인 경우 예외 발생 확인
         assertThatThrownBy(() -> User.validateNickname("a"))
                 .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("닉네임은 2자 이상 8자 이하이어야 합니다.");
+                .hasMessageContaining("닉네임은 2자 이상 20자 이하로 입력해주세요.");
     }
 
     @Test
@@ -87,12 +88,12 @@ class UserTest {
     @Test
     void 비밀번호_유효성검증_예외발생(){
         // 비밀번호가 8자 미만인 경우 예외 발생 확인
-        assertThatThrownBy(() -> User.validatePassword("short"))
+        assertThatThrownBy(() -> PasswordPolicy.validate("short"))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("비밀번호는 8자 이상 20자 이하이어야 합니다.");
 
         // 비밀번호가 영문 대소문자와 숫자를 포함하지 않는 경우 예외 발생 확인
-        assertThatThrownBy(() -> User.validatePassword("onlyletters"))
+        assertThatThrownBy(() -> PasswordPolicy.validate("onlyletters"))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("비밀번호는 영문 대소문자와 숫자를 포함해야 합니다.");
     }
