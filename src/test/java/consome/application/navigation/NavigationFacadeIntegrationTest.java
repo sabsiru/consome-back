@@ -1,4 +1,4 @@
-package consome.application.main;
+package consome.application.navigation;
 
 import consome.application.admin.AdminFacade;
 import consome.domain.board.*;
@@ -14,10 +14,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest
 @Transactional
-class MainFacadeIntegrationTest {
+class NavigationFacadeIntegrationTest {
 
     @Autowired
-    MainFacade mainFacade;
+    NavigationFacade mainFacade;
 
     @Autowired
     AdminFacade adminFacade;

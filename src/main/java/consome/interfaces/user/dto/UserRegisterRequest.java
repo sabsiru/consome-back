@@ -1,4 +1,4 @@
-package consome.interfaces.user;
+package consome.interfaces.user.dto;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;

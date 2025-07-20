@@ -32,6 +32,10 @@ public class UserFacade {
         return user.getId();
     }
 
+    public User login(String loginId, String password) {
+        return userService.login(loginId, password);
+    }
+
     @Transactional
     public Post post(long boardId, long categoryId, Long authorId, String title, String content) {
         pointService.earn(authorId, PointHistoryType.POST_WRITE);

@@ -1,4 +1,4 @@
-package consome.application.main;
+package consome.application.navigation;
 
 import consome.domain.board.Board;
 import consome.domain.board.BoardService;
@@ -11,7 +11,7 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-public class MainFacade {
+public class NavigationFacade {
     private final SectionService sectionService;
     private final BoardService boardService;
 
