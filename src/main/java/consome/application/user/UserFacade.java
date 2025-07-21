@@ -1,7 +1,6 @@
 package consome.application.user;
 
 
-import consome.domain.board.BoardService;
 import consome.domain.comment.Comment;
 import consome.domain.comment.CommentReaction;
 import consome.domain.comment.CommentService;
@@ -26,7 +25,7 @@ public class UserFacade {
     private final PostService postService;
     private final CommentService commentService;
 
-    public Long register(UserCommand command) {
+    public Long register(UserRegisterCommand command) {
         User user = userService.register(command.getLoginId(), command.getNickname(), command.getPassword());
         pointService.initialize(user.getId());
         return user.getId();

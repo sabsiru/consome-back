@@ -5,7 +5,7 @@ import consome.application.user.UserFacade;
 import consome.domain.user.User;
 import consome.interfaces.user.dto.UserLoginRequest;
 import consome.interfaces.user.dto.UserLoginResponse;
-import consome.interfaces.user.mapper.UserMapper;
+import consome.interfaces.user.mapper.UserRegisterMapper;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.HttpStatus;
 import consome.interfaces.user.dto.UserRegisterResponse;
@@ -27,7 +27,7 @@ public class UserV1Controller {
 
     @PostMapping
     public ResponseEntity<UserRegisterResponse> register(@RequestBody @Valid UserRegisterRequest request) {
-        userFacade.register(UserMapper.toRegisterCommand(request));
+        userFacade.register(UserRegisterMapper.toRegisterCommand(request));
         UserRegisterResponse response = UserResponseMapper.toRegisterResponse();
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
