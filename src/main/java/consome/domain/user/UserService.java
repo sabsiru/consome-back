@@ -2,6 +2,7 @@ package consome.domain.user;
 
 import consome.domain.auth.PasswordEncryptor;
 import consome.domain.auth.PasswordPolicy;
+import consome.domain.user.exception.UserException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -43,10 +44,11 @@ public class UserService {
         boolean nicknameIsEmpty = userRepository.findAllByNickname(nickname).isEmpty();
 
         if (!loginIdIsEmpty) {
-            throw new IllegalStateException("이미 사용 중인 아이디입니다.");
+            throw new UserException.DuplicateLoginId(loginId);
         }
         if (!nicknameIsEmpty) {
-            throw new IllegalStateException("이미 사용 중인 닉네임입니다.");
+            throw new UserException.DuplicateNickname(nickname) {
+            };
         }
 
         return true;
