@@ -27,13 +27,13 @@ class UserFacadeTest {
     @InjectMocks
     private UserFacade userFacade;
 
-    private UserCommand userCommand;
+    private UserRegisterCommand userRegisterCommand;
     private User mockUser;
 
     @BeforeEach
     void setUp() {
-        // 테스트용 UserCommand 생성
-        userCommand = UserCommand.of("testId", "testid", "password123");
+        // 테스트용 UserRegisterCommand 생성
+        userRegisterCommand = UserRegisterCommand.of("testId", "testid", "password123");
 
         // 목 User 객체 생성
         mockUser = mock(User.class);
@@ -47,15 +47,15 @@ class UserFacadeTest {
         when(pointService.initialize(anyLong())).thenReturn(100);
 
         // when
-        Long userId = userFacade.register(userCommand);
+        Long userId = userFacade.register(userRegisterCommand);
 
         // then
         assertThat(userId).isEqualTo(1L);
 
         verify(userService).register(
-                userCommand.getLoginId(),
-                userCommand.getNickname(),
-                userCommand.getPassword()
+                userRegisterCommand.getLoginId(),
+                userRegisterCommand.getNickname(),
+                userRegisterCommand.getPassword()
         );
 
         verify(pointService).initialize(1L);

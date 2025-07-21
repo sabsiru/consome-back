@@ -53,21 +53,21 @@ class UserFacadeIntegrationTest {
     @Autowired
     private CommentReactionRepository commentReactionRepository;
 
-    private UserCommand userCommand;
+    private UserRegisterCommand userRegisterCommand;
 
     private long boardId = 1L;
     private long categoryId = 1L;
 
     @BeforeEach
     void setUp() {
-        userCommand = UserCommand.of("testid", "테스트닉네임", "password123");
+        userRegisterCommand = UserRegisterCommand.of("testid", "테스트닉네임", "password123");
         userRepository.deleteAll();
     }
 
     @Test
     void 회원가입_요청시_사용자가_생성되고_포인트가_초기화되며_히스토리가_생성된다() {
         // when
-        Long userId = userFacade.register(userCommand);
+        Long userId = userFacade.register(userRegisterCommand);
         int initialPoint = PointHistoryType.REGISTER.getPoint();
         int beforePoint = 0;
         int afterPoint = beforePoint + initialPoint;
@@ -75,8 +75,8 @@ class UserFacadeIntegrationTest {
         // then
         User savedUser = userRepository.findById(userId).orElseThrow();
         assertThat(savedUser.getId()).isEqualTo(userId);
-        assertThat(savedUser.getLoginId()).isEqualTo(userCommand.getLoginId());
-        assertThat(savedUser.getNickname()).isEqualTo(userCommand.getNickname());
+        assertThat(savedUser.getLoginId()).isEqualTo(userRegisterCommand.getLoginId());
+        assertThat(savedUser.getNickname()).isEqualTo(userRegisterCommand.getNickname());
 
         Optional<PointHistory> history = pointHistoryRepository.findFirstByUserIdOrderByCreatedAtDesc(userId);
 
@@ -93,11 +93,11 @@ class UserFacadeIntegrationTest {
     @Test
     void 유저_loginId가_중복일시_예외발생() {
         //given
-        userFacade.register(userCommand);
-        UserCommand duplicateUserCommand = UserCommand.of("testid", "다른닉네임", "다른비밀번호");
+        userFacade.register(userRegisterCommand);
+        UserRegisterCommand duplicateUserRegisterCommand = UserRegisterCommand.of("testid", "다른닉네임", "다른비밀번호");
 
         //then
-        assertThatThrownBy(() -> userFacade.register(duplicateUserCommand))
+        assertThatThrownBy(() -> userFacade.register(duplicateUserRegisterCommand))
                 .isInstanceOf(IllegalStateException.class)
                 .hasMessage("이미 사용 중인 아이디입니다.");
     }
@@ -105,11 +105,11 @@ class UserFacadeIntegrationTest {
     @Test
     void 유저_닉네임이_중복일시_예외발생() {
         //given
-        userFacade.register(userCommand);
-        UserCommand duplicateUserCommand = UserCommand.of("다른아이디", "테스트닉네임", "다른비밀번호");
+        userFacade.register(userRegisterCommand);
+        UserRegisterCommand duplicateUserRegisterCommand = UserRegisterCommand.of("다른아이디", "테스트닉네임", "다른비밀번호");
 
         //then
-        assertThatThrownBy(() -> userFacade.register(duplicateUserCommand))
+        assertThatThrownBy(() -> userFacade.register(duplicateUserRegisterCommand))
                 .isInstanceOf(IllegalStateException.class)
                 .hasMessage("이미 사용 중인 닉네임입니다.");
 
@@ -118,7 +118,7 @@ class UserFacadeIntegrationTest {
     @Test
     void 게시글_작성후_포인트조회() {
         // given
-        Long userId = userFacade.register(userCommand);
+        Long userId = userFacade.register(userRegisterCommand);
         int initialPoint = PointHistoryType.REGISTER.getPoint();
         int postPoint = PointHistoryType.POST_WRITE.getPoint();
         int expectedPoint = initialPoint + postPoint;
@@ -133,7 +133,7 @@ class UserFacadeIntegrationTest {
     @Test
     void 게시글_정상_수정_확인() {
         // given
-        Long userId = userFacade.register(userCommand);
+        Long userId = userFacade.register(userRegisterCommand);
         Post post = userFacade.post(boardId, categoryId, userId, "테스트 제목", "테스트 내용");
 
         // when
@@ -147,7 +147,7 @@ class UserFacadeIntegrationTest {
     @Test
     void 게시글_삭제시_포인트_차감_확인() {
         //given
-        Long userId = userFacade.register(userCommand);
+        Long userId = userFacade.register(userRegisterCommand);
         Post post = userFacade.post(boardId, categoryId, userId, "테스트 제목", "테스트 내용");
 
         //when
@@ -161,8 +161,8 @@ class UserFacadeIntegrationTest {
     @Test
     void 게시글_작성후_다른유저로_좋아요시_포인트증가_확인() {
         //given
-        Long authorId = userFacade.register(userCommand);
-        Long otherUser = userFacade.register(UserCommand.of("likerid", "좋아요닉네임", "likerpassword"));
+        Long authorId = userFacade.register(userRegisterCommand);
+        Long otherUser = userFacade.register(UserRegisterCommand.of("likerid", "좋아요닉네임", "likerpassword"));
         int initialPoint = PointHistoryType.REGISTER.getPoint();
         int postPoint = PointHistoryType.POST_WRITE.getPoint();
         int likePoint = PointHistoryType.POST_LIKE.getPoint();
@@ -180,8 +180,8 @@ class UserFacadeIntegrationTest {
     @Test
     void 게시글_좋아요_중복시_예외발생() {
         //given
-        Long authorId = userFacade.register(userCommand);
-        Long otherUser = userFacade.register(UserCommand.of("likerid", "좋아요닉네임", "likerpassword"));
+        Long authorId = userFacade.register(userRegisterCommand);
+        Long otherUser = userFacade.register(UserRegisterCommand.of("likerid", "좋아요닉네임", "likerpassword"));
         Post post = userFacade.post(boardId, categoryId, authorId, "테스트 제목", "테스트 내용");
 
         //when
@@ -197,8 +197,8 @@ class UserFacadeIntegrationTest {
     @Test
     void 게시글_싫어요_정상차감_확인() {
         //given
-        Long authorId = userFacade.register(userCommand);
-        Long otherUser = userFacade.register(UserCommand.of("dislikerid", "싫어요닉네임", "dislikerpassword"));
+        Long authorId = userFacade.register(userRegisterCommand);
+        Long otherUser = userFacade.register(UserRegisterCommand.of("dislikerid", "싫어요닉네임", "dislikerpassword"));
         int initialPoint = PointHistoryType.REGISTER.getPoint();
         int postPoint = PointHistoryType.POST_WRITE.getPoint();
         int dislikePoint = PointHistoryType.POST_DISLIKE.getPoint();
@@ -216,8 +216,8 @@ class UserFacadeIntegrationTest {
     @Test
     void 게시글_싫어요_중복시_예외발생() {
         //given
-        Long authorId = userFacade.register(userCommand);
-        Long otherUser = userFacade.register(UserCommand.of("dislikerid", "싫어요닉네임", "dislikerpassword"));
+        Long authorId = userFacade.register(userRegisterCommand);
+        Long otherUser = userFacade.register(UserRegisterCommand.of("dislikerid", "싫어요닉네임", "dislikerpassword"));
         Post post = userFacade.post(boardId, categoryId, authorId, "테스트 제목", "테스트 내용");
 
         //when
@@ -232,8 +232,8 @@ class UserFacadeIntegrationTest {
     @Test
     void 게시글_수정시_작성자가_아니면_예외발생() {
         //given
-        Long authorId = userFacade.register(userCommand);
-        Long otherUser = userFacade.register(UserCommand.of("otherid", "다른닉네임", "otherpassword"));
+        Long authorId = userFacade.register(userRegisterCommand);
+        Long otherUser = userFacade.register(UserRegisterCommand.of("otherid", "다른닉네임", "otherpassword"));
         Post post = userFacade.post(boardId, categoryId, authorId, "테스트 제목", "테스트 내용");
 
         //when
@@ -247,8 +247,8 @@ class UserFacadeIntegrationTest {
     @Test
     void 게시글_삭제시_작성자가_아니면_예외발생() {
         //given
-        Long authorId = userFacade.register(userCommand);
-        Long otherUser = userFacade.register(UserCommand.of("otherid", "다른닉네임", "otherpassword"));
+        Long authorId = userFacade.register(userRegisterCommand);
+        Long otherUser = userFacade.register(UserRegisterCommand.of("otherid", "다른닉네임", "otherpassword"));
         Post post = userFacade.post(boardId, categoryId, authorId, "테스트 제목", "테스트 내용");
 
         //then
@@ -260,7 +260,7 @@ class UserFacadeIntegrationTest {
     @Test
     void 게시글_조회수_증가_확인() {
         // given
-        Long authorId = userFacade.register(userCommand);
+        Long authorId = userFacade.register(userRegisterCommand);
         Post post = userFacade.post(boardId, categoryId, authorId, "테스트 제목", "테스트 내용");
         String userIp = "127.0.0.1";
 
@@ -275,7 +275,7 @@ class UserFacadeIntegrationTest {
     @Test
     void 같은Ip나_같은Id일_경우_조회수가_증가하지_않음() {
         //given
-        Long authorId = userFacade.register(userCommand);
+        Long authorId = userFacade.register(userRegisterCommand);
         Post post = userFacade.post(boardId, categoryId, authorId, "테스트 제목", "테스트 내용");
         String userIp = "127.0.0.1";
         String otherIp = "127.0.0.2";
@@ -292,7 +292,7 @@ class UserFacadeIntegrationTest {
     @Test
     void 다른_Ip와_다른Id일_경우_조회수_증가() {
         //given
-        Long authorId = userFacade.register(userCommand);
+        Long authorId = userFacade.register(userRegisterCommand);
         Post post = userFacade.post(boardId, categoryId, authorId, "테스트 제목", "테스트 내용");
         String userIp = "127.0.0.1";
         String otherIp = "127.0.0.2";
@@ -312,8 +312,8 @@ class UserFacadeIntegrationTest {
     @Test
     void 댓글_정상_작성() {
         //given
-        Long authorId = userFacade.register(userCommand);
-        Long commenterId = userFacade.register(UserCommand.of("commenterid", "댓글작성자", "1234"));
+        Long authorId = userFacade.register(userRegisterCommand);
+        Long commenterId = userFacade.register(UserRegisterCommand.of("commenterid", "댓글작성자", "1234"));
         Post post = userFacade.post(boardId, categoryId, authorId, "테스트 제목", "테스트 내용");
 
         //when
@@ -326,8 +326,8 @@ class UserFacadeIntegrationTest {
     @Test
     void 대댓글_정상_작성() {
         //given
-        Long authorId = userFacade.register(userCommand);
-        Long commenterId = userFacade.register(UserCommand.of("commenterid", "댓글작성자", "1234"));
+        Long authorId = userFacade.register(userRegisterCommand);
+        Long commenterId = userFacade.register(UserRegisterCommand.of("commenterid", "댓글작성자", "1234"));
         Post post = userFacade.post(boardId, categoryId, authorId, "테스트 제목", "테스트 내용");
 
         //when
@@ -348,8 +348,8 @@ class UserFacadeIntegrationTest {
     @Test
     void 댓글_수정_테스트() {
         //given
-        Long authorId = userFacade.register(userCommand);
-        Long commenterId = userFacade.register(UserCommand.of("commenterid", "댓글작성자", "1234"));
+        Long authorId = userFacade.register(userRegisterCommand);
+        Long commenterId = userFacade.register(UserRegisterCommand.of("commenterid", "댓글작성자", "1234"));
         String newContent = "수정된 댓글 내용";
         Post post = userFacade.post(boardId, categoryId, authorId, "테스트 제목", "테스트 내용");
         Comment comment = userFacade.comment(post.getId(), commenterId, null, "테스트 댓글 내용");
@@ -364,8 +364,8 @@ class UserFacadeIntegrationTest {
     @Test
     void 댓글_삭제_테스트() {
         //given
-        Long authorId = userFacade.register(userCommand);
-        Long commenterId = userFacade.register(UserCommand.of("commenterid", "댓글작성자", "1234"));
+        Long authorId = userFacade.register(userRegisterCommand);
+        Long commenterId = userFacade.register(UserRegisterCommand.of("commenterid", "댓글작성자", "1234"));
         Post post = userFacade.post(boardId, categoryId, authorId, "테스트 제목", "테스트 내용");
         Comment comment = userFacade.comment(post.getId(), commenterId, null, "테스트 댓글 내용");
         userFacade.deleteComment(commenterId, comment.getId());
@@ -377,8 +377,8 @@ class UserFacadeIntegrationTest {
     @Test
     void 다른_유저의_댓글_수정시_예외발생() {
         //given
-        Long authorId = userFacade.register(userCommand);
-        Long commenterId = userFacade.register(UserCommand.of("commenterid", "댓글작성자", "1234"));
+        Long authorId = userFacade.register(userRegisterCommand);
+        Long commenterId = userFacade.register(UserRegisterCommand.of("commenterid", "댓글작성자", "1234"));
         Long otherUserId = 100L;
         Post post = userFacade.post(boardId, categoryId, authorId, "테스트 제목", "테스트 내용");
         Comment comment = userFacade.comment(post.getId(), commenterId, null, "테스트 댓글 내용");
@@ -392,8 +392,8 @@ class UserFacadeIntegrationTest {
     @Test
     void 다른_유저의_댓글_삭제시_예외발생() {
         //given
-        Long authorId = userFacade.register(userCommand);
-        Long commenterId = userFacade.register(UserCommand.of("commenterid", "댓글작성자", "1234"));
+        Long authorId = userFacade.register(userRegisterCommand);
+        Long commenterId = userFacade.register(UserRegisterCommand.of("commenterid", "댓글작성자", "1234"));
         Long otherUserId = 100L;
         Post post = userFacade.post(boardId, categoryId, authorId, "테스트 제목", "테스트 내용");
         Comment comment = userFacade.comment(post.getId(), commenterId, null, "테스트 댓글 내용");
@@ -407,9 +407,9 @@ class UserFacadeIntegrationTest {
     @Test
     void 댓글_좋아요_성공() {
         //given
-        Long authorId = userFacade.register(userCommand);
-        Long commenterId = userFacade.register(UserCommand.of("commenterid", "댓글작성자", "1234"));
-        Long likerId = userFacade.register(UserCommand.of("likerid", "좋아요닉네임", "likerpassword"));
+        Long authorId = userFacade.register(userRegisterCommand);
+        Long commenterId = userFacade.register(UserRegisterCommand.of("commenterid", "댓글작성자", "1234"));
+        Long likerId = userFacade.register(UserRegisterCommand.of("likerid", "좋아요닉네임", "likerpassword"));
         Post post = userFacade.post(boardId, categoryId, authorId, "테스트 제목", "테스트 내용");
         Comment comment = userFacade.comment(post.getId(), commenterId, null, "테스트 댓글 내용");
 
@@ -424,9 +424,9 @@ class UserFacadeIntegrationTest {
     @Test
     void 댓글_싫어요_성공() {
         //given
-        Long authorId = userFacade.register(userCommand);
-        Long commenterId = userFacade.register(UserCommand.of("commenterid", "댓글작성자", "1234"));
-        Long dislikerId = userFacade.register(UserCommand.of("dislikerid", "싫어요닉네임", "dislikerpassword"));
+        Long authorId = userFacade.register(userRegisterCommand);
+        Long commenterId = userFacade.register(UserRegisterCommand.of("commenterid", "댓글작성자", "1234"));
+        Long dislikerId = userFacade.register(UserRegisterCommand.of("dislikerid", "싫어요닉네임", "dislikerpassword"));
         Post post = userFacade.post(boardId, categoryId, authorId, "테스트 제목", "테스트 내용");
         Comment comment = userFacade.comment(post.getId(), commenterId, null, "테스트 댓글 내용");
 
