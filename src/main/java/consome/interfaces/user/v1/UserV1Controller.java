@@ -6,6 +6,10 @@ import consome.domain.user.User;
 import consome.interfaces.user.dto.UserLoginRequest;
 import consome.interfaces.user.dto.UserLoginResponse;
 import consome.interfaces.user.mapper.UserMapper;
+import org.springframework.http.ResponseEntity;
+import org.springframework.http.HttpStatus;
+import consome.interfaces.user.dto.UserRegisterResponse;
+import consome.interfaces.user.mapper.UserResponseMapper;
 import consome.interfaces.user.dto.UserRegisterRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -21,13 +25,15 @@ public class UserV1Controller {
 
     private final UserFacade userFacade;
 
-    @PostMapping("/")
-    public Long register(@RequestBody @Valid UserRegisterRequest userRegisterRequest) {
-        return userFacade.register(UserMapper.toRegisterCommand(userRegisterRequest));
+    @PostMapping
+    public ResponseEntity<UserRegisterResponse> register(@RequestBody @Valid UserRegisterRequest request) {
+        userFacade.register(UserMapper.toRegisterCommand(request));
+        UserRegisterResponse response = UserResponseMapper.toRegisterResponse();
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     @PostMapping("/login")
-    public UserLoginResponse login(@RequestBody UserLoginRequest request){
+    public UserLoginResponse login(@RequestBody UserLoginRequest request) {
         User login = userFacade.login(request.getLoginId(), request.getPassword());
 
         return UserLoginResponse.from(login);
