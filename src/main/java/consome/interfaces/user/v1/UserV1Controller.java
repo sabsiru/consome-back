@@ -2,14 +2,17 @@ package consome.interfaces.user.v1;
 
 
 import consome.application.user.UserFacade;
-import consome.domain.user.User;
+import consome.application.user.UserLoginCommand;
+import consome.application.user.UserLoginResult;
 import consome.interfaces.user.dto.UserLoginRequest;
 import consome.interfaces.user.dto.UserLoginResponse;
+import consome.interfaces.user.mapper.UserLoginMapper;
+import consome.interfaces.user.mapper.UserLoginResponseMapper;
 import consome.interfaces.user.mapper.UserRegisterMapper;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.HttpStatus;
 import consome.interfaces.user.dto.UserRegisterResponse;
-import consome.interfaces.user.mapper.UserResponseMapper;
+import consome.interfaces.user.mapper.UserRegisterResponseMapper;
 import consome.interfaces.user.dto.UserRegisterRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -28,14 +31,15 @@ public class UserV1Controller {
     @PostMapping
     public ResponseEntity<UserRegisterResponse> register(@RequestBody @Valid UserRegisterRequest request) {
         userFacade.register(UserRegisterMapper.toRegisterCommand(request));
-        UserRegisterResponse response = UserResponseMapper.toRegisterResponse();
+        UserRegisterResponse response = UserRegisterResponseMapper.toRegisterResponse();
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     @PostMapping("/login")
-    public UserLoginResponse login(@RequestBody UserLoginRequest request) {
-        User login = userFacade.login(request.getLoginId(), request.getPassword());
-
-        return UserLoginResponse.from(login);
+    public ResponseEntity<UserLoginResponse> login(@RequestBody @Valid UserLoginRequest request) {
+        UserLoginCommand command = UserLoginMapper.toLoginCommand(request);
+        UserLoginResult result = userFacade.login(command);
+        UserLoginResponse response = UserLoginResponseMapper.toLoginResponse(result);
+        return ResponseEntity.ok(response);
     }
 }
