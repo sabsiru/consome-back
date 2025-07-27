@@ -27,4 +27,14 @@ public abstract class UserException extends RuntimeException {
             this.nickname = nickname;
         }
     }
+
+    public static class loginFailure extends UserException {
+        private final String loginId;
+        private final String password;
+        public loginFailure(String loginId, String password) {
+            super("INVALID_CREDENTIALS", "아이디 또는 비밀번호가 일치하지 않습니다");
+            this.loginId = loginId;
+            this.password = password;
+        }
+    }
 }
