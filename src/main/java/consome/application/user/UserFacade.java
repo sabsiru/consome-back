@@ -25,14 +25,18 @@ public class UserFacade {
     private final PostService postService;
     private final CommentService commentService;
 
+    @Transactional
     public Long register(UserRegisterCommand command) {
         User user = userService.register(command.getLoginId(), command.getNickname(), command.getPassword());
         pointService.initialize(user.getId());
         return user.getId();
     }
 
-    public User login(String loginId, String password) {
-        return userService.login(loginId, password);
+    @Transactional
+    public UserLoginResult login(UserLoginCommand command) {
+        User user = userService.login(command.loginId(), command.password());
+        int currentPoint = pointService.getCurrentPoint(user.getId());
+        return new UserLoginResult(user.getId(), user.getLoginId(), user.getNickname(), user.getRole(), currentPoint);
     }
 
     @Transactional

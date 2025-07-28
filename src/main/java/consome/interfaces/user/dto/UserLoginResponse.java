@@ -1,25 +1,23 @@
 package consome.interfaces.user.dto;
 
+import consome.application.user.UserLoginResult;
 import consome.domain.user.Role;
-import consome.domain.user.User;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
 
-@Getter
-@AllArgsConstructor
-public class UserLoginResponse {
-
-    private Long id;
-    private String loginId;
-    private String nickName;
-    private Role role;
-
-    public static UserLoginResponse from(User user) {
+public record UserLoginResponse(
+        Long id,
+        String loginId,
+        String nickname,
+        Role role,
+        int point
+) {
+    public static UserLoginResponse from(UserLoginResult result) {
         return new UserLoginResponse(
-                user.getId(),
-                user.getLoginId(),
-                user.getNickname(),
-                user.getRole()
+                result.id(),
+                result.loginId(),
+                result.nickname(),
+                result.role(),
+                result.point()
         );
     }
 }
+

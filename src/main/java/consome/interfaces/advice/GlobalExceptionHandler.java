@@ -20,4 +20,15 @@ public class GlobalExceptionHandler {
                 .status(HttpStatus.CONFLICT)
                 .body(body);
     }
+
+    @ExceptionHandler(UserException.loginFailure.class)
+    public ResponseEntity<ErrorResponse> handleLoginFailure(UserException.loginFailure ex) {
+        ErrorResponse body = new ErrorResponse(
+                ex.getCode(),
+                ex.getMessage()
+        );
+        return ResponseEntity
+                .status(HttpStatus.UNAUTHORIZED)
+                .body(body);
+    }
 }
