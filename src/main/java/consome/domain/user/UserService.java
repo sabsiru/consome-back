@@ -28,7 +28,7 @@ public class UserService {
     public User login(String loginId, String password) {
         User user = userRepository.findByLoginId(loginId);
         if (!passwordEncryptor.matches(password, user.getPassword())) {
-            throw new IllegalArgumentException("사용자 ID 혹은 비밀번호가 일치하지 않습니다.");
+            throw new UserException.loginFailure(loginId,password);
         }
 
         return user;
