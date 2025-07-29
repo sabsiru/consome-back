@@ -5,7 +5,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -30,7 +29,7 @@ public class PostService {
     public Post edit(String title, String content, Long postId, Long userId) {
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new IllegalArgumentException("게시글을 찾을 수 없습니다."));
-        if (!post.getAuthorId().equals(userId)) {
+        if (!post.getRefUserId().equals(userId)) {
             throw new IllegalStateException("작성자만 게시글을 수정할 수 있습니다.");
         }
         post.edit(title, content);
@@ -42,7 +41,7 @@ public class PostService {
     public Post delete(Long postId, Long userId) {
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new IllegalArgumentException("게시글을 찾을 수 없습니다."));
-        if (!post.getAuthorId().equals(userId)) {
+        if (!post.getRefUserId().equals(userId)) {
             throw new IllegalStateException("작성자만 게시글을 삭제할 수 있습니다.");
         }
         post.delete();
