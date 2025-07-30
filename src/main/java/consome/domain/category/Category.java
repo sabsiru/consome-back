@@ -1,4 +1,4 @@
-package consome.domain.post;
+package consome.domain.category;
 
 import jakarta.persistence.*;
 import lombok.AccessLevel;
@@ -10,7 +10,7 @@ import java.time.LocalDateTime;
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class PostCategory {
+public class Category {
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -33,7 +33,7 @@ public class PostCategory {
     @Column(nullable = false)
     private LocalDateTime updatedAt;
 
-    private PostCategory(Long boardId, String name, int displayOrder) {
+    private Category(Long boardId, String name, int displayOrder) {
         this.boardId = boardId;
         this.name = name;
         this.displayOrder = displayOrder;
@@ -41,8 +41,8 @@ public class PostCategory {
         this.updatedAt = LocalDateTime.now();
     }
 
-    public static PostCategory create(Long boardId, String name, int displayOrder) {
-        return new PostCategory(boardId, name, displayOrder);
+    public static Category create(Long boardId, String name, int displayOrder) {
+        return new Category(boardId, name, displayOrder);
     }
 
     public void rename(String name) {

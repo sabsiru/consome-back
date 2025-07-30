@@ -1,5 +1,6 @@
-package consome.domain.post;
+package consome.domain.post.entity;
 
+import consome.domain.post.ReactionType;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;

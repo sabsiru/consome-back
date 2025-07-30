@@ -1,5 +1,10 @@
 package consome.domain.post;
 
+import consome.domain.post.entity.Post;
+import consome.domain.post.entity.PostReaction;
+import consome.domain.post.entity.PostStat;
+import consome.domain.post.entity.PostView;
+import consome.domain.post.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;

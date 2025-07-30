@@ -1,4 +1,4 @@
-package consome.domain.post;
+package consome.domain.post.entity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
