@@ -1,10 +1,11 @@
 package consome.domain.post;
 
+import consome.domain.category.Category;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-class PostCategoryTest {
+class CategoryTest {
 
     @Test
     void 카테고리_생성_성공_tester() {
@@ -14,7 +15,7 @@ class PostCategoryTest {
         int order = 1;
 
         // when
-        PostCategory category = PostCategory.create(boardId, name, order);
+        Category category = Category.create(boardId, name, order);
 
         // then
         assertThat(category.getBoardId()).isEqualTo(boardId);
@@ -27,7 +28,7 @@ class PostCategoryTest {
 
     @Test
     void 카테고리_이름_수정_성공_tester() {
-        PostCategory category = PostCategory.create(1L, "질문", 1);
+        Category category = Category.create(1L, "질문", 1);
 
         category.rename("정보");
 
@@ -36,7 +37,7 @@ class PostCategoryTest {
 
     @Test
     void 카테고리_정렬순서_변경_성공_tester() {
-        PostCategory category = PostCategory.create(1L, "질문", 1);
+        Category category = Category.create(1L, "질문", 1);
 
         category.changeOrder(2);
 
@@ -45,7 +46,7 @@ class PostCategoryTest {
 
     @Test
     void 카테고리_삭제_성공_tester() {
-        PostCategory category = PostCategory.create(1L, "질문", 1);
+        Category category = Category.create(1L, "질문", 1);
 
         category.delete();
 

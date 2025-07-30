@@ -1,5 +1,6 @@
 package consome.domain.post;
 
+import consome.domain.post.entity.Post;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -22,9 +23,9 @@ class PostTest {
         Post post = Post.write(boardId, categoryId, userId, title, content);
 
         // then
-        assertThat(post.getBoardId()).isEqualTo(boardId);
-        assertThat(post.getCategoryId()).isEqualTo(categoryId);
-        assertThat(post.getAuthorId()).isEqualTo(userId);
+        assertThat(post.getRefBoardId()).isEqualTo(boardId);
+        assertThat(post.getRefCategoryId()).isEqualTo(categoryId);
+        assertThat(post.getRefUserId()).isEqualTo(userId);
         assertThat(post.getTitle()).isEqualTo(title);
         assertThat(post.getContent()).isEqualTo(content);
         assertThat(post.getCreatedAt()).isNotNull();

@@ -1,6 +1,7 @@
 // src/test/java/consome/domain/post/PostStatTest.java
 package consome.domain.post;
 
+import consome.domain.post.entity.PostStat;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
