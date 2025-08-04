@@ -1,4 +1,4 @@
-package consome.domain.post;
+package consome.domain.post.entity;
 
 import jakarta.persistence.*;
 import lombok.AccessLevel;
@@ -6,7 +6,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
-import java.util.Collection;
 
 @Entity
 @Getter
@@ -18,13 +17,13 @@ public class Post {
     private Long id;
 
     @Column(nullable = false)
-    private Long boardId;
+    private Long refBoardId;
 
     @Column(nullable = false)
-    private Long categoryId;
+    private Long refCategoryId;
 
     @Column(nullable = false)
-    private Long authorId; // userId
+    private Long refUserId;
 
     @Column(nullable = false)
     private String title;
@@ -41,10 +40,10 @@ public class Post {
     @Column(nullable = false)
     private boolean deleted = false;
 
-    private Post(Long boardId, Long categoryId, Long authorId, String title, String content) {
-        this.boardId = boardId;
-        this.categoryId = categoryId;
-        this.authorId = authorId;
+    private Post(Long refBoardId, Long refCategoryId, Long refUserId, String title, String content) {
+        this.refBoardId = refBoardId;
+        this.refCategoryId = refCategoryId;
+        this.refUserId = refUserId;
         this.title = title;
         this.content = content;
         this.createdAt = LocalDateTime.now();
@@ -52,9 +51,13 @@ public class Post {
     }
 
     public static Post write(Long boardId, Long categoryId, Long authorId, String title, String content) {
+        //검증 로직
         return new Post(boardId, categoryId, authorId, title, content);
     }
 
+    /**
+     * to-do
+     * 검증 로직 넣을것*/
 
     public void delete() {
         this.deleted = true;
@@ -68,6 +71,6 @@ public class Post {
     }
 
     public boolean isAuthor(Long userId) {
-        return this.authorId.equals(userId);
+        return this.refUserId.equals(userId);
     }
 }

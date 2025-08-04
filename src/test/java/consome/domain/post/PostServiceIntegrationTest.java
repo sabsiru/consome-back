@@ -1,5 +1,11 @@
 package consome.domain.post;
 
+import consome.domain.post.entity.Post;
+import consome.domain.post.entity.PostReaction;
+import consome.domain.post.entity.PostStat;
+import consome.domain.post.repository.PostReactionRepository;
+import consome.domain.post.repository.PostRepository;
+import consome.domain.post.repository.PostStatRepository;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -48,7 +54,7 @@ class PostServiceIntegrationTest {
 
         // then
         Post savedPost = postRepository.findById(post.getId()).orElseThrow();
-        assertThat(savedPost.getBoardId()).isEqualTo(boardId);
+        assertThat(savedPost.getRefBoardId()).isEqualTo(boardId);
         assertThat(savedPost.getTitle()).isEqualTo(title);
         assertThat(savedPost.getContent()).isEqualTo(content);
 

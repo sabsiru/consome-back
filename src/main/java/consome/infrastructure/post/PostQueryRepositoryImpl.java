@@ -2,7 +2,7 @@ package consome.infrastructure.post;
 
 import com.querydsl.core.types.Projections;
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import consome.domain.post.PostQueryRepository;
+import consome.domain.post.repository.PostQueryRepository;
 import consome.domain.post.PostSummary;
 import consome.domain.post.QPost;
 import consome.domain.post.QPostStat;
@@ -30,7 +30,7 @@ public class PostQueryRepositoryImpl  implements PostQueryRepository {
                         PostSummary.class,
                         post.id,
                         post.title,
-                        post.authorId,
+                        post.refUserId,
                         post.createdAt,
                         postStat.likeCount.intValue(),
                         postStat.viewCount.intValue(),
@@ -39,7 +39,7 @@ public class PostQueryRepositoryImpl  implements PostQueryRepository {
                 ))
                 .from(post)
                 .leftJoin(postStat).on(post.id.eq(postStat.postId))
-                .where(post.boardId.eq(boardId))
+                .where(post.refBoardId.eq(boardId))
                 .orderBy(post.createdAt.desc())
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
@@ -48,7 +48,7 @@ public class PostQueryRepositoryImpl  implements PostQueryRepository {
         Long total = queryFactory
                 .select(post.count())
                 .from(post)
-                .where(post.boardId.eq(boardId))
+                .where(post.refBoardId.eq(boardId))
                 .fetchOne();
 
         return PageableExecutionUtils.getPage(contents, pageable, () -> total == null ? 0L : total);

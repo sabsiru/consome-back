@@ -1,4 +1,4 @@
-package consome.domain.post;
+package consome.domain.post.entity;
 
 import jakarta.persistence.*;
 import lombok.AccessLevel;

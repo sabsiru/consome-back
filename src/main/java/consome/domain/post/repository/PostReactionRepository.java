@@ -1,5 +1,7 @@
-package consome.domain.post;
+package consome.domain.post.repository;
 
+import consome.domain.post.entity.PostReaction;
+import consome.domain.post.ReactionType;
 import jakarta.persistence.LockModeType;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;

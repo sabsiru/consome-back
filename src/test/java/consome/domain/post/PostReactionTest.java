@@ -1,5 +1,6 @@
 package consome.domain.post;
 
+import consome.domain.post.entity.PostReaction;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
