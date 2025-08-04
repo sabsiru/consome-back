@@ -6,9 +6,9 @@ import consome.domain.comment.CommentReaction;
 import consome.domain.comment.CommentService;
 import consome.domain.point.PointHistoryType;
 import consome.domain.point.PointService;
-import consome.domain.post.Post;
+import consome.domain.post.entity.Post;
 import consome.domain.post.PostService;
-import consome.domain.post.PostStat;
+import consome.domain.post.entity.PostStat;
 import consome.domain.post.ReactionType;
 import consome.domain.user.User;
 import consome.domain.user.UserService;
@@ -58,7 +58,7 @@ public class UserFacade {
 
     @Transactional
     public PostStat likePost(Post post, Long userId) {
-        pointService.earn(post.getAuthorId(), PointHistoryType.POST_LIKE);
+        pointService.earn(post.getRefUserId(), PointHistoryType.POST_LIKE);
         postService.like(post, userId);
 
         return postService.getPostStat(post.getId());
@@ -67,7 +67,7 @@ public class UserFacade {
     @Transactional
     public PostStat dislikePost(Post post, Long userId) {
         postService.dislike(post, userId);
-        pointService.penalize(post.getAuthorId(), PointHistoryType.POST_DISLIKE);
+        pointService.penalize(post.getRefUserId(), PointHistoryType.POST_DISLIKE);
 
         return postService.getPostStat(post.getId());
     }

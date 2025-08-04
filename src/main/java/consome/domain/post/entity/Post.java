@@ -51,9 +51,13 @@ public class Post {
     }
 
     public static Post write(Long boardId, Long categoryId, Long authorId, String title, String content) {
+        //검증 로직
         return new Post(boardId, categoryId, authorId, title, content);
     }
 
+    /**
+     * to-do
+     * 검증 로직 넣을것*/
 
     public void delete() {
         this.deleted = true;
