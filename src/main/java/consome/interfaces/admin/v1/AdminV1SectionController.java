@@ -2,88 +2,43 @@ package consome.interfaces.admin.v1;
 
 
 import consome.application.admin.SectionFacade;
-import consome.domain.board.Board;
-import consome.domain.board.Category;
 import consome.domain.board.Section;
-import consome.interfaces.admin.dto.*;
+import consome.interfaces.admin.dto.ChangeOrderRequest;
+import consome.interfaces.admin.dto.CreateSectionRequest;
+import consome.interfaces.admin.dto.RenameRequest;
+import consome.interfaces.admin.dto.SectionResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/v1/admin")
-public class AdminV1Controller {
+@RequestMapping("/api/v1/admin/sections")
+public class AdminV1SectionController {
 
     private final SectionFacade sectionFacade;
 
-    @PostMapping("/sections")
+    @PostMapping("/")
     public SectionResponse createSection(@RequestBody @Valid CreateSectionRequest request) {
-        Section section = sectionFacade.createSection(request.getName(), request.getDisplayOrder());
+        Section section = sectionFacade.create(request.getName(), request.getDisplayOrder());
         return SectionResponse.from(section);
     }
 
-    @PatchMapping("/sections/{sectionId}")
+    @PatchMapping("/{sectionId}")
     public SectionResponse renameSection(@PathVariable Long sectionId, @RequestBody RenameRequest request) {
-        Section section = sectionFacade.renameSection(sectionId, request.getNewName());
+        Section section = sectionFacade.rename(sectionId, request.getNewName());
         return SectionResponse.from(section);
     }
 
-    @PatchMapping("/sections/{sectionId}")
+    @PatchMapping("/{sectionId}")
     public SectionResponse changeSectionOrder(@PathVariable Long sectionId, @RequestBody ChangeOrderRequest request) {
-        Section section = sectionFacade.changeSectionOrder(sectionId, request.getNewOrder());
+        Section section = sectionFacade.changeOrder(sectionId, request.getNewOrder());
         return SectionResponse.from(section);
     }
 
-    @DeleteMapping("/sections/{sectionId}")
+    @DeleteMapping("/{sectionId}")
     public void deleteSection(@PathVariable Long sectionId) {
-        sectionFacade.deleteSection(sectionId);
-    }
-
-    @PostMapping("/boards")
-    public BoardResponse createBoard(@RequestBody @Valid CreateBoardRequest request) {
-        Board board = sectionFacade.createBoard(request.getSectionId(), request.getName(), request.getDescription(), request.getDisplayOrder());
-        return BoardResponse.from(board);
-    }
-
-    @PatchMapping("/boards/{boardId}")
-    public BoardResponse renameBoard(@PathVariable Long boardId, @RequestBody RenameRequest request) {
-        Board board = sectionFacade.renameBoard(boardId, request.getNewName());
-        return BoardResponse.from(board);
-    }
-
-    @PatchMapping("/boards/{boardId}")
-    public BoardResponse changeBoardOrder(@PathVariable Long boardId, @RequestBody ChangeOrderRequest request) {
-        Board board = sectionFacade.changeBoardOrder(boardId, request.getNewOrder());
-        return BoardResponse.from(board);
-    }
-
-    @DeleteMapping("/boards/{boardId}")
-    public void deleteBoard(@PathVariable Long boardId) {
-        sectionFacade.deleteBoard(boardId);
-    }
-
-    @PostMapping("/boards/{boardId}/categories")
-    public CategoryResponse createCategory(@PathVariable Long boardId, @RequestBody @Valid CreateCategoryRequest request) {
-        Category category = sectionFacade.createCategory(boardId, request.getName(), request.getDisplayOrder());
-        return CategoryResponse.from(category);
-    }
-
-    @PatchMapping("/boards/{boardId}/categories/{categoryId}")
-    public CategoryResponse renameCategory(@PathVariable Long boardId, @PathVariable Long categoryId, @RequestBody RenameRequest request) {
-        Category category = sectionFacade.renameCategory(categoryId, request.getNewName());
-        return CategoryResponse.from(category);
-    }
-
-    @PatchMapping("/boards/{boardId}/categories/{categoryId}")
-    public CategoryResponse changeCategoryOrder(@PathVariable Long boardId, @PathVariable Long categoryId, @RequestBody ChangeOrderRequest request) {
-        Category category = sectionFacade.changeCategoryOrder(categoryId, request.getNewOrder());
-        return CategoryResponse.from(category);
-    }
-
-    @DeleteMapping("/categories/{categoryId}")
-    public void deleteCategory(@PathVariable Long categoryId) {
-        sectionFacade.deleteCategory(categoryId);
+        sectionFacade.delete(sectionId);
     }
 
 }
