@@ -1,7 +1,9 @@
 package consome.application.navigation;
 
-import consome.application.admin.AdminFacade;
-import consome.domain.board.*;
+import consome.application.admin.BoardFacade;
+import consome.application.admin.SectionFacade;
+import consome.domain.board.Board;
+import consome.domain.board.Section;
 import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,13 +22,16 @@ class NavigationFacadeIntegrationTest {
     NavigationFacade mainFacade;
 
     @Autowired
-    AdminFacade adminFacade;
+    SectionFacade sectionFacade;
+
+    @Autowired
+    BoardFacade boardFacade;
 
     @Test
     void 섹션을_생성하면_displayOrder_순으로_조회된다() {
         // given
         IntStream.of(3, 1, 5, 2, 6, 4)
-                .forEach(order -> adminFacade.createSection("섹션" + order, order));
+                .forEach(order -> sectionFacade.create("섹션" + order, order));
 
         // when
         List<Section> sections = mainFacade.getSections();
@@ -41,9 +46,9 @@ class NavigationFacadeIntegrationTest {
     @Test
     void 섹션에_속한_게시판들을_정렬순서대로_조회한다() {
         // given
-        Section section = adminFacade.createSection("게임", 1);
+        Section section = sectionFacade.create("게임", 1);
         IntStream.of(3, 1, 5, 2, 6, 4)
-                .forEach(order -> adminFacade.createBoard(section.getId(), "게시판" + order, "설명" + order, order));
+                .forEach(order -> boardFacade.create(section.getId(), "게시판" + order, "설명" + order, order));
 
         // when
         List<Board> boards = mainFacade.getBoards(section.getId());
