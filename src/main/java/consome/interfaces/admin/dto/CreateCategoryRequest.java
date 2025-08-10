@@ -8,7 +8,7 @@ import lombok.NoArgsConstructor;
 
 @Getter
 @NoArgsConstructor
-public class CreateCategoryReqeust {
+public class CreateCategoryRequest {
 
     @NotBlank(message = "게시판을 선택해 주세요")
     private Long boardId;
