@@ -21,7 +21,7 @@ class BoardTest {
         Board board = Board.create(sectionId, name, description, order);
 
         // then
-        assertThat(board.getSectionId()).isEqualTo(sectionId);
+        assertThat(board.getRefSectionId()).isEqualTo(sectionId);
         assertThat(board.getName()).isEqualTo(name);
         assertThat(board.getDescription()).isEqualTo(description);
         assertThat(board.getDisplayOrder()).isEqualTo(order);

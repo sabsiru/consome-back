@@ -11,7 +11,7 @@ import lombok.NoArgsConstructor;
 public class CreateBoardRequest {
 
     @NotBlank(message = "섹션을 선택해 주세요.")
-    private Long sectionId;
+    private Long refSectionId;
 
     @NotBlank(message = "이름을 입력해주세요.")
     @Size(min =1, max = 20, message = "20자 이하로 입력해주세요.")

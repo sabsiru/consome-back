@@ -21,7 +21,7 @@ public class Board {
     private Long id;
 
     @Column(nullable = false)
-    private Long sectionId;
+    private Long refSectionId;
 
     @Size(min = 1, max = 20)
     @Column(nullable = false, unique = true, length = 20)
@@ -43,15 +43,15 @@ public class Board {
     @LastModifiedDate
     private LocalDateTime updatedAt;
 
-    private Board(Long sectionId, String name, String description, int displayOrder) {
-        this.sectionId = sectionId;
+    private Board(Long refSectionId, String name, String description, int displayOrder) {
+        this.refSectionId = refSectionId;
         this.name = name;
         this.description = description;
         this.displayOrder = displayOrder;
     }
 
-    public static Board create(Long sectionId, String name, String description, int displayOrder) {
-        return new Board(sectionId, name, description, displayOrder);
+    public static Board create(Long refSectionId, String name, String description, int displayOrder) {
+        return new Board(refSectionId, name, description, displayOrder);
     }
 
     public void rename(String newName) {
