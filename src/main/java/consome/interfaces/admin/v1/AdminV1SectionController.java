@@ -18,26 +18,26 @@ public class AdminV1SectionController {
 
     private final SectionFacade sectionFacade;
 
-    @PostMapping("/")
-    public SectionResponse createSection(@RequestBody @Valid CreateSectionRequest request) {
+    @PostMapping()
+    public SectionResponse create(@RequestBody @Valid CreateSectionRequest request) {
         Section section = sectionFacade.create(request.getName(), request.getDisplayOrder());
         return SectionResponse.from(section);
     }
 
-    @PatchMapping("/{sectionId}")
-    public SectionResponse renameSection(@PathVariable Long sectionId, @RequestBody RenameRequest request) {
+    @PatchMapping("/{sectionId}/name")
+    public SectionResponse rename(@PathVariable Long sectionId, @RequestBody RenameRequest request) {
         Section section = sectionFacade.rename(sectionId, request.getNewName());
         return SectionResponse.from(section);
     }
 
-    @PatchMapping("/{sectionId}")
-    public SectionResponse changeSectionOrder(@PathVariable Long sectionId, @RequestBody ChangeOrderRequest request) {
+    @PatchMapping("/{sectionId}/order")
+    public SectionResponse changeOrder(@PathVariable Long sectionId, @RequestBody ChangeOrderRequest request) {
         Section section = sectionFacade.changeOrder(sectionId, request.getNewOrder());
         return SectionResponse.from(section);
     }
 
     @DeleteMapping("/{sectionId}")
-    public void deleteSection(@PathVariable Long sectionId) {
+    public void delete(@PathVariable Long sectionId) {
         sectionFacade.delete(sectionId);
     }
 

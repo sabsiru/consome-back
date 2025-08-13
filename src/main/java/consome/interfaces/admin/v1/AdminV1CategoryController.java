@@ -12,30 +12,30 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/v1/admin")
+@RequestMapping("/api/v1/admin/categories")
 public class AdminV1CategoryController {
 
     private final CategoryFacade categoryFacade;
 
-    @PostMapping("/boards/{boardId}/categories")
-    public CategoryResponse createCategory(@PathVariable Long boardId, @RequestBody @Valid CreateCategoryRequest request) {
-        Category category = categoryFacade.create(boardId, request.getName(), request.getDisplayOrder());
+    @PostMapping()
+    public CategoryResponse create(@RequestBody @Valid CreateCategoryRequest request) {
+        Category category = categoryFacade.create(request.getBoardId(), request.getName(), request.getDisplayOrder());
         return CategoryResponse.from(category);
     }
 
-    @PatchMapping("/boards/{boardId}/categories/{categoryId}")
-    public CategoryResponse renameCategory(@PathVariable Long boardId, @PathVariable Long categoryId, @RequestBody RenameRequest request) {
+    @PatchMapping("/{categoryId}/name")
+    public CategoryResponse rename(@PathVariable Long boardId, @PathVariable Long categoryId, @RequestBody RenameRequest request) {
         Category category = categoryFacade.rename(categoryId, request.getNewName());
         return CategoryResponse.from(category);
     }
 
-    @PatchMapping("/boards/{boardId}/categories/{categoryId}")
-    public CategoryResponse changeCategoryOrder(@PathVariable Long boardId, @PathVariable Long categoryId, @RequestBody ChangeOrderRequest request) {
+    @PatchMapping("/{categoryId}/order")
+    public CategoryResponse changeOrder(@PathVariable Long boardId, @PathVariable Long categoryId, @RequestBody ChangeOrderRequest request) {
         Category category = categoryFacade.changeOrder(categoryId, request.getNewOrder());
         return CategoryResponse.from(category);
     }
 
-    @DeleteMapping("/categories/{categoryId}")
+    @DeleteMapping("/{categoryId}")
     public void deleteCategory(@PathVariable Long categoryId) {
         categoryFacade.delete(categoryId);
     }

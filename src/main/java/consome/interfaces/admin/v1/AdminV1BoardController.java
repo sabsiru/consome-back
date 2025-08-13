@@ -17,26 +17,26 @@ public class AdminV1BoardController {
 
     private final BoardFacade boardFacade;
 
-    @PostMapping("/")
-    public BoardResponse createBoard(@RequestBody @Valid CreateBoardRequest request) {
-        Board board = boardFacade.create(request.getSectionId(), request.getName(), request.getDescription(), request.getDisplayOrder());
+    @PostMapping()
+    public BoardResponse create(@RequestBody @Valid CreateBoardRequest request) {
+        Board board = boardFacade.create(request.getRefSectionId(), request.getName(), request.getDescription(), request.getDisplayOrder());
         return BoardResponse.from(board);
     }
 
-    @PatchMapping("/{boardId}")
-    public BoardResponse renameBoard(@PathVariable Long boardId, @RequestBody RenameRequest request) {
+    @PatchMapping("/{boardId}/name")
+    public BoardResponse rename(@PathVariable Long boardId, @RequestBody RenameRequest request) {
         Board board = boardFacade.rename(boardId, request.getNewName());
         return BoardResponse.from(board);
     }
 
-    @PatchMapping("/{boardId}")
-    public BoardResponse changeBoardOrder(@PathVariable Long boardId, @RequestBody ChangeOrderRequest request) {
+    @PatchMapping("/{boardId}/order")
+    public BoardResponse changeOrder(@PathVariable Long boardId, @RequestBody ChangeOrderRequest request) {
         Board board = boardFacade.changeOrder(boardId, request.getNewOrder());
         return BoardResponse.from(board);
     }
 
     @DeleteMapping("/{boardId}")
-    public void deleteBoard(@PathVariable Long boardId) {
+    public void delete(@PathVariable Long boardId) {
         boardFacade.delete(boardId);
     }
 }
