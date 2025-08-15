@@ -1,6 +1,6 @@
 package consome.domain.post;
 
-import consome.domain.category.Category;
+import consome.domain.board.Category;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;

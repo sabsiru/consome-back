@@ -14,6 +14,8 @@ import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.ActiveProfiles;
 
+import java.util.UUID;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest(
@@ -31,8 +33,11 @@ class UserV1ControllerE2eTest {
 
     @BeforeEach
     void setUp() {
+        String suffix = UUID.randomUUID().toString().replace("-", "").substring(0, 8);
+        String uniqueLoginId = "tu" + suffix; // length 10, within 4~20
+        String uniqueNickname = "테스트유저" + suffix; // 닉네임 중복 회피
         registerRequest = new UserRegisterRequest(
-                "testuser", "테스트유저", "Password123"
+                uniqueLoginId, uniqueNickname, "Password123"
         );
     }
 
@@ -55,8 +60,15 @@ class UserV1ControllerE2eTest {
                 .postForEntity("/api/v1/users", registerRequest, UserRegisterResponse.class);
         assertThat(success.getStatusCode()).isEqualTo(org.springframework.http.HttpStatus.CREATED);
 
+        String suffix2 = UUID.randomUUID().toString().replace("-", "").substring(0, 8);
+        UserRegisterRequest duplicateLoginIdReq = new UserRegisterRequest(
+                registerRequest.loginId(), // 같은 로그인 아이디
+                "테스트유저" + suffix2,     // 다른 닉네임 → 닉네임 중복 회피
+                registerRequest.password()
+        );
+
         ResponseEntity<ErrorResponse> error = restTemplate
-                .postForEntity("/api/v1/users", registerRequest, ErrorResponse.class);
+                .postForEntity("/api/v1/users", duplicateLoginIdReq, ErrorResponse.class);
 
         assertThat(error.getStatusCode()).isEqualTo(org.springframework.http.HttpStatus.CONFLICT);
         assertThat(error.getBody()).isNotNull();
@@ -78,7 +90,7 @@ class UserV1ControllerE2eTest {
 
         UserLoginResponse body = success.getBody();
 
-        assertThat(body.loginId()).isEqualTo("testuser");
+        assertThat(body.loginId()).isEqualTo(registerRequest.loginId());
         assertThat(body.point()).isGreaterThanOrEqualTo(0);
     }
 
