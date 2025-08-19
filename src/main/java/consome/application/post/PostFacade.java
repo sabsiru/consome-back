@@ -19,7 +19,7 @@ public class PostFacade {
     @Transactional
     public PostResult post(PostCommand command) {
         pointService.earn(command.refUserId(), PointHistoryType.POST_WRITE);
-        Post post = postService.post(command.boardId(), command.categoryId(), command.refUserId(), command.title(), command.content());
+        Post post = postService.post(command.refBoardId(), command.refCategoryId(), command.refUserId(), command.title(), command.content());
         return PostResult.of(post.getId());
 
     }

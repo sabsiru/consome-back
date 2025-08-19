@@ -428,7 +428,7 @@ class PostServiceIntegrationTest {
         //then
         assertThat(postByBoard.getContent()).hasSize(15);
         assertThat(postByBoard.getTotalElements()).isEqualTo(20);
-        assertThat(postByBoard.getContent().get(0).getTitle()).isEqualTo("테스트 제목19");
+        assertThat(postByBoard.getContent().get(0).title()).isEqualTo("테스트 제목19");
 
     }
 }

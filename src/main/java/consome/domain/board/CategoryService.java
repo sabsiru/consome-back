@@ -3,6 +3,8 @@ package consome.domain.board;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 public class CategoryService {
@@ -47,5 +49,9 @@ public class CategoryService {
     public Category findById(Long categoryId) {
         return categoryRepository.findById(categoryId)
                 .orElseThrow(() -> new IllegalArgumentException("잘못된 접근입니다."));
+    }
+
+    public List<Category> getCategories(Long boardId) {
+        return categoryRepository.findAllByBoardIdOrderByDisplayOrder(boardId);
     }
 }

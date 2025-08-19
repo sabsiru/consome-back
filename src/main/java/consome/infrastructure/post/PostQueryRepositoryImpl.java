@@ -2,10 +2,10 @@ package consome.infrastructure.post;
 
 import com.querydsl.core.types.Projections;
 import com.querydsl.jpa.impl.JPAQueryFactory;
+import consome.domain.post.entity.QPost;
+import consome.domain.post.entity.QPostStat;
 import consome.domain.post.repository.PostQueryRepository;
 import consome.domain.post.PostSummary;
-import consome.domain.post.QPost;
-import consome.domain.post.QPostStat;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;

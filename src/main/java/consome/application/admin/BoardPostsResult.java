@@ -1,8 +1,8 @@
-package consome.domain.post;
+package consome.application.admin;
 
 import java.time.LocalDateTime;
 
-public record PostSummary(
+public record BoardPostsResult(
         Long postId,
         String title,
         Long authorId,

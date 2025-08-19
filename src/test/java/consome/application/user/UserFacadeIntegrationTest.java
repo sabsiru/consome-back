@@ -11,7 +11,6 @@ import consome.domain.post.entity.PostStat;
 import consome.domain.post.ReactionType;
 import consome.domain.user.User;
 import consome.domain.user.UserRepository;
-import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
