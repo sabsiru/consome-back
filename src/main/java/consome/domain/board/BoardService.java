@@ -51,7 +51,6 @@ public class BoardService {
     }
 
     public List<Board> getBoards(Long sectionId) {
-        return boardRepository.findBySectionIdAndDeletedFalseOrderByDisplayOrder(sectionId);
+        return boardRepository.findByRefSectionIdAndDeletedFalseOrderByDisplayOrder(sectionId);
     }
-
 }
