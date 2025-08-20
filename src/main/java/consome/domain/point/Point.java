@@ -16,7 +16,7 @@ public class Point {
     private Long id;
 
     @Column(nullable = false)
-    private Long userId;
+    private Long refUserId;
 
     @Column(nullable = false)
     private int point;
@@ -24,8 +24,8 @@ public class Point {
     @Column(nullable = false)
     private LocalDateTime updatedAt;
 
-    private Point(Long userId) {
-        this.userId = userId;
+    private Point(Long refUserId) {
+        this.refUserId = refUserId;
         this.point = 100;
         this.updatedAt = LocalDateTime.now();
     }
