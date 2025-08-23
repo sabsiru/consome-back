@@ -38,7 +38,7 @@ public class PointService {
     }
 
     public Point findPointByUserId(Long userId) {
-        return pointRepository.findByUserId(userId)
+        return pointRepository.findByRefUserId(userId)
                 .orElseThrow(() -> new IllegalStateException("사용자를 찾을 수 없습니다."));
     }
 }
