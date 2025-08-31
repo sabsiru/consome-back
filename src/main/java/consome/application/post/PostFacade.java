@@ -25,8 +25,9 @@ public class PostFacade {
     }
 
     @Transactional
-    public Post edit(String title, String content, Long postId, Long userId) {
-        return postService.edit(title, content, postId, userId);
+    public EditResult edit(String content, Long postId, Long userId) {
+        Post post = postService.edit(content, postId, userId);
+        return EditResult.of(post.getId(), post.getUpdatedAt());
     }
 
     @Transactional

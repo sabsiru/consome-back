@@ -64,8 +64,7 @@ public class Post {
         this.updatedAt = LocalDateTime.now();
     }
 
-    public void edit(String title, String content) {
-        this.title = title;
+    public void edit(String content) {
         this.content = content;
         this.updatedAt = LocalDateTime.now();
     }
