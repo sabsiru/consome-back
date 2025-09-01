@@ -1,7 +1,10 @@
 package consome.interfaces.post.v1;
 
+import consome.application.post.EditResult;
 import consome.application.post.PostFacade;
 import consome.application.post.PostResult;
+import consome.interfaces.post.dto.EditRequest;
+import consome.interfaces.post.dto.EditResponse;
 import consome.interfaces.post.dto.PostRequest;
 import consome.interfaces.post.dto.PostResponse;
 import consome.interfaces.post.mapper.PostRequestMapper;
@@ -25,4 +28,15 @@ public class PostV1Controller {
         PostResponse response = PostResponseMapper.toResponse(result);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
+
+    @PutMapping("/{postId}")
+    public ResponseEntity<EditResponse> edit(@PathVariable Long postId,
+                                             @RequestBody @Valid EditRequest request,
+                                             @RequestParam Long userId) {
+        EditResult result = postFacade.edit(request.content(), postId, userId);
+        EditResponse response = EditResponse.from(result);
+
+        return ResponseEntity.ok(response);
+    }
+
 }
