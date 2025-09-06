@@ -59,4 +59,7 @@ public class PostFacade {
         return postService.getPostStat(postId);
     }
 
+    public Post getPost(Long postId) {
+        return postService.getPost(postId);
+    }
 }
