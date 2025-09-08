@@ -4,12 +4,14 @@ import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.Where;
 
 import java.time.LocalDateTime;
 
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@Where(clause = "deleted = false")
 public class Post {
 
     @Id
@@ -64,8 +66,7 @@ public class Post {
         this.updatedAt = LocalDateTime.now();
     }
 
-    public void edit(String title, String content) {
-        this.title = title;
+    public void edit(String content) {
         this.content = content;
         this.updatedAt = LocalDateTime.now();
     }

@@ -18,7 +18,7 @@ class PointTest {
         Point point = Point.initialize(userId);
 
         // then
-        assertThat(point.getUserId()).isEqualTo(userId);
+        assertThat(point.getRefUserId()).isEqualTo(userId);
         assertThat(point.getPoint()).isEqualTo(0);
         assertThat(point.getUpdatedAt()).isNotNull();
     }

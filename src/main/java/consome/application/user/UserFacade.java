@@ -40,46 +40,6 @@ public class UserFacade {
     }
 
     @Transactional
-    public Post post(long boardId, long categoryId, Long authorId, String title, String content) {
-        pointService.earn(authorId, PointHistoryType.POST_WRITE);
-        return postService.post(boardId, categoryId, authorId, title, content);
-    }
-
-    @Transactional
-    public Post editPost(String title, String content, Long postId, Long userId) {
-        return postService.edit(title, content, postId, userId);
-    }
-
-    @Transactional
-    public Post deletePost(Long postId, Long userId) {
-        pointService.penalize(userId, PointHistoryType.POST_DEL);
-        return postService.delete(postId, userId);
-    }
-
-    @Transactional
-    public PostStat likePost(Post post, Long userId) {
-        pointService.earn(post.getRefUserId(), PointHistoryType.POST_LIKE);
-        postService.like(post, userId);
-
-        return postService.getPostStat(post.getId());
-    }
-
-    @Transactional
-    public PostStat dislikePost(Post post, Long userId) {
-        postService.dislike(post, userId);
-        pointService.penalize(post.getRefUserId(), PointHistoryType.POST_DISLIKE);
-
-        return postService.getPostStat(post.getId());
-    }
-
-    @Transactional
-    public PostStat increaseViewCount(Long postId, String userIp, Long userId) {
-        postService.increaseViewCount(postId, userIp, userId);
-
-        return postService.getPostStat(postId);
-    }
-
-    @Transactional
     public Comment comment(Long postId, Long userId, Long parentId, String content) {
         postService.getPost(postId);
         postService.increaseCommentCount(postId);

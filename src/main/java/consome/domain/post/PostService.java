@@ -31,14 +31,14 @@ public class PostService {
         return post;
     }
 
-    public Post edit(String title, String content, Long postId, Long userId) {
+    public Post edit(String content, Long postId, Long userId) {
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new IllegalArgumentException("게시글을 찾을 수 없습니다."));
         if (!post.getRefUserId().equals(userId)) {
             throw new IllegalStateException("작성자만 게시글을 수정할 수 있습니다.");
         }
-        post.edit(title, content);
-        postRepository.save(post);
+
+        post.edit(content);
 
         return post;
     }
@@ -122,6 +122,7 @@ public class PostService {
         return statRepository.save(postStat);
 
     }
+
     public PostStat increaseCommentCount(Long postId) {
         PostStat postStat = getPostStat(postId);
         postStat.increaseCommentCount();
@@ -135,7 +136,7 @@ public class PostService {
     }
 
     public Post getPost(Long postId) {
-        return postRepository.findById(postId)
+        return postRepository.findByPostIdAndDeletedFalse(postId)
                 .orElseThrow(() -> new IllegalArgumentException("게시글을 찾을 수 없습니다."));
     }
 

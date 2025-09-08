@@ -35,9 +35,8 @@ class PostTest {
     @Test
     void 게시글_수정_성공_tester() {
         Post post = Post.write(1L, 2L, 3L, "제목", "본문");
-        post.edit("수정된 제목", "수정된 내용");
+        post.edit( "수정된 내용");
 
-        assertThat(post.getTitle()).isEqualTo("수정된 제목");
         assertThat(post.getContent()).isEqualTo("수정된 내용");
     }
 
