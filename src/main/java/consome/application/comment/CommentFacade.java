@@ -69,4 +69,9 @@ public class CommentFacade {
         }
         return 0;
     }
+//    @Transactional
+//    public CommentPage listByPost(Long postId, Long cursorId, int size, String sort) {
+//        postService.getPost(postId);
+//        return null;
+//    }
 }
