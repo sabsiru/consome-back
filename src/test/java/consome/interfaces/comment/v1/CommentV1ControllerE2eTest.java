@@ -1,0 +1,77 @@
+package consome.interfaces.comment.v1;
+
+import consome.application.post.PostCommand;
+import consome.application.post.PostFacade;
+import consome.application.post.PostResult;
+import consome.application.user.UserFacade;
+import consome.application.user.UserRegisterCommand;
+import consome.domain.post.entity.Post;
+import consome.domain.post.repository.PostRepository;
+import consome.domain.user.User;
+import consome.domain.user.UserRepository;
+import consome.interfaces.comment.dto.CommentResponse;
+import consome.interfaces.comment.dto.CreateCommentRequest;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.web.client.TestRestTemplate;
+import org.springframework.boot.test.web.server.LocalServerPort;
+import org.springframework.http.*;
+
+import static org.assertj.core.api.Assertions.assertThat;
+
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+public class CommentV1ControllerE2eTest {
+
+    @LocalServerPort
+    int port;
+
+    @Autowired
+    TestRestTemplate restTemplate;
+    @Autowired
+    UserRepository userRepository;
+    @Autowired
+    PostRepository postRepository;
+
+    @Autowired
+    PostFacade postFacade;
+
+    @Autowired
+    UserFacade userFacade;
+
+    Long 준비_유저_생성() {
+        User user = User.create("testuser", "nickname", "Password123");
+        UserRegisterCommand userRegisterCommand = UserRegisterCommand.of(user.getLoginId(), user.getNickname(), user.getPassword());
+        Long register = userFacade.register(userRegisterCommand);
+        return register;
+    }
+
+    Long 준비_게시글_생성(Long userId) {
+        Post post = Post.write(1L, 1L, userId, "title", "content");
+        PostCommand postCommand = PostCommand.of(post.getRefBoardId(), post.getRefCategoryId(), post.getRefUserId(), post.getTitle(), post.getContent());
+        PostResult postResult = postFacade.post(postCommand);
+        return postResult.postId();
+    }
+
+    @Test
+    void 댓글_생성하면_200과_댓글정보를_반환한다() {
+        // given
+        Long userId = 준비_유저_생성();
+        Long postId = 준비_게시글_생성(userId);
+        CreateCommentRequest request = new CreateCommentRequest(userId, null, "댓글 내용");
+        String url = "/api/v1/posts/" + postId + "/comments";
+
+        // when
+        ResponseEntity<CommentResponse> response = restTemplate
+                .postForEntity(url, request, CommentResponse.class);
+
+        // then
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        CommentResponse body = response.getBody();
+        assertThat(body).isNotNull();
+        assertThat(body.commentId()).isNotNull();
+        assertThat(body.content()).isEqualTo("댓글 내용");
+        assertThat(body.postId()).isEqualTo(postId);
+        assertThat(body.userId()).isEqualTo(userId);
+    }
+}
