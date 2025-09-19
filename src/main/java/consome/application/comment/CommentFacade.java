@@ -29,20 +29,20 @@ public class CommentFacade {
     }
 
     @Transactional
-    public Comment editComment(Long userId, Long commentId, String content) {
+    public Comment edit(Long userId, Long commentId, String content) {
         Comment edit = commentService.edit(userId, commentId, content);
 
         return edit;
     }
 
     @Transactional
-    public Comment deleteComment(Long userId, Long commentId) {
+    public Comment delete(Long userId, Long commentId) {
         pointService.penalize(commentId, PointHistoryType.COMMENT_DEL);
         return commentService.delete(userId, commentId);
     }
 
     @Transactional
-    public long likeComment(Long commentId, Long userId) {
+    public long like(Long commentId, Long userId) {
         commentService.like(commentId, userId);
         pointService.earn(userId, PointHistoryType.COMMENT_LIKE);
 
@@ -50,7 +50,7 @@ public class CommentFacade {
     }
 
     @Transactional
-    public long dislikeComment(Long commentId, Long userId) {
+    public long dislike(Long commentId, Long userId) {
         commentService.dislike(commentId, userId);
         pointService.penalize(userId, PointHistoryType.COMMENT_DISLIKE);
 
@@ -58,7 +58,7 @@ public class CommentFacade {
     }
 
     @Transactional
-    public long cancelReactionComment(Long commentId, Long userId) {
+    public long cancelReaction(Long commentId, Long userId) {
         CommentReaction commentReaction = commentService.cancel(commentId, userId);
         if (commentReaction.getType() == ReactionType.LIKE) {
             pointService.penalize(userId, PointHistoryType.COMMENT_LIKE_CANCEL);
