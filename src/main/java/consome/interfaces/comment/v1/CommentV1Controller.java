@@ -4,6 +4,8 @@ import consome.application.comment.CommentFacade;
 import consome.domain.comment.Comment;
 import consome.interfaces.comment.dto.CommentResponse;
 import consome.interfaces.comment.dto.CreateCommentRequest;
+import consome.interfaces.comment.dto.EditCommentRequest;
+import consome.interfaces.comment.dto.EditCommentResponse;
 import consome.interfaces.comment.mapper.CommentResponseMapper;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -37,6 +39,29 @@ public class CommentV1Controller {
             @RequestBody @Valid CreateCommentRequest request) {
 
         Comment comment = commentFacade.comment(postId, request.userId(), request.parentId(), request.content());
-        return ResponseEntity.ok(CommentResponseMapper.toResponse(comment));
+        CommentResponse response = new CommentResponse(
+                comment.getId(),
+                comment.getPostId(),
+                comment.getUserId(),
+                comment.getContent(),
+                comment.getCreatedAt()
+        );
+        return ResponseEntity.ok(response);
+    }
+
+    @PutMapping("/{postId}/comments/{commentId}")
+    public ResponseEntity<EditCommentResponse> edit(
+            @PathVariable Long postId,
+            @PathVariable Long commentId,
+            @RequestBody @Valid EditCommentRequest request) {
+
+        Comment comment = commentFacade.edit(request.userId(), commentId, request.content());
+        EditCommentResponse response = new EditCommentResponse(
+                comment.getId(),
+                comment.getPostId(),
+                comment.getUserId(),
+                comment.getContent()
+        );
+        return ResponseEntity.ok(response);
     }
 }
