@@ -6,17 +6,20 @@ import consome.application.post.PostResult;
 import consome.application.user.UserFacade;
 import consome.application.user.UserRegisterCommand;
 import consome.domain.post.entity.Post;
-import consome.domain.post.repository.PostRepository;
 import consome.domain.user.User;
-import consome.domain.user.UserRepository;
 import consome.interfaces.comment.dto.CommentResponse;
 import consome.interfaces.comment.dto.CreateCommentRequest;
+import consome.interfaces.comment.dto.EditCommentRequest;
+import consome.interfaces.comment.dto.EditCommentResponse;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.boot.test.web.server.LocalServerPort;
-import org.springframework.http.*;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -28,10 +31,6 @@ public class CommentV1ControllerE2eTest {
 
     @Autowired
     TestRestTemplate restTemplate;
-    @Autowired
-    UserRepository userRepository;
-    @Autowired
-    PostRepository postRepository;
 
     @Autowired
     PostFacade postFacade;
@@ -73,5 +72,35 @@ public class CommentV1ControllerE2eTest {
         assertThat(body.content()).isEqualTo("댓글 내용");
         assertThat(body.postId()).isEqualTo(postId);
         assertThat(body.userId()).isEqualTo(userId);
+    }
+
+    @Test
+    void 댓글을_수정하면_컨텐츠가_변경된다() {
+        //given
+        Long userId = 준비_유저_생성();
+        Long postId = 준비_게시글_생성(userId);
+        CreateCommentRequest request = new CreateCommentRequest(userId, null, "댓글 내용");
+        String url = "/api/v1/posts/" + postId + "/comments";
+        ResponseEntity<CommentResponse> response = restTemplate
+                .postForEntity(url, request, CommentResponse.class);
+        Long commentId = response.getBody().commentId();
+
+
+        //when
+        EditCommentRequest editRequest = new EditCommentRequest(userId, "수정된 댓글 내용");
+        String editUrl = "/api/v1/posts/" + postId + "/comments/" + commentId;
+
+        ResponseEntity<EditCommentResponse> editResponse = restTemplate.exchange(
+                editUrl,
+                HttpMethod.PUT,
+                new HttpEntity<>(editRequest),
+                EditCommentResponse.class
+        );
+        EditCommentResponse body = editResponse.getBody();
+
+        //then
+        assertThat(body).isNotNull();
+        assertThat(body.content()).isEqualTo("수정된 댓글 내용");
+
     }
 }
