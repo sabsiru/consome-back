@@ -64,4 +64,14 @@ public class CommentV1Controller {
         );
         return ResponseEntity.ok(response);
     }
+
+    @DeleteMapping("/{postId}/comments/{commentId}")
+    public ResponseEntity<Void> delete(
+            @PathVariable Long postId,
+            @PathVariable Long commentId,
+            @RequestParam Long userId) {
+
+        commentFacade.delete(commentId, userId);
+        return ResponseEntity.noContent().build();
+    }
 }
