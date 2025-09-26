@@ -74,4 +74,14 @@ public class CommentV1Controller {
         commentFacade.delete(commentId, userId);
         return ResponseEntity.noContent().build();
     }
+
+    @PostMapping("/{postId}/comments/{commentId}/like")
+    public ResponseEntity<Long> like(
+            @PathVariable Long postId,
+            @PathVariable Long commentId,
+            @RequestParam Long userId) {
+
+        long likeCount = commentFacade.like(commentId, userId);
+        return ResponseEntity.ok(likeCount);
+    }
 }
