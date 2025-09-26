@@ -103,4 +103,28 @@ public class CommentV1ControllerE2eTest {
         assertThat(body.content()).isEqualTo("수정된 댓글 내용");
 
     }
+
+    @Test
+    void 댓글을_삭제하면_204를_반환한다() {
+        // given
+        Long userId = 준비_유저_생성();
+        Long postId = 준비_게시글_생성(userId);
+        CreateCommentRequest request = new CreateCommentRequest(userId, null, "댓글 내용");
+        String url = "/api/v1/posts/" + postId + "/comments";
+        ResponseEntity<CommentResponse> response = restTemplate
+                .postForEntity(url, request, CommentResponse.class);
+        Long commentId = response.getBody().commentId();
+
+        // when
+        String deleteUrl = "/api/v1/posts/" + postId + "/comments/" + commentId + "?userId=" + userId;
+        ResponseEntity<Void> deleteResponse = restTemplate.exchange(
+                deleteUrl,
+                HttpMethod.DELETE,
+                null,
+                Void.class
+        );
+
+        // then
+        assertThat(deleteResponse.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
+    }
 }
