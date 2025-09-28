@@ -56,19 +56,6 @@ public class CommentFacade {
 
         return commentService.countReactions(commentId, ReactionType.DISLIKE);
     }
-
-    @Transactional
-    public long cancelReaction(Long commentId, Long userId) {
-        CommentReaction commentReaction = commentService.cancel(commentId, userId);
-        if (commentReaction.getType() == ReactionType.LIKE) {
-            pointService.penalize(userId, PointHistoryType.COMMENT_LIKE_CANCEL);
-            return commentService.countReactions(commentId, ReactionType.LIKE);
-        } else if (commentReaction.getType() == ReactionType.DISLIKE) {
-            pointService.penalize(userId, PointHistoryType.COMMENT_DISLIKE_CANCEL);
-            return commentService.countReactions(commentId, ReactionType.DISLIKE);
-        }
-        return 0;
-    }
 //    @Transactional
 //    public CommentPage listByPost(Long postId, Long cursorId, int size, String sort) {
 //        postService.getPost(postId);
