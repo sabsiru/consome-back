@@ -15,7 +15,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
-import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
@@ -25,9 +24,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class CommentV1ControllerE2eTest {
-
-    @LocalServerPort
-    int port;
 
     @Autowired
     TestRestTemplate restTemplate;
@@ -126,5 +122,27 @@ public class CommentV1ControllerE2eTest {
 
         // then
         assertThat(deleteResponse.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
+    }
+
+    @Test
+    void 댓글_좋아요() {
+        //given
+        Long userId = 준비_유저_생성();
+        Long postId = 준비_게시글_생성(userId);
+        CreateCommentRequest request = new CreateCommentRequest(userId, null, "댓글 내용");
+        String url = "/api/v1/posts/" + postId + "/comments";
+        ResponseEntity<CommentResponse> response = restTemplate
+                .postForEntity(url, request, CommentResponse.class);
+        Long commentId = response.getBody().commentId();
+
+        //when
+        String likeUrl = "/api/v1/posts/" + postId + "/comments/" + commentId + "/like?userId=" + userId;
+        ResponseEntity<Long> likeResponse = restTemplate.postForEntity(likeUrl, null, Long.class);
+
+        //then
+        assertThat(likeResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
+        Long likeCount = likeResponse.getBody();
+        assertThat(likeCount).isNotNull();
+        assertThat(likeCount).isEqualTo(1L);
     }
 }
