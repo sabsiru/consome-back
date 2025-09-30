@@ -109,6 +109,30 @@ public class CommentService {
     }
 
     @Transactional
+    public CommentReaction toggleReaction(Long commentId, Long userId, ReactionType type) {
+        ReactionType currentReaction = reaction(commentId, userId);
+        if (currentReaction == type) {
+            // 현재 상태와 동일한 반응을 눌렀을 때는 반응 취소
+            return cancel(commentId, userId);
+        } else if (currentReaction == null) {
+            // 현재 상태가 없을 때는 새로운 반응 추가
+            if (type == ReactionType.LIKE) {
+                return like(commentId, userId);
+            } else {
+                return dislike(commentId, userId);
+            }
+        } else {
+            // 현재 상태와 다른 반응을 눌렀을 때는 기존 반응 삭제 후 새로운 반응 추가
+            cancel(commentId, userId);
+            if (type == ReactionType.LIKE) {
+                return like(commentId, userId);
+            } else {
+                return dislike(commentId, userId);
+            }
+        }
+    }
+
+    @Transactional
     public ReactionType reaction(Long commentId, Long userId) {
         Optional<CommentReaction> reaction = commentReactionRepository.findByCommentIdAndUserId(commentId, userId);
         if (reaction.isPresent()) {
