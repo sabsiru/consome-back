@@ -80,7 +80,7 @@ public class CommentService {
 
     @Transactional
     public CommentReaction like(Long commentId, Long userId) {
-        ReactionType reactionType = reaction(commentId, userId);
+        ReactionType reactionType = getReaction(commentId, userId);
         if (reactionType == null) {
             CommentReaction reaction = CommentReaction.like(commentId, userId);
             return commentReactionRepository.save(reaction);
@@ -95,7 +95,7 @@ public class CommentService {
 
     @Transactional
     public CommentReaction dislike(Long commentId, Long userId) {
-        ReactionType reactionType = reaction(commentId, userId);
+        ReactionType reactionType = getReaction(commentId, userId);
         if (reactionType == null) {
             CommentReaction reaction = CommentReaction.dislike(commentId, userId);
             return commentReactionRepository.save(reaction);
@@ -110,30 +110,25 @@ public class CommentService {
 
     @Transactional
     public CommentReaction toggleReaction(Long commentId, Long userId, ReactionType type) {
-        ReactionType currentReaction = reaction(commentId, userId);
-        if (currentReaction == type) {
-            // 현재 상태와 동일한 반응을 눌렀을 때는 반응 취소
-            return cancel(commentId, userId);
-        } else if (currentReaction == null) {
-            // 현재 상태가 없을 때는 새로운 반응 추가
-            if (type == ReactionType.LIKE) {
-                return like(commentId, userId);
-            } else {
-                return dislike(commentId, userId);
-            }
-        } else {
-            // 현재 상태와 다른 반응을 눌렀을 때는 기존 반응 삭제 후 새로운 반응 추가
-            cancel(commentId, userId);
-            if (type == ReactionType.LIKE) {
-                return like(commentId, userId);
-            } else {
-                return dislike(commentId, userId);
-            }
+        ReactionType currentReaction = getReaction(commentId, userId);
+
+        if (currentReaction == null) {
+            // 반응 없음 → 새로운 반응 추가
+            return type == ReactionType.LIKE ? like(commentId, userId) : dislike(commentId, userId);
         }
+
+        if (currentReaction == type) {
+            // 같은 반응 → 취소
+            return cancel(commentId, userId);
+        }
+
+        // 다른 반응 → 교체
+        cancel(commentId, userId);
+        return type == ReactionType.LIKE ? like(commentId, userId) : dislike(commentId, userId);
     }
 
     @Transactional
-    public ReactionType reaction(Long commentId, Long userId) {
+    public ReactionType getReaction(Long commentId, Long userId) {
         Optional<CommentReaction> reaction = commentReactionRepository.findByCommentIdAndUserId(commentId, userId);
         if (reaction.isPresent()) {
             return reaction.get().getType();
@@ -149,10 +144,9 @@ public class CommentService {
         }
         commentReactionRepository.deleteByCommentIdAndUserId(commentId, userId);
 
-        return commentReactionRepository.save(reaction.get());
+        return null;
     }
 
-    // 댓글의 좋아요, 싫어요 수를 조회하는 메소드 추가
     @Transactional
     public long countReactions(Long commentId, ReactionType type) {
         return commentReactionRepository.countByCommentIdAndType(commentId, type);
