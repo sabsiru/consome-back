@@ -112,7 +112,7 @@ public class CommentService {
     public CommentReaction toggleReaction(Long commentId, Long userId, ReactionType type) {
         ReactionType currentReaction = getReaction(commentId, userId);
 
-        if (currentReaction == null) {
+        if (currentReaction == type.NONE) {
             // 반응 없음 → 새로운 반응 추가
             return type == ReactionType.LIKE ? like(commentId, userId) : dislike(commentId, userId);
         }
@@ -133,7 +133,7 @@ public class CommentService {
         if (reaction.isPresent()) {
             return reaction.get().getType();
         }
-        return null;
+        return ReactionType.NONE;
     }
 
     @Transactional
@@ -152,5 +152,5 @@ public class CommentService {
         return commentReactionRepository.countByCommentIdAndType(commentId, type);
     }
 
-    
+
 }
