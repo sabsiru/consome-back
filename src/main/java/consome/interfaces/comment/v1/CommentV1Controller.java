@@ -2,6 +2,7 @@ package consome.interfaces.comment.v1;
 
 import consome.application.comment.CommentFacade;
 import consome.domain.comment.Comment;
+import consome.domain.comment.CommentReaction;
 import consome.domain.post.ReactionType;
 import consome.interfaces.comment.dto.CommentResponse;
 import consome.interfaces.comment.dto.CreateCommentRequest;
@@ -87,13 +88,13 @@ public class CommentV1Controller {
     }
 
     @PostMapping("/{postId}/comments/{commentId}/reaction")
-    public ResponseEntity<Void> toggleReaction(
+    public ResponseEntity<CommentReaction> toggleReaction(
             @PathVariable Long postId,
             @PathVariable Long commentId,
             @RequestParam Long userId,
             @RequestParam ReactionType type) {
 
-        commentFacade.toggleReaction(commentId, userId, type);
-        return ResponseEntity.ok().build();
+        CommentReaction commentReaction = commentFacade.toggleReaction(commentId, userId, type);
+        return ResponseEntity.ok(commentReaction);
     }
 }
