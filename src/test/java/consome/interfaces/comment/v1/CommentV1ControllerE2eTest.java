@@ -145,4 +145,32 @@ public class CommentV1ControllerE2eTest {
         assertThat(likeCount).isNotNull();
         assertThat(likeCount).isEqualTo(1L);
     }
+
+    @Test
+    void 댓글_리액션_토글() {
+        // given
+        Long userId = 준비_유저_생성();
+        Long postId = 준비_게시글_생성(userId);
+        CreateCommentRequest request = new CreateCommentRequest(userId, null, "댓글 내용");
+        String url = "/api/v1/posts/" + postId + "/comments";
+        ResponseEntity<CommentResponse> response = restTemplate
+                .postForEntity(url, request, CommentResponse.class);
+        Long commentId = response.getBody().commentId();
+
+        // when
+        String toggleUrl = "/api/v1/posts/" + postId + "/comments/" + commentId + "/reaction?userId=" + userId + "&type=LIKE";
+        ResponseEntity<consome.domain.comment.CommentReaction> toggleResponse =
+                restTemplate.postForEntity(toggleUrl, null, consome.domain.comment.CommentReaction.class);
+
+        // then
+        assertThat(toggleResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
+        consome.domain.comment.CommentReaction reaction = toggleResponse.getBody();
+        assertThat(reaction).isNotNull();
+
+        // toggle off
+        ResponseEntity<consome.domain.comment.CommentReaction> toggleOffResponse =
+                restTemplate.postForEntity(toggleUrl, null, consome.domain.comment.CommentReaction.class);
+        assertThat(toggleOffResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(toggleOffResponse.getBody()).isNull();
+    }
 }
