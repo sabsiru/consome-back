@@ -2,6 +2,8 @@ package consome.domain.comment;
 
 import consome.domain.post.ReactionType;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -14,6 +16,7 @@ public class CommentService {
 
     private final CommentRepository commentRepository;
     private final CommentReactionRepository commentReactionRepository;
+    private final CommentQueryRepository commentQueryRepository;
 
     @Transactional
     public Comment comment(Long postId, Long userId, Long parentId, String content) {
@@ -152,5 +155,9 @@ public class CommentService {
         return commentReactionRepository.countByCommentIdAndType(commentId, type);
     }
 
+    @Transactional(readOnly = true)
+    public List<Comment> listByPost(Long postId, Long cursorId, int size, String sort) {
+        return commentQueryRepository.findCommentsByPostId(postId, cursorId, size, sort);
+    }
 
 }
