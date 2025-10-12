@@ -60,9 +60,10 @@ public class CommentFacade {
     public CommentReaction toggleReaction(Long commentId, Long userId, ReactionType type) {
         return commentService.toggleReaction(commentId, userId, type);
     }
-//    @Transactional
-//    public CommentPage listByPost(Long postId, Long cursorId, int size, String sort) {
-//        postService.getPost(postId);
-//        return null;
-//    }
+
+    @Transactional
+    public<List> Comment listByPost(Long postId, Long cursorId, int size, String sort) {
+        postService.getPost(postId);
+        return null;
+    }
 }
