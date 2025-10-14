@@ -255,7 +255,7 @@ class CommentServiceIntegrationTest {
         //when&then
         assertThatThrownBy(() -> commentService.cancel(comment.getId(), userId))
                 .isInstanceOf(IllegalStateException.class)
-                .hasMessageContaining("이미 취소되었습니다.");
+                .hasMessageContaining("좋아요나 싫어요를 누르지 않았습니다.");
     }
 
     @Test
@@ -268,6 +268,92 @@ class CommentServiceIntegrationTest {
         //when&then
         assertThatThrownBy(() -> commentService.cancel(comment.getId(), userId))
                 .isInstanceOf(IllegalStateException.class)
-                .hasMessageContaining("이미 취소되었습니다.");
+                .hasMessageContaining("좋아요나 싫어요를 누르지 않았습니다.");
+    }
+
+    @Test
+    void toggleReaction_좋아요_생성_성공() {
+        // given
+        Comment comment = commentService.comment(postId, userId, null, "테스트 댓글");
+
+        // when
+        CommentReaction reaction = commentService.toggleReaction(comment.getId(), userId, ReactionType.LIKE);
+
+        // then
+        assertThat(reaction).isNotNull();
+        assertThat(reaction.getType()).isEqualTo(ReactionType.LIKE);
+        assertThat(commentReactionRepository.findByCommentIdAndUserId(comment.getId(), userId)).isPresent();
+    }
+
+    @Test
+    void toggleReaction_좋아요_취소() {
+        // given
+        Comment comment = commentService.comment(postId, userId, null, "테스트 댓글");
+        commentService.like(comment.getId(), userId);
+
+        // when
+        CommentReaction reaction = commentService.toggleReaction(comment.getId(), userId, ReactionType.LIKE);
+
+        // then
+        assertThat(reaction).isNull();
+        assertThat(commentReactionRepository.findByCommentIdAndUserId(comment.getId(), userId)).isEmpty();
+    }
+
+    @Test
+    void toggleReaction_싫어요_생성_성공() {
+        // given
+        Comment comment = commentService.comment(postId, userId, null, "테스트 댓글");
+
+        // when
+        CommentReaction reaction = commentService.toggleReaction(comment.getId(), userId, ReactionType.DISLIKE);
+
+        // then
+        assertThat(reaction).isNotNull();
+        assertThat(reaction.getType()).isEqualTo(ReactionType.DISLIKE);
+        assertThat(commentReactionRepository.findByCommentIdAndUserId(comment.getId(), userId)).isPresent();
+    }
+
+    @Test
+    void toggleReaction_싫어요_취소() {
+        // given
+        Comment comment = commentService.comment(postId, userId, null, "테스트 댓글");
+        commentService.dislike(comment.getId(), userId);
+
+        // when
+        CommentReaction reaction = commentService.toggleReaction(comment.getId(), userId, ReactionType.DISLIKE);
+
+        // then
+        assertThat(reaction).isNull();
+        assertThat(commentReactionRepository.findByCommentIdAndUserId(comment.getId(), userId)).isEmpty();
+    }
+
+    @Test
+    void toggleReaction_싫어요에서_좋아요_전환() {
+        // given
+        Comment comment = commentService.comment(postId, userId, null, "테스트 댓글");
+        commentService.dislike(comment.getId(), userId);
+
+        // when
+        CommentReaction reaction = commentService.toggleReaction(comment.getId(), userId, ReactionType.LIKE);
+
+        // then
+        assertThat(reaction).isNotNull();
+        assertThat(reaction.getType()).isEqualTo(ReactionType.LIKE);
+        assertThat(commentReactionRepository.findByCommentIdAndUserId(comment.getId(), userId)).isPresent();
+    }
+
+    @Test
+    void toggleReaction_좋아요에서_싫어요_전환() {
+        // given
+        Comment comment = commentService.comment(postId, userId, null, "테스트 댓글");
+        commentService.like(comment.getId(), userId);
+
+        // when
+        CommentReaction reaction = commentService.toggleReaction(comment.getId(), userId, ReactionType.DISLIKE);
+
+        // then
+        assertThat(reaction).isNotNull();
+        assertThat(reaction.getType()).isEqualTo(ReactionType.DISLIKE);
+        assertThat(commentReactionRepository.findByCommentIdAndUserId(comment.getId(), userId)).isPresent();
     }
 }

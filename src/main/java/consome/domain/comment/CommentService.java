@@ -2,6 +2,8 @@ package consome.domain.comment;
 
 import consome.domain.post.ReactionType;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -14,6 +16,7 @@ public class CommentService {
 
     private final CommentRepository commentRepository;
     private final CommentReactionRepository commentReactionRepository;
+    private final CommentQueryRepository commentQueryRepository;
 
     @Transactional
     public Comment comment(Long postId, Long userId, Long parentId, String content) {
@@ -80,7 +83,7 @@ public class CommentService {
 
     @Transactional
     public CommentReaction like(Long commentId, Long userId) {
-        ReactionType reactionType = reaction(commentId, userId);
+        ReactionType reactionType = getReaction(commentId, userId);
         if (reactionType == null) {
             CommentReaction reaction = CommentReaction.like(commentId, userId);
             return commentReactionRepository.save(reaction);
@@ -95,7 +98,7 @@ public class CommentService {
 
     @Transactional
     public CommentReaction dislike(Long commentId, Long userId) {
-        ReactionType reactionType = reaction(commentId, userId);
+        ReactionType reactionType = getReaction(commentId, userId);
         if (reactionType == null) {
             CommentReaction reaction = CommentReaction.dislike(commentId, userId);
             return commentReactionRepository.save(reaction);
@@ -109,12 +112,31 @@ public class CommentService {
     }
 
     @Transactional
-    public ReactionType reaction(Long commentId, Long userId) {
+    public CommentReaction toggleReaction(Long commentId, Long userId, ReactionType type) {
+        ReactionType currentReaction = getReaction(commentId, userId);
+
+        if (currentReaction == type.NONE) {
+            // 반응 없음 → 새로운 반응 추가
+            return type == ReactionType.LIKE ? like(commentId, userId) : dislike(commentId, userId);
+        }
+
+        if (currentReaction == type) {
+            // 같은 반응 → 취소
+            return cancel(commentId, userId);
+        }
+
+        // 다른 반응 → 교체
+        cancel(commentId, userId);
+        return type == ReactionType.LIKE ? like(commentId, userId) : dislike(commentId, userId);
+    }
+
+    @Transactional
+    public ReactionType getReaction(Long commentId, Long userId) {
         Optional<CommentReaction> reaction = commentReactionRepository.findByCommentIdAndUserId(commentId, userId);
         if (reaction.isPresent()) {
             return reaction.get().getType();
         }
-        return null;
+        return ReactionType.NONE;
     }
 
     @Transactional
@@ -125,14 +147,17 @@ public class CommentService {
         }
         commentReactionRepository.deleteByCommentIdAndUserId(commentId, userId);
 
-        return commentReactionRepository.save(reaction.get());
+        return null;
     }
 
-    // 댓글의 좋아요, 싫어요 수를 조회하는 메소드 추가
     @Transactional
     public long countReactions(Long commentId, ReactionType type) {
         return commentReactionRepository.countByCommentIdAndType(commentId, type);
     }
 
+    @Transactional(readOnly = true)
+    public Page<Comment> listByPost(Long postId, Pageable pageable) {
+        return commentQueryRepository.findCommentsByPostId(postId, pageable);
+    }
 
 }
