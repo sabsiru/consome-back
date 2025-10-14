@@ -4,13 +4,13 @@ import consome.application.comment.CommentFacade;
 import consome.domain.comment.Comment;
 import consome.domain.comment.CommentReaction;
 import consome.domain.post.ReactionType;
-import consome.interfaces.comment.dto.CommentResponse;
-import consome.interfaces.comment.dto.CreateCommentRequest;
-import consome.interfaces.comment.dto.EditCommentRequest;
-import consome.interfaces.comment.dto.EditCommentResponse;
+import consome.interfaces.comment.dto.*;
 import consome.interfaces.comment.mapper.CommentResponseMapper;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -21,20 +21,15 @@ public class CommentV1Controller {
 
     private final CommentFacade commentFacade;
 
-    /**
-     * to-do: 댓글 페이징 처리
-     */
-//    // 목록
-//    @GetMapping("/posts/{postId}/comments")
-//    public ResponseEntity<CommentPageResponse> list(
-//            @PathVariable Long postId,
-//            @RequestParam(required = false) Long cursorId,
-//            @RequestParam(defaultValue = "20") int size,
-//            @RequestParam(defaultValue = "createdAt") String sort) {
-//
-//        commentFacade.listByPost(postId, cursorId, size, sort);
-//        return ResponseEntity.ok(CommentResponseMapper.toPageResponse(page));
-//    }
+    @GetMapping("{postId}/comments")
+    public ResponseEntity<CommentPageResponse> list(
+            @PathVariable Long postId,
+            @PageableDefault(size = 50) Pageable pageable) {
+
+        Page<Comment> page = commentFacade.listByPost(postId, pageable);
+        return ResponseEntity.ok(CommentResponseMapper.toPageResponse(page));
+    }
+
     @PostMapping("/{postId}/comments")
     public ResponseEntity<CommentResponse> create(
             @PathVariable Long postId,
