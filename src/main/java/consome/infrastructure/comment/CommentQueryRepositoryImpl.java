@@ -23,7 +23,7 @@ public class CommentQueryRepositoryImpl implements CommentQueryRepository {
         List<Comment> comments = queryFactory
                 .selectFrom(comment)
                 .where(comment.postId.eq(postId))
-                .orderBy(comment.id.desc())
+                .orderBy(comment.ref.desc(), comment.step.asc())
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
                 .fetch();

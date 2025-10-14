@@ -1,7 +1,10 @@
 package consome.domain.comment;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+
 import java.util.List;
 
 public interface CommentQueryRepository{
-    List<Comment> findCommentsByPostId(Long postId, Long cursorId, int size, String sort);
+    Page<Comment> findCommentsByPostId(Long postId, Pageable pageable);
 }
