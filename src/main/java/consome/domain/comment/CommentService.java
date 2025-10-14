@@ -156,8 +156,8 @@ public class CommentService {
     }
 
     @Transactional(readOnly = true)
-    public List<Comment> listByPost(Long postId, Long cursorId, int size, String sort) {
-        return commentQueryRepository.findCommentsByPostId(postId, cursorId, size, sort);
+    public Page<Comment> listByPost(Long postId, Pageable pageable) {
+        return commentQueryRepository.findCommentsByPostId(postId, pageable);
     }
 
 }

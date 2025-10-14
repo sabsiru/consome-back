@@ -10,6 +10,8 @@ import consome.domain.post.ReactionType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 @Service
 @RequiredArgsConstructor
@@ -61,9 +63,9 @@ public class CommentFacade {
         return commentService.toggleReaction(commentId, userId, type);
     }
 
-    @Transactional
-    public<List> Comment listByPost(Long postId, Long cursorId, int size, String sort) {
+    @Transactional(readOnly = true)
+    public Page<Comment> listByPost(Long postId, Pageable pageable) {
         postService.getPost(postId);
-        return null;
+        return commentService.listByPost(postId, pageable);
     }
 }
