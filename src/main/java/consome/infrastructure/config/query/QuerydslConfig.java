@@ -1,4 +1,4 @@
-package consome.infrastructure.config;
+package consome.infrastructure.config.query;
 
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jakarta.persistence.EntityManager;
