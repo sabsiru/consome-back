@@ -1,5 +1,6 @@
 package consome.domain.user;
 
+import consome.domain.user.exception.UserException;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -49,28 +50,22 @@ public class User {
 
     public static void validateLoginId(String loginId) {
         if (loginId.length() < 4 || loginId.length() > 20) {
-            throw new IllegalArgumentException("로그인 아이디는 4자 이상 20자 이하로 입력해주세요.");
+            throw new UserException.InvalidLoginIdLength("로그인 아이디는 4자 이상 20자 이하로 입력해주세요.") {
+            };
         }
         if (!loginId.matches("^[a-zA-Z0-9]+$")) {
-            throw new IllegalArgumentException("아이디는 영문 대소문자와 숫자만 포함해야 합니다.");
+            throw new UserException.InvalidLoginIdFormat("아이디는 영문 대소문자와 숫자만 포함해야 합니다.") {
+            };
         }
     }
 
     public static void validateNickname(String nickname) {
         if (nickname.length() < 2 || nickname.length() > 20) {
-            throw new IllegalArgumentException("닉네임은 2자 이상 20자 이하로 입력해주세요.");
+            throw new UserException.InvalidNicknameLength("닉네임은 2자 이상 20자 이하로 입력해주세요.") {
+            };
         }
         if (!nickname.matches("^[가-힣a-zA-Z0-9]+$")) {
-            throw new IllegalArgumentException("닉네임은 한글, 영문 대소문자, 숫자만 포함해야 합니다.");
-        }
-    }
-
-    public static void validatePassword(String password) {
-        if (password.length() < 8 || password.length() > 20) {
-            throw new IllegalArgumentException("비밀번호는 8자 이상 20자 이하이어야 합니다.");
-        }
-        if (!password.matches("^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d).+$")) {
-            throw new IllegalArgumentException("비밀번호는 영문 대소문자와 숫자를 포함해야 합니다.");
+            throw new UserException.InvalidNicknameFormat("닉네임은 한글, 영문 대소문자, 숫자만 포함해야 합니다.");
         }
     }
 

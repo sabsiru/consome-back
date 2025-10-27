@@ -16,8 +16,8 @@ public class UserService {
     private final PasswordEncryptor passwordEncryptor;
 
     public User register(String loginId, String nickname, String password) {
+        validateDuplicate(loginId, nickname);
         validateUser(loginId, nickname, password);
-        validateDuplicate(loginId, nickname, password);
 
         String encryptedPassword = passwordEncryptor.encrypt(password);
 
@@ -26,27 +26,21 @@ public class UserService {
     }
 
     public User login(String loginId, String password) {
-        User user = userRepository.findByLoginId(loginId);
+        User user = userRepository.findByLoginId(loginId).
+                orElseThrow(()-> new UserException.loginFailure(loginId, password));
         if (!passwordEncryptor.matches(password, user.getPassword())) {
-            throw new UserException.loginFailure(loginId,password);
+            throw new UserException.loginFailure(loginId, password);
         }
 
         return user;
     }
 
-    public User getById(Long userId) {
-        return userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다. id = " + userId));
-    }
+    public Boolean validateDuplicate(String loginId, String nickname) {
 
-    public Boolean validateDuplicate(String loginId, String nickname, String password) {
-        boolean loginIdIsEmpty = userRepository.findAllByLoginId(loginId).isEmpty();
-        boolean nicknameIsEmpty = userRepository.findAllByNickname(nickname).isEmpty();
-
-        if (!loginIdIsEmpty) {
+        if (userRepository.existsByLoginId(loginId)) {
             throw new UserException.DuplicateLoginId(loginId);
         }
-        if (!nicknameIsEmpty) {
+        if (userRepository.existsByNickname(nickname)) {
             throw new UserException.DuplicateNickname(nickname) {
             };
         }

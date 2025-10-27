@@ -4,6 +4,7 @@ import consome.domain.user.exception.UserException;
 import consome.interfaces.error.ErrorResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
@@ -40,5 +41,16 @@ public class GlobalExceptionHandler {
         Map<String, String> error = new HashMap<>();
         error.put("message", ex.getMessage());
         return ResponseEntity.badRequest().body(error);
+    }
+
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<Map<String, String>> handleValidationException(MethodArgumentNotValidException ex) {
+        String message = ex.getBindingResult().getAllErrors().get(0).getDefaultMessage();
+
+        Map<String, String> body = new HashMap<>();
+        body.put("code", "INVALID_INPUT");
+        body.put("message", message);
+
+        return ResponseEntity.badRequest().body(body);
     }
 }
