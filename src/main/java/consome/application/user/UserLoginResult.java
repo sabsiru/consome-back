@@ -7,6 +7,7 @@ public record UserLoginResult(
         String loginId,
         String nickname,
         Role role,
-        int point
+        int point,
+        String accessToken
 ){}
 
