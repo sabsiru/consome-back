@@ -5,7 +5,7 @@ spring:
     password: consome
   jpa:
     hibernate:
-      ddl-auto: create
+      ddl-auto: none
     properties:
       hibernate:
         format_sql: false
@@ -14,3 +14,8 @@ spring:
 logging:
   #level:
     #org.hibernate.SQL: debug
+
+jwt:
+  secret: "my-secret-key-for-dev-only-change-this-later"
+  access-token-expiration: 3600000      # 1시간 (ms)
+  refresh-token-expiration: 604800000   # 7일 (ms)

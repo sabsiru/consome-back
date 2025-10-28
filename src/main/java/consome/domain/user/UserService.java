@@ -5,6 +5,7 @@ import consome.domain.auth.PasswordPolicy;
 import consome.domain.user.exception.UserException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -54,5 +55,15 @@ public class UserService {
         PasswordPolicy.validate(password);
 
         return true;
+    }
+
+    @Transactional(readOnly = true)
+    public User findById(Long userId) {
+        return userRepository.findById(userId)
+                .orElseThrow(() -> new UserException.NotFound("사용자를 찾을 수 없습니다."));
+    }
+
+    public boolean existsByRole() {
+        return userRepository.existsByRole(Role.ADMIN);
     }
 }
