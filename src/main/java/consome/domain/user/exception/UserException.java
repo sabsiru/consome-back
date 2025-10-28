@@ -76,5 +76,10 @@ public abstract class UserException extends RuntimeException {
         }
 
     }
+    public static class NotFound extends UserException {
+        public NotFound(String message) {
+            super("USER_NOT_FOUND", message);
+        }
+    }
 
 }

@@ -4,22 +4,16 @@ package consome.interfaces.user.v1;
 import consome.application.user.UserFacade;
 import consome.application.user.UserLoginCommand;
 import consome.application.user.UserLoginResult;
-import consome.interfaces.user.dto.UserLoginRequest;
-import consome.interfaces.user.dto.UserLoginResponse;
-import consome.interfaces.user.mapper.UserLoginMapper;
-import consome.interfaces.user.mapper.UserLoginResponseMapper;
-import consome.interfaces.user.mapper.UserRegisterMapper;
+import consome.application.user.UserMeResult;
+import consome.infrastructure.security.CustomUserDetails;
+import consome.interfaces.user.dto.*;
+import consome.interfaces.user.mapper.*;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.HttpStatus;
-import consome.interfaces.user.dto.UserRegisterResponse;
-import consome.interfaces.user.mapper.UserRegisterResponseMapper;
-import consome.interfaces.user.dto.UserRegisterRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequiredArgsConstructor
@@ -40,6 +34,13 @@ public class UserV1Controller {
         UserLoginCommand command = UserLoginMapper.toLoginCommand(request);
         UserLoginResult result = userFacade.login(command);
         UserLoginResponse response = UserLoginResponseMapper.toLoginResponse(result);
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/me")
+    public ResponseEntity<UserMeResponse> getMyInfo(@AuthenticationPrincipal CustomUserDetails userDetails) {
+        UserMeResult result = userFacade.getMyInfo(userDetails.getUserId());
+        UserMeResponse response = UserMeResponseMapper.toResponse(result);
         return ResponseEntity.ok(response);
     }
 }
