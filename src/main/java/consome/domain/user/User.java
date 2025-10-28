@@ -48,6 +48,12 @@ public class User {
         return new User(loginId, nickname, password);
     }
 
+    public static User createAdmin(String loginId, String nickname, String password) {
+        User admin = new User(loginId, nickname, password);
+        admin.role = Role.ADMIN;
+        return admin;
+    }
+
     public static void validateLoginId(String loginId) {
         if (loginId.length() < 4 || loginId.length() > 20) {
             throw new UserException.InvalidLoginIdLength("로그인 아이디는 4자 이상 20자 이하로 입력해주세요.") {
@@ -76,6 +82,11 @@ public class User {
 
     public void changePassword(String newPassword) {
         this.password = newPassword;
+        this.updatedAt = LocalDateTime.now();
+    }
+
+    public void updateRole(Role newRole) {
+        this.role = newRole;
         this.updatedAt = LocalDateTime.now();
     }
 }

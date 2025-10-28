@@ -12,6 +12,7 @@ import consome.domain.post.entity.PostStat;
 import consome.domain.post.ReactionType;
 import consome.domain.user.User;
 import consome.domain.user.UserService;
+import consome.infrastructure.jwt.JwtProvider;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,6 +23,7 @@ public class UserFacade {
 
     private final UserService userService;
     private final PointService pointService;
+    private final JwtProvider jwtProvider;
 
     @Transactional
     public Long register(UserRegisterCommand command) {
@@ -34,7 +36,16 @@ public class UserFacade {
     public UserLoginResult login(UserLoginCommand command) {
         User user = userService.login(command.loginId(), command.password());
         int currentPoint = pointService.getCurrentPoint(user.getId());
-        return new UserLoginResult(user.getId(), user.getLoginId(), user.getNickname(), user.getRole(), currentPoint);
+
+        String accessToken = jwtProvider.createAccessToken(user.getId(), user.getRole());
+        return new UserLoginResult(user.getId(), user.getLoginId(), user.getNickname(), user.getRole(), currentPoint, accessToken);
+    }
+
+    @Transactional(readOnly = true)
+    public UserMeResult getMyInfo(Long userId) {
+        User user = userService.findById(userId);
+        int currentPoint = pointService.getCurrentPoint(userId); // ✅ 따로 조회
+        return new UserMeResult(user.getLoginId(), user.getNickname(), currentPoint, user.getRole());
     }
 
 }

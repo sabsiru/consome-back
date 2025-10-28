@@ -8,7 +8,8 @@ public record UserLoginResponse(
         String loginId,
         String nickname,
         Role role,
-        int point
+        int point,
+        String accessToken
 ) {
     public static UserLoginResponse from(UserLoginResult result) {
         return new UserLoginResponse(
@@ -16,7 +17,8 @@ public record UserLoginResponse(
                 result.loginId(),
                 result.nickname(),
                 result.role(),
-                result.point()
+                result.point(),
+                result.accessToken()
         );
     }
 }
