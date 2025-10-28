@@ -28,7 +28,7 @@ public class UserService {
 
     public User login(String loginId, String password) {
         User user = userRepository.findByLoginId(loginId).
-                orElseThrow(()-> new UserException.loginFailure(loginId, password));
+                orElseThrow(() -> new UserException.loginFailure(loginId, password));
         if (!passwordEncryptor.matches(password, user.getPassword())) {
             throw new UserException.loginFailure(loginId, password);
         }
@@ -61,9 +61,5 @@ public class UserService {
     public User findById(Long userId) {
         return userRepository.findById(userId)
                 .orElseThrow(() -> new UserException.NotFound("사용자를 찾을 수 없습니다."));
-    }
-
-    public boolean existsByRole() {
-        return userRepository.existsByRole(Role.ADMIN);
     }
 }
