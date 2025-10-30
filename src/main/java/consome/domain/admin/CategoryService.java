@@ -1,4 +1,4 @@
-package consome.domain.board;
+package consome.domain.admin;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -51,7 +51,11 @@ public class CategoryService {
                 .orElseThrow(() -> new IllegalArgumentException("잘못된 접근입니다."));
     }
 
-    public List<Category> getCategories(Long boardId) {
+    public List<Category> findAllOrderedByBoard(Long boardId) {
         return categoryRepository.findAllByBoardIdOrderByDisplayOrder(boardId);
+    }
+
+    public List<Category> findAllOrdered() {
+        return categoryRepository.findAllByDeletedFalseOrderByBoardIdAscDisplayOrderAsc();
     }
 }

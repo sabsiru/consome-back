@@ -1,4 +1,4 @@
-package consome.domain.board;
+package consome.domain.admin;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 

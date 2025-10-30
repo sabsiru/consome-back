@@ -1,4 +1,4 @@
-package consome.domain.board;
+package consome.domain.admin;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -36,7 +36,7 @@ class CategoryServiceTest {
         // then
         assertThat(result).isSameAs(saved);
         verify(categoryRepository).save(argThat(cat ->
-                cat.getBoardId().equals(categoryId) &&
+                cat.getRefBoardId().equals(categoryId) &&
                         cat.getName().equals(name) &&
                         cat.getDisplayOrder() == order
         ));

@@ -1,4 +1,4 @@
-package consome.domain.board;
+package consome.domain.admin;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Size;
@@ -15,10 +15,13 @@ import java.time.LocalDateTime;
 @Getter
 @EntityListeners(AuditingEntityListener.class)
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class Section {
+public class Category {
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @Column(nullable = false)
+    private Long refBoardId;
 
     @Size(min = 1, max = 20)
     @Column(nullable = false, unique = true, length = 20)
@@ -27,6 +30,9 @@ public class Section {
     @Column(nullable = false)
     private int displayOrder;
 
+    @Column(nullable = false)
+    private boolean deleted = false;
+
     @CreatedDate
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
@@ -34,16 +40,14 @@ public class Section {
     @LastModifiedDate
     private LocalDateTime updatedAt;
 
-    @Column(nullable = false)
-    private boolean deleted = false;
-
-    private Section(String name, int displayOrder) {
+    private Category(Long refBoardId, String name, int displayOrder) {
+        this.refBoardId = refBoardId;
         this.name = name;
         this.displayOrder = displayOrder;
     }
 
-    public static Section create(String name, int displayOrder) {
-        return new Section(name, displayOrder);
+    public static Category create(Long boardId, String name, int displayOrder) {
+        return new Category(boardId, name, displayOrder);
     }
 
     public void rename(String newName) {

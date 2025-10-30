@@ -1,4 +1,4 @@
-package consome.domain.board;
+package consome.domain.admin;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 
@@ -8,4 +8,6 @@ public interface BoardRepository extends JpaRepository<Board, Long> {
     boolean existsByName(String name);
 
     List<Board> findByRefSectionIdAndDeletedFalseOrderByDisplayOrder(Long sectionId);
+
+    List<Board> findByDeletedFalseOrderByDisplayOrder();
 }

@@ -1,4 +1,4 @@
-package consome.domain.board;
+package consome.domain.admin;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Size;
@@ -15,17 +15,20 @@ import java.time.LocalDateTime;
 @Getter
 @EntityListeners(AuditingEntityListener.class)
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class Category {
+public class Board {
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @Column(nullable = false)
-    private Long boardId;
+    private Long refSectionId;
 
     @Size(min = 1, max = 20)
     @Column(nullable = false, unique = true, length = 20)
     private String name;
+
+    @Column(nullable = false)
+    private String description;
 
     @Column(nullable = false)
     private int displayOrder;
@@ -40,14 +43,15 @@ public class Category {
     @LastModifiedDate
     private LocalDateTime updatedAt;
 
-    private Category(Long boardId, String name, int displayOrder) {
-        this.boardId = boardId;
+    private Board(Long refSectionId, String name, String description, int displayOrder) {
+        this.refSectionId = refSectionId;
         this.name = name;
+        this.description = description;
         this.displayOrder = displayOrder;
     }
 
-    public static Category create(Long boardId, String name, int displayOrder) {
-        return new Category(boardId, name, displayOrder);
+    public static Board create(Long refSectionId, String name, String description, int displayOrder) {
+        return new Board(refSectionId, name, description, displayOrder);
     }
 
     public void rename(String newName) {
@@ -56,6 +60,10 @@ public class Category {
 
     public void changeOrder(int newOrder) {
         this.displayOrder = newOrder;
+    }
+
+    public void changeDescription(String newDescription) {
+        this.description = newDescription;
     }
 
     public void delete() {

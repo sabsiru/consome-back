@@ -1,4 +1,4 @@
-package consome.domain.board;
+package consome.domain.admin;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,7 +30,7 @@ public class CategoryServiceIntegrationTest {
 
         //then
         assertThat(category.getId()).isNotNull();
-        assertThat(category.getBoardId()).isEqualTo(categoryId);
+        assertThat(category.getRefBoardId()).isEqualTo(categoryId);
         assertThat(category.getName()).isEqualTo(name);
         assertThat(category.getDisplayOrder()).isEqualTo(displayOrder);
         assertThat(category.isDeleted()).isFalse();

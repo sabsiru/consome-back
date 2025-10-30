@@ -1,4 +1,4 @@
-package consome.domain.board;
+package consome.domain.admin;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -20,7 +20,7 @@ class CategoryTest {
         Category category = Category.create(categoryId, name, order);
 
         // then
-        assertThat(category.getBoardId()).isEqualTo(categoryId);
+        assertThat(category.getRefBoardId()).isEqualTo(categoryId);
         assertThat(category.getName()).isEqualTo(name);
         assertThat(category.getDisplayOrder()).isEqualTo(order);
         assertThat(category.isDeleted()).isFalse();
