@@ -2,7 +2,7 @@ package consome.interfaces.admin.v1;
 
 
 import consome.application.admin.SectionFacade;
-import consome.domain.board.Section;
+import consome.domain.admin.Section;
 import consome.interfaces.admin.dto.ChangeOrderRequest;
 import consome.interfaces.admin.dto.CreateSectionRequest;
 import consome.interfaces.admin.dto.RenameRequest;

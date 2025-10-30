@@ -1,7 +1,7 @@
 package consome.interfaces.admin.v1;
 
 import consome.application.admin.BoardFacade;
-import consome.domain.board.Board;
+import consome.domain.admin.Board;
 import consome.interfaces.admin.dto.BoardResponse;
 import consome.interfaces.admin.dto.ChangeOrderRequest;
 import consome.interfaces.admin.dto.CreateBoardRequest;

@@ -1,9 +1,9 @@
 package consome.application.navigation;
 
-import consome.domain.board.Board;
-import consome.domain.board.BoardService;
-import consome.domain.board.Section;
-import consome.domain.board.SectionService;
+import consome.domain.admin.Board;
+import consome.domain.admin.BoardService;
+import consome.domain.admin.Section;
+import consome.domain.admin.SectionService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -16,10 +16,10 @@ public class NavigationFacade {
     private final BoardService boardService;
 
     public List<Section> getSections() {
-        return sectionService.getSections();
+        return sectionService.findAllOrdered();
     }
 
     public List<Board> getBoards(Long sectionId) {
-        return boardService.getBoards(sectionId);
+        return boardService.findAllBySectionId(sectionId);
     }
 }

@@ -1,7 +1,7 @@
 package consome.interfaces.navigation.dto;
 
 import consome.application.navigation.SectionHeaderResult;
-import consome.domain.board.Section;
+import consome.domain.admin.Section;
 
 import java.util.List;
 import java.util.stream.Collectors;

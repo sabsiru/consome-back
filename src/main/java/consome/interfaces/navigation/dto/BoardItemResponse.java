@@ -1,6 +1,6 @@
 package consome.interfaces.navigation.dto;
 
-import consome.domain.board.Board;
+import consome.domain.admin.Board;
 
 import java.util.List;
 import java.util.stream.Collectors;

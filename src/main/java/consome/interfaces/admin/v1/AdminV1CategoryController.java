@@ -1,7 +1,7 @@
 package consome.interfaces.admin.v1;
 
 import consome.application.admin.CategoryFacade;
-import consome.domain.board.Category;
+import consome.domain.admin.Category;
 import consome.interfaces.admin.dto.CategoryResponse;
 import consome.interfaces.admin.dto.ChangeOrderRequest;
 import consome.interfaces.admin.dto.CreateCategoryRequest;

@@ -1,6 +1,6 @@
 package consome.application.navigation;
 
-import consome.domain.board.Section;
+import consome.domain.admin.Section;
 
 import java.util.List;
 import java.util.stream.Collectors;
