@@ -1,6 +1,6 @@
 package consome.domain.post;
 
-import consome.domain.board.Category;
+import consome.domain.admin.Category;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -18,7 +18,7 @@ class CategoryTest {
         Category category = Category.create(boardId, name, order);
 
         // then
-        assertThat(category.getBoardId()).isEqualTo(boardId);
+        assertThat(category.getRefBoardId()).isEqualTo(boardId);
         assertThat(category.getName()).isEqualTo(name);
         assertThat(category.getDisplayOrder()).isEqualTo(order);
         assertThat(category.isDeleted()).isFalse();
