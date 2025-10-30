@@ -8,7 +8,8 @@ public class UserMeResponseMapper {
         return new UserMeResponse(
                 result.loginId(),
                 result.nickname(),
-                result.point()
+                result.point(),
+                result.role()
         );
     }
 }
