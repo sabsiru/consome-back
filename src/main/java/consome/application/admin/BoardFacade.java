@@ -1,9 +1,9 @@
 package consome.application.admin;
 
-import consome.domain.board.Board;
-import consome.domain.board.BoardService;
-import consome.domain.board.Category;
-import consome.domain.board.CategoryService;
+import consome.domain.admin.Board;
+import consome.domain.admin.BoardService;
+import consome.domain.admin.Category;
+import consome.domain.admin.CategoryService;
 import consome.domain.post.PostService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -37,7 +37,7 @@ public class BoardFacade {
     }
 
     public List<Category> getCategories(Long boardId) {
-        return categoryService.getCategories(boardId);
+        return categoryService.findAllOrderedByBoard(boardId);
     }
 
     public Page<BoardPostsResult> getPosts(Long refBoardId, Pageable pageable) {

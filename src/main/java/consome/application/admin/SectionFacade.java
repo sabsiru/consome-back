@@ -1,7 +1,7 @@
 package consome.application.admin;
 
 
-import consome.domain.board.*;
+import consome.domain.admin.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
