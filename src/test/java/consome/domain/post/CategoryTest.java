@@ -18,7 +18,7 @@ class CategoryTest {
         Category category = Category.create(boardId, name, order);
 
         // then
-        assertThat(category.getRefBoardId()).isEqualTo(boardId);
+        assertThat(category.getBoardId()).isEqualTo(boardId);
         assertThat(category.getName()).isEqualTo(name);
         assertThat(category.getDisplayOrder()).isEqualTo(order);
         assertThat(category.isDeleted()).isFalse();

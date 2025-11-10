@@ -37,7 +37,7 @@ class BoardServiceTest {
         // then
         assertThat(result).isSameAs(saved);
         verify(boardRepository).save(argThat(b ->
-                b.getRefSectionId().equals(sectionId) &&
+                b.getSectionId().equals(sectionId) &&
                         b.getName().equals(name) &&
                         b.getDescription().equals(description) &&
                         b.getDisplayOrder() == order

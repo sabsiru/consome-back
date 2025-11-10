@@ -30,7 +30,7 @@ public class CategoryServiceIntegrationTest {
 
         //then
         assertThat(category.getId()).isNotNull();
-        assertThat(category.getRefBoardId()).isEqualTo(categoryId);
+        assertThat(category.getBoardId()).isEqualTo(categoryId);
         assertThat(category.getName()).isEqualTo(name);
         assertThat(category.getDisplayOrder()).isEqualTo(displayOrder);
         assertThat(category.isDeleted()).isFalse();

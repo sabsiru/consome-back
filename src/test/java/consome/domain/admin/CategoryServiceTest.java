@@ -36,7 +36,7 @@ class CategoryServiceTest {
         // then
         assertThat(result).isSameAs(saved);
         verify(categoryRepository).save(argThat(cat ->
-                cat.getRefBoardId().equals(categoryId) &&
+                cat.getBoardId().equals(categoryId) &&
                         cat.getName().equals(name) &&
                         cat.getDisplayOrder() == order
         ));
