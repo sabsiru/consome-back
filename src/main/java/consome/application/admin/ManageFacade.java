@@ -21,9 +21,9 @@ public class ManageFacade {
         var categories = categoryService.findAllOrdered();
 
         var boardsBySection = boards.stream()
-                .collect(Collectors.groupingBy(Board::getRefSectionId));
+                .collect(Collectors.groupingBy(Board::getSectionId));
         var catsByBoard = categories.stream()
-                .collect(Collectors.groupingBy(Category::getRefBoardId));
+                .collect(Collectors.groupingBy(Category::getBoardId));
 
         var sectionNodes = sections.stream()
                 .map(section -> new ManageTreeResult.SectionNode(

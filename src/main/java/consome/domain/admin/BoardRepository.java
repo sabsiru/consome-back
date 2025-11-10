@@ -7,7 +7,7 @@ import java.util.List;
 public interface BoardRepository extends JpaRepository<Board, Long> {
     boolean existsByName(String name);
 
-    List<Board> findByRefSectionIdAndDeletedFalseOrderByDisplayOrder(Long sectionId);
+    List<Board> findBySectionIdAndDeletedFalseOrderByDisplayOrder(Long sectionId);
 
     List<Board> findByDeletedFalseOrderByDisplayOrder();
 }
