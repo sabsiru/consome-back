@@ -21,13 +21,13 @@ public class Category {
     private Long id;
 
     @Column(nullable = false)
-    private Long refBoardId;
+    private Long boardId;
 
     @Size(min = 1, max = 20)
     @Column(nullable = false, unique = true, length = 20)
     private String name;
 
-    @Column(nullable = false)
+    @Column(nullable = false, unique = true)
     private int displayOrder;
 
     @Column(nullable = false)
@@ -40,8 +40,8 @@ public class Category {
     @LastModifiedDate
     private LocalDateTime updatedAt;
 
-    private Category(Long refBoardId, String name, int displayOrder) {
-        this.refBoardId = refBoardId;
+    private Category(Long boardId, String name, int displayOrder) {
+        this.boardId = boardId;
         this.name = name;
         this.displayOrder = displayOrder;
     }
