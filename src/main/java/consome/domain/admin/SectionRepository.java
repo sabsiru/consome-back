@@ -8,4 +8,6 @@ public interface SectionRepository extends JpaRepository<Section, Long> {
     boolean existsByName(String name);
 
     List<Section> findAllByDeletedFalseOrderByDisplayOrder();
+
+    boolean existsAllBy();
 }
