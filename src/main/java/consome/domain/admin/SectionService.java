@@ -1,7 +1,9 @@
 package consome.domain.admin;
 
+import consome.interfaces.admin.dto.SectionReorderRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -28,6 +30,24 @@ public class SectionService {
         Section section = findById(sectionId);
         section.changeOrder(newOrder);
         return sectionRepository.save(section);
+    }
+
+    @Transactional
+    public void reorder(List<SectionOrder> orders) {
+        // 1. 기존 섹션들 전부 고유 임시값으로 변경
+        for (Section s : sectionRepository.findAll()) {
+            s.changeOrder(-s.getId().intValue()); // 임시 음수값 (-1, -2, -3, ...)
+        }
+        sectionRepository.flush(); // 임시값 반영
+
+        // 2. 요청된 순서대로 업데이트
+        for (SectionOrder order : orders) {
+            Section section = sectionRepository.findById(order.sectionId())
+                    .orElseThrow(() -> new IllegalArgumentException("잘못된 접근입니다."));
+            section.changeOrder(order.displayOrder());
+        }
+
+        sectionRepository.flush(); // 최종 순서 반영
     }
 
     public void delete(Long sectionId) {

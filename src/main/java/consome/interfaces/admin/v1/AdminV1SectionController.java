@@ -3,13 +3,14 @@ package consome.interfaces.admin.v1;
 
 import consome.application.admin.SectionFacade;
 import consome.domain.admin.Section;
-import consome.interfaces.admin.dto.ChangeOrderRequest;
-import consome.interfaces.admin.dto.CreateSectionRequest;
-import consome.interfaces.admin.dto.RenameRequest;
-import consome.interfaces.admin.dto.SectionResponse;
+import consome.domain.admin.SectionOrder;
+import consome.interfaces.admin.dto.*;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -34,6 +35,16 @@ public class AdminV1SectionController {
     public SectionResponse changeOrder(@PathVariable Long sectionId, @RequestBody ChangeOrderRequest request) {
         Section section = sectionFacade.changeOrder(sectionId, request.getNewOrder());
         return SectionResponse.from(section);
+    }
+
+    @PutMapping("/reorder")
+    public ResponseEntity<Void> reorder(@RequestBody SectionReorderRequest request) {
+        List<SectionOrder> orders = request.orders().stream()
+                .map(o -> new SectionOrder(o.sectionId(), o.displayOrder()))
+                .toList();
+
+        sectionFacade.reorder(orders);
+        return ResponseEntity.ok().build();
     }
 
     @DeleteMapping("/{sectionId}")
