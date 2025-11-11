@@ -15,6 +15,12 @@ import java.time.LocalDateTime;
 @Getter
 @EntityListeners(AuditingEntityListener.class)
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@Table(
+        name = "board",
+        uniqueConstraints = {
+                @UniqueConstraint(columnNames = {"section_id", "display_order"})
+        }
+)
 public class Board {
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -30,7 +36,7 @@ public class Board {
     @Column(nullable = false)
     private String description;
 
-    @Column(nullable = false, unique = true)
+    @Column(nullable = false)
     private int displayOrder;
 
     @Column(nullable = false)
