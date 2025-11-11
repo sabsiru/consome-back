@@ -2,6 +2,7 @@ package consome.domain.admin;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -28,6 +29,21 @@ public class CategoryService {
         Category category = findById(categoryId);
         category.changeOrder(newOrder);
         return categoryRepository.save(category);
+    }
+
+    @Transactional
+    public void reorder(List<CategoryOrder> orders) {
+        for (Category c : categoryRepository.findAll()) {
+            c.changeOrder(-c.getId().intValue()); // 임시 음수값 (-1, -2, -3, ...)
+        }
+        categoryRepository.flush();
+
+        for (CategoryOrder order : orders) {
+            Category category = categoryRepository.findById(order.categoryId())
+                    .orElseThrow(() -> new IllegalArgumentException("잘못된 접근입니다."));
+            category.changeOrder(order.displayOrder());
+        }
+        categoryRepository.flush();
     }
 
     public void delete(Long categoryId) {
