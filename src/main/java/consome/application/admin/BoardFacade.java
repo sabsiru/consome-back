@@ -1,9 +1,6 @@
 package consome.application.admin;
 
-import consome.domain.admin.Board;
-import consome.domain.admin.BoardService;
-import consome.domain.admin.Category;
-import consome.domain.admin.CategoryService;
+import consome.domain.admin.*;
 import consome.domain.post.PostService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -30,6 +27,10 @@ public class BoardFacade {
 
     public Board changeOrder(Long boardId, int newOrder) {
         return boardService.changeOrder(boardId, newOrder);
+    }
+
+    public void reorder(List<BoardOrder> orders) {
+        boardService.reorder(orders);
     }
 
     public void delete(Long boardId) {

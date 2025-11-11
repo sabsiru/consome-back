@@ -1,7 +1,10 @@
 package consome.domain.admin;
 
+import com.querydsl.core.types.Order;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -27,6 +30,39 @@ public class BoardService {
         Board board = findById(boardId);
         board.changeOrder(newOrder);
         return boardRepository.save(board);
+    }
+
+    @Transactional
+    public void reorder(List<BoardOrder> orders) {
+        List<Long> sectionIds = orders.stream()
+                .map(BoardOrder::sectionId)
+                .distinct()
+                .toList();
+
+        for (Long sectionId : sectionIds) {
+            reorderSection(sectionId, orders.stream()
+                    .filter(o -> o.sectionId().equals(sectionId))
+                    .toList());
+        }
+    }
+
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void reorderSection(Long sectionId, List<BoardOrder> sectionOrders) {
+        List<Board> boards = boardRepository.findBySectionIdAndDeletedFalseOrderByDisplayOrder(sectionId);
+
+        // 1️⃣ 임시 음수화
+        for (Board board : boards) {
+            board.changeOrder(-board.getDisplayOrder());
+        }
+        boardRepository.flush();
+
+        // 2️⃣ 실제 순서 반영
+        for (BoardOrder order : sectionOrders) {
+            Board board = boardRepository.findById(order.boardId())
+                    .orElseThrow(() -> new IllegalArgumentException("잘못된 접근입니다."));
+            board.changeOrder(order.displayOrder());
+        }
+        boardRepository.flush();
     }
 
     public void delete(Long boardId) {
