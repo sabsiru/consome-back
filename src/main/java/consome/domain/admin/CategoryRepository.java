@@ -10,4 +10,6 @@ public interface CategoryRepository extends JpaRepository<Category, Long> {
     List<Category> findAllByBoardIdOrderByDisplayOrder(Long boardId);
 
     List<Category> findAllByDeletedFalseOrderByBoardIdAscDisplayOrderAsc();
+
+    List<Category> findByBoardIdAndDeletedFalseOrderByDisplayOrder(Long boardId);
 }

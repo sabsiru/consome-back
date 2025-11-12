@@ -2,6 +2,7 @@ package consome.domain.admin;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
@@ -33,12 +34,30 @@ public class CategoryService {
 
     @Transactional
     public void reorder(List<CategoryOrder> orders) {
-        for (Category c : categoryRepository.findAll()) {
-            c.changeOrder(-c.getId().intValue()); // 임시 음수값 (-1, -2, -3, ...)
+       List<Long> boardIds = orders.stream()
+                .map(CategoryOrder::boardId)
+                .distinct()
+                .toList();
+
+        for (Long boardId : boardIds) {
+            reorderByBoardId(boardId, orders.stream()
+                    .filter(o -> o.boardId().equals(boardId))
+                    .toList());
+        }
+    }
+
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void reorderByBoardId(Long boardId, List<CategoryOrder> boardOrders) {
+        List<Category> categories = categoryRepository.findByBoardIdAndDeletedFalseOrderByDisplayOrder(boardId);
+
+        // 1️⃣ 임시 음수화
+        for (Category category : categories) {
+            category.changeOrder(-category.getDisplayOrder());
         }
         categoryRepository.flush();
 
-        for (CategoryOrder order : orders) {
+        // 2️⃣ 실제 순서 반영
+        for (CategoryOrder order : boardOrders) {
             Category category = categoryRepository.findById(order.categoryId())
                     .orElseThrow(() -> new IllegalArgumentException("잘못된 접근입니다."));
             category.changeOrder(order.displayOrder());

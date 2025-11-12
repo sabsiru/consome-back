@@ -5,5 +5,5 @@ import java.util.List;
 public record CategoryReorderRequest(
         List<OrderItem> orders
 ) {
-    public record OrderItem(Long categoryId, int displayOrder) {}
+    public record OrderItem(Long boardId, Long categoryId, int displayOrder) {}
 }
