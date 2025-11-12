@@ -1,6 +1,5 @@
 package consome.domain.admin;
 
-import com.querydsl.core.types.Order;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
@@ -40,14 +39,14 @@ public class BoardService {
                 .toList();
 
         for (Long sectionId : sectionIds) {
-            reorderSection(sectionId, orders.stream()
+            reorderBySectionId(sectionId, orders.stream()
                     .filter(o -> o.sectionId().equals(sectionId))
                     .toList());
         }
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public void reorderSection(Long sectionId, List<BoardOrder> sectionOrders) {
+    public void reorderBySectionId(Long sectionId, List<BoardOrder> sectionOrders) {
         List<Board> boards = boardRepository.findBySectionIdAndDeletedFalseOrderByDisplayOrder(sectionId);
 
         // 1️⃣ 임시 음수화
