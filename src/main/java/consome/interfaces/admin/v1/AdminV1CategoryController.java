@@ -39,7 +39,7 @@ public class AdminV1CategoryController {
     @PutMapping("/reorder")
     public ResponseEntity<Void> reorder(@RequestBody CategoryReorderRequest request) {
         List<CategoryOrder> orders = request.orders().stream()
-                .map(o -> new CategoryOrder(o.categoryId(), o.displayOrder()))
+                .map(o -> new CategoryOrder(o.boardId(), o.categoryId(), o.displayOrder()))
                 .toList();
 
         categoryFacade.reorder(orders);
