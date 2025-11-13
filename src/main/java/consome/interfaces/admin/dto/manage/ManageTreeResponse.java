@@ -30,6 +30,7 @@ public class ManageTreeResponse {
     public static class Category {
         private final Long id;
         private final String name;
+        private final int displayOrder;
     }
 
     public static ManageTreeResponse from(ManageTreeResult result) {
@@ -40,7 +41,7 @@ public class ManageTreeResponse {
                                 .map(b -> new Board(
                                         b.id(), b.name(), b.displayOrder(),
                                         b.categories().stream()
-                                                .map(c -> new Category(c.id(), c.name()))
+                                                .map(c -> new Category(c.id(), c.name(), c.displayOrder()))
                                                 .toList()
                                 ))
                                 .toList()
