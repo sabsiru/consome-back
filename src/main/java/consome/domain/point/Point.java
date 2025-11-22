@@ -16,17 +16,17 @@ public class Point {
     private Long id;
 
     @Column(nullable = false)
-    private Long refUserId;
+    private Long userId;
 
     @Column(nullable = false)
-    private int point;
+    private int userPoint;
 
     @Column(nullable = false)
     private LocalDateTime updatedAt;
 
-    private Point(Long refUserId) {
-        this.refUserId = refUserId;
-        this.point = 100;
+    private Point(Long userId) {
+        this.userId = userId;
+        this.userPoint = 100;
         this.updatedAt = LocalDateTime.now();
     }
 
@@ -38,7 +38,7 @@ public class Point {
         if (amount < 0) {
             throw new IllegalArgumentException("적립할 포인트는 0 이상이어야 합니다.");
         }
-        this.point += amount;
+        this.userPoint += amount;
         this.updatedAt = LocalDateTime.now();
     }
 
@@ -46,7 +46,7 @@ public class Point {
         if (amount < 0) {
             throw new IllegalArgumentException("차감할 포인트는 0 이상이어야 합니다.");
         }
-        this.point -= amount;
+        this.userPoint -= amount;
         this.updatedAt = LocalDateTime.now();
     }
 }
