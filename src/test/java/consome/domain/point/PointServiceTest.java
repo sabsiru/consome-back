@@ -42,7 +42,7 @@ class PointServiceTest {
         when(pointRepository.save(any(Point.class))).thenAnswer(invocation -> invocation.getArgument(0));
         when(pointHistoryRepository.save(any(PointHistory.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        int initialPoint = point.getPoint();
+        int initialPoint = point.getUserPoint();
         int earnAmount = 100;
         PointHistoryType pointHistoryType = PointHistoryType.POST_WRITE;
         // when
