@@ -81,8 +81,8 @@ class UserFacadeIntegrationTest {
         assertThat(history.get().getType()).isEqualTo(PointHistoryType.REGISTER);
         assertThat(history.get().getDescription()).contains(PointHistoryType.REGISTER.getDescription());
 
-        Point userPoint = pointRepository.findByRefUserId(userId).orElseThrow();
-        assertThat(userPoint.getPoint()).isEqualTo(initialPoint);
+        Point userPoint = pointRepository.findByUserId(userId).orElseThrow();
+        assertThat(userPoint.getUserPoint()).isEqualTo(initialPoint);
     }
 
         @Test

@@ -18,8 +18,8 @@ class PointTest {
         Point point = Point.initialize(userId);
 
         // then
-        assertThat(point.getRefUserId()).isEqualTo(userId);
-        assertThat(point.getPoint()).isEqualTo(0);
+        assertThat(point.getUserId()).isEqualTo(userId);
+        assertThat(point.getUserPoint()).isEqualTo(0);
         assertThat(point.getUpdatedAt()).isNotNull();
     }
 
@@ -32,7 +32,7 @@ class PointTest {
         point.earn(50);
 
         // then
-        assertThat(point.getPoint()).isEqualTo(50);
+        assertThat(point.getUserPoint()).isEqualTo(50);
     }
 
     @Test
@@ -45,7 +45,7 @@ class PointTest {
         point.penalize(30);
 
         // then
-        assertThat(point.getPoint()).isEqualTo(70);
+        assertThat(point.getUserPoint()).isEqualTo(70);
     }
 
 }

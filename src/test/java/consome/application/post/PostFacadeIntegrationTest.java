@@ -86,7 +86,7 @@ public class PostFacadeIntegrationTest {
                 .extracting("title", "content", "refUserId")
                 .containsExactly("제목입니다", "내용입니다", userId);
         // and
-        Point point = pointRepository.findByRefUserId(userId).orElseThrow();
-        assertThat(point.getPoint()).isEqualTo(expectedPoint);
+        Point point = pointRepository.findByUserId(userId).orElseThrow();
+        assertThat(point.getUserPoint()).isEqualTo(expectedPoint);
     }
 }

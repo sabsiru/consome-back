@@ -38,7 +38,7 @@ class PointServiceTest {
     @Test
     public void earn_정상적인_포인트_적립() {
         // given
-        when(pointRepository.findByRefUserId(userId)).thenReturn(Optional.of(point));
+        when(pointRepository.findByUserId(userId)).thenReturn(Optional.of(point));
         when(pointRepository.save(any(Point.class))).thenAnswer(invocation -> invocation.getArgument(0));
         when(pointHistoryRepository.save(any(PointHistory.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
@@ -50,7 +50,7 @@ class PointServiceTest {
 
         // then
         assertThat(resultPoint).isEqualTo(initialPoint + earnAmount);
-        verify(pointRepository).findByRefUserId(userId);
+        verify(pointRepository).findByUserId(userId);
         verify(pointRepository).save(point);
         verify(pointHistoryRepository).save(any(PointHistory.class));
     }
@@ -58,14 +58,14 @@ class PointServiceTest {
     @Test
     public void earn_사용자가_존재하지_않는_경우() {
         // given
-        when(pointRepository.findByRefUserId(userId)).thenReturn(Optional.empty());
+        when(pointRepository.findByUserId(userId)).thenReturn(Optional.empty());
 
         // when & then
         assertThatThrownBy(() -> pointService.earn(userId,PointHistoryType.POST_WRITE))
                 .isInstanceOf(IllegalStateException.class)
                 .hasMessage("사용자를 찾을 수 없습니다.");
 
-        verify(pointRepository).findByRefUserId(userId);
+        verify(pointRepository).findByUserId(userId);
         verify(pointRepository, never()).save(any());
         verify(pointHistoryRepository, never()).save(any());
     }
@@ -73,7 +73,7 @@ class PointServiceTest {
     @Test
     public void penalize_정상적인_포인트_차감() {
         // given
-        when(pointRepository.findByRefUserId(userId)).thenReturn(Optional.of(point));
+        when(pointRepository.findByUserId(userId)).thenReturn(Optional.of(point));
         when(pointRepository.save(any(Point.class))).thenAnswer(invocation -> invocation.getArgument(0));
         when(pointHistoryRepository.save(any(PointHistory.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
@@ -84,7 +84,7 @@ class PointServiceTest {
 
         // then
         assertThat(resultPoint).isEqualTo(100 - penalizeAmount);
-        verify(pointRepository).findByRefUserId(userId);
+        verify(pointRepository).findByUserId(userId);
         verify(pointRepository).save(point);
         verify(pointHistoryRepository).save(any(PointHistory.class));
     }
@@ -92,14 +92,14 @@ class PointServiceTest {
     @Test
     public void penalize_사용자가_존재하지_않는_경우_IllegalStateException을_반환한다() {
         // given
-        when(pointRepository.findByRefUserId(userId)).thenReturn(Optional.empty());
+        when(pointRepository.findByUserId(userId)).thenReturn(Optional.empty());
 
         // when & then
         assertThatThrownBy(() -> pointService.penalize(userId, PointHistoryType.POST_WRITE))
                 .isInstanceOf(IllegalStateException.class)
                 .hasMessage("사용자를 찾을 수 없습니다.");
 
-        verify(pointRepository).findByRefUserId(userId);
+        verify(pointRepository).findByUserId(userId);
         verify(pointRepository, never()).save(any());
         verify(pointHistoryRepository, never()).save(any());
     }
@@ -121,52 +121,52 @@ class PointServiceTest {
     @Test
     public void getCurrentPoint_정상적인_포인트_조회() {
         // given
-        when(pointRepository.findByRefUserId(userId)).thenReturn(Optional.of(point));
+        when(pointRepository.findByUserId(userId)).thenReturn(Optional.of(point));
 
         // when
         int resultPoint = pointService.getCurrentPoint(userId);
 
         // then
         assertThat(resultPoint).isEqualTo(100); // 초기값 100 확인
-        verify(pointRepository).findByRefUserId(userId);
+        verify(pointRepository).findByUserId(userId);
     }
 
     @Test
     public void getCurrentPoint_사용자가_존재하지_않는_경우_IllegalStateException을_반환한다() {
         // given
-        when(pointRepository.findByRefUserId(userId)).thenReturn(Optional.empty());
+        when(pointRepository.findByUserId(userId)).thenReturn(Optional.empty());
 
         // when & then
         assertThatThrownBy(() -> pointService.getCurrentPoint(userId))
                 .isInstanceOf(IllegalStateException.class)
                 .hasMessage("사용자를 찾을 수 없습니다.");
 
-        verify(pointRepository).findByRefUserId(userId);
+        verify(pointRepository).findByUserId(userId);
     }
 
     @Test
     public void findPointByUserId_사용자_조회_성공() {
         // given
-        when(pointRepository.findByRefUserId(userId)).thenReturn(Optional.of(point));
+        when(pointRepository.findByUserId(userId)).thenReturn(Optional.of(point));
 
         // when
         Point result = pointService.findPointByUserId(userId);
 
         // then
         assertThat(result).isEqualTo(point);
-        verify(pointRepository).findByRefUserId(userId);
+        verify(pointRepository).findByUserId(userId);
     }
 
     @Test
     public void findPointByUserId_사용자가_존재하지_않는_경우_IllegalStateException을_반환한다() {
         // given
-        when(pointRepository.findByRefUserId(userId)).thenReturn(Optional.empty());
+        when(pointRepository.findByUserId(userId)).thenReturn(Optional.empty());
 
         // when & then
         assertThatThrownBy(() -> pointService.findPointByUserId(userId))
                 .isInstanceOf(IllegalStateException.class)
                 .hasMessage("사용자를 찾을 수 없습니다.");
 
-        verify(pointRepository).findByRefUserId(userId);
+        verify(pointRepository).findByUserId(userId);
     }
 }
