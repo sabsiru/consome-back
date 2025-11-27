@@ -4,16 +4,17 @@ import consome.domain.auth.PasswordEncryptor;
 import consome.domain.auth.PasswordPolicy;
 import consome.domain.user.exception.UserException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
 
 @Service
 @RequiredArgsConstructor
 public class UserService {
 
     private final UserRepository userRepository;
+    private final UserQueryRepository userQueryRepository;
     private final PasswordEncryptor passwordEncryptor;
 
     public User register(String loginId, String nickname, String password) {
@@ -61,5 +62,10 @@ public class UserService {
     public User findById(Long userId) {
         return userRepository.findById(userId)
                 .orElseThrow(() -> new UserException.NotFound("사용자를 찾을 수 없습니다."));
+    }
+
+    @Transactional(readOnly = true)
+    public Page<UserInfo> findUsers(Pageable pageable) {
+        return userQueryRepository.findUsers(pageable);
     }
 }
