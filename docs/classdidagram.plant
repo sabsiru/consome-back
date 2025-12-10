@@ -15,7 +15,7 @@ package "user" {
   class UserPoint {
     +Long id
     +Long userId
-    +int point
+    +int userPoint
     +LocalDateTime updatedAt
 
     +increase(int amount): void

@@ -1,7 +1,7 @@
 package consome.interfaces.navigation.dto;
 
-import consome.application.navigation.SectionHeaderResult;
-import consome.domain.board.Section;
+import consome.application.navigation.SectionResult;
+import consome.domain.admin.Section;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -12,7 +12,7 @@ public record SectionHeaderResponse(
         int displayOrder
 ) {
     /** App 계층 결과 → Interfaces 응답 매핑 */
-    public static SectionHeaderResponse from(SectionHeaderResult r) {
+    public static SectionHeaderResponse from(SectionResult r) {
         return new SectionHeaderResponse(r.refSectionId(), r.sectionName(), r.displayOrder());
     }
 
@@ -21,7 +21,7 @@ public record SectionHeaderResponse(
         return new SectionHeaderResponse(s.getId(), s.getName(), s.getDisplayOrder());
     }
 
-    public static List<SectionHeaderResponse> fromResults(List<SectionHeaderResult> results) {
+    public static List<SectionHeaderResponse> fromResults(List<SectionResult> results) {
         return results.stream().map(SectionHeaderResponse::from).collect(Collectors.toList());
     }
 

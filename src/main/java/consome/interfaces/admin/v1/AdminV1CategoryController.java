@@ -1,14 +1,15 @@
 package consome.interfaces.admin.v1;
 
 import consome.application.admin.CategoryFacade;
-import consome.domain.board.Category;
-import consome.interfaces.admin.dto.CategoryResponse;
-import consome.interfaces.admin.dto.ChangeOrderRequest;
-import consome.interfaces.admin.dto.CreateCategoryRequest;
-import consome.interfaces.admin.dto.RenameRequest;
+import consome.domain.admin.Category;
+import consome.domain.admin.CategoryOrder;
+import consome.interfaces.admin.dto.*;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -33,6 +34,16 @@ public class AdminV1CategoryController {
     public CategoryResponse changeOrder(@PathVariable Long boardId, @PathVariable Long categoryId, @RequestBody ChangeOrderRequest request) {
         Category category = categoryFacade.changeOrder(categoryId, request.getNewOrder());
         return CategoryResponse.from(category);
+    }
+
+    @PutMapping("/reorder")
+    public ResponseEntity<Void> reorder(@RequestBody CategoryReorderRequest request) {
+        List<CategoryOrder> orders = request.orders().stream()
+                .map(o -> new CategoryOrder(o.boardId(), o.categoryId(), o.displayOrder()))
+                .toList();
+
+        categoryFacade.reorder(orders);
+        return ResponseEntity.ok().build();
     }
 
     @DeleteMapping("/{categoryId}")

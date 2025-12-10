@@ -2,8 +2,8 @@ package consome.application.navigation;
 
 import consome.application.admin.BoardFacade;
 import consome.application.admin.SectionFacade;
-import consome.domain.board.Board;
-import consome.domain.board.Section;
+import consome.domain.admin.Board;
+import consome.domain.admin.Section;
 import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

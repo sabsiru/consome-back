@@ -1,7 +1,7 @@
 package consome.interfaces.admin.dto;
 
 
-import consome.domain.board.Board;
+import consome.domain.admin.Board;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 

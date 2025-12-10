@@ -1,7 +1,11 @@
 package consome.infrastructure.config;
 
+import consome.application.admin.BoardFacade;
+import consome.application.admin.CategoryFacade;
+import consome.application.admin.SectionFacade;
 import consome.application.user.UserFacade;
 import consome.application.user.UserRegisterCommand;
+import consome.domain.admin.*;
 import consome.domain.user.Role;
 import consome.domain.user.User;
 import consome.domain.user.UserRepository;
@@ -15,6 +19,11 @@ public class AdminInitialize implements CommandLineRunner {
 
     private final UserFacade userFacade;
     private final UserRepository userRepository;
+    private final SectionRepository sectionRepository;
+
+    private final SectionFacade sectionFacade;
+    private final BoardFacade boardFacade;
+    private final CategoryFacade categoryFacade;
 
     @Override
     public void run(String... args) {
@@ -38,6 +47,12 @@ public class AdminInitialize implements CommandLineRunner {
         userRepository.save(admin);
 
         System.out.println("[ADMIN INIT] 관리자 계정 생성 완료 : ID=admin / PW=Admin!23");
+
+        if(!sectionRepository.existsAllBy()){
+            Section section = sectionFacade.create("자유", 1);
+            Board board = boardFacade.create(section.getId(), "자유게시판", "자유 게시판 입니다.", 1);
+            categoryFacade.create(board.getId(), "잡담", 1);
+        }
     }
 }
 

@@ -1,14 +1,15 @@
 package consome.interfaces.admin.v1;
 
 import consome.application.admin.BoardFacade;
-import consome.domain.board.Board;
-import consome.interfaces.admin.dto.BoardResponse;
-import consome.interfaces.admin.dto.ChangeOrderRequest;
-import consome.interfaces.admin.dto.CreateBoardRequest;
-import consome.interfaces.admin.dto.RenameRequest;
+import consome.domain.admin.Board;
+import consome.domain.admin.BoardOrder;
+import consome.interfaces.admin.dto.*;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -19,7 +20,7 @@ public class AdminV1BoardController {
 
     @PostMapping()
     public BoardResponse create(@RequestBody @Valid CreateBoardRequest request) {
-        Board board = boardFacade.create(request.getRefSectionId(), request.getName(), request.getDescription(), request.getDisplayOrder());
+        Board board = boardFacade.create(request.getSectionId(), request.getName(), request.getDescription(), request.getDisplayOrder());
         return BoardResponse.from(board);
     }
 
@@ -34,6 +35,17 @@ public class AdminV1BoardController {
         Board board = boardFacade.changeOrder(boardId, request.getNewOrder());
         return BoardResponse.from(board);
     }
+
+    @PutMapping("/reorder")
+    public ResponseEntity<Void> reorder(@RequestBody BoardReorderRequest request) {
+        List<BoardOrder> orders = request.orders().stream()
+                .map(o -> new BoardOrder(o.sectionId(), o.boardId(), o.displayOrder()))
+                .toList();
+
+        boardFacade.reorder(orders);
+        return ResponseEntity.ok().build();
+    }
+
 
     @DeleteMapping("/{boardId}")
     public void delete(@PathVariable Long boardId) {

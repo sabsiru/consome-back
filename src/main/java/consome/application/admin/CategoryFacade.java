@@ -1,9 +1,13 @@
 package consome.application.admin;
 
-import consome.domain.board.Category;
-import consome.domain.board.CategoryService;
+import consome.domain.admin.BoardOrder;
+import consome.domain.admin.Category;
+import consome.domain.admin.CategoryOrder;
+import consome.domain.admin.CategoryService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -21,6 +25,10 @@ public class CategoryFacade {
 
     public Category changeOrder(Long categoryId, int newOrder) {
         return categoryService.changeOrder(categoryId, newOrder);
+    }
+
+    public void reorder(List<CategoryOrder> orders) {
+        categoryService.reorder(orders);
     }
 
     public void delete(Long categoryId) {
