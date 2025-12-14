@@ -6,10 +6,13 @@ public record PostSummary(
         Long postId,
         String title,
         Long authorId,
-        LocalDateTime createdAt,
+        String authorNickname,
         int viewCount,
         int likeCount,
         int dislikeCount,
-        int commentCount
+        int commentCount,
+        LocalDateTime createdAt,
+        LocalDateTime updatedAt,
+        Boolean deleted
 ) {
 }
