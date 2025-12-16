@@ -1,7 +1,10 @@
 package consome.application.admin;
 
+import consome.application.post.PostPagingResult;
+import consome.application.post.PostRowResult;
 import consome.domain.admin.*;
 import consome.domain.post.PostService;
+import consome.domain.post.PostSummary;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -41,17 +44,29 @@ public class BoardFacade {
         return categoryService.findAllOrderedByBoard(boardId);
     }
 
-    public Page<BoardPostsResult> getPosts(Long refBoardId, Pageable pageable) {
-        return postService.getPostByBoard(refBoardId, pageable)
-                .map(post -> new BoardPostsResult(
-                        post.postId(),
-                        post.title(),
-                        post.authorId(),
-                        post.createdAt(),
-                        post.viewCount(),
-                        post.likeCount(),
-                        post.dislikeCount(),
-                        post.commentCount()
-                ));
+    public PostPagingResult getPosts(Long boardId, Pageable pageable) {
+        Page<PostSummary> page = postService.findBoardPosts(boardId, pageable);
+
+        List<PostRowResult> rows = page.getContent().stream()
+                .map(summary -> new PostRowResult(
+                        summary.postId(),
+                        summary.title(),
+                        summary.authorId(),
+                        summary.authorNickname(),
+                        summary.viewCount(),
+                        summary.likeCount(),
+                        summary.dislikeCount(),
+                        summary.commentCount(),
+                        summary.createdAt(),
+                        summary.updatedAt(),
+                        summary.deleted()
+                ))
+                .toList();
+        return new PostPagingResult(rows,
+                page.getNumber(),
+                page.getSize(),
+                page.getTotalElements(),
+                page.getTotalPages()
+        );
     }
 }
