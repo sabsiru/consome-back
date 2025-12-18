@@ -6,6 +6,7 @@ import consome.domain.post.entity.QPost;
 import consome.domain.post.entity.QPostStat;
 import consome.domain.post.repository.PostQueryRepository;
 import consome.domain.post.PostSummary;
+import consome.domain.user.QUser;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -24,22 +25,27 @@ public class PostQueryRepositoryImpl  implements PostQueryRepository {
     public Page<PostSummary> findPostWithStatsByBoardId(Long boardId, Pageable pageable) {
         QPost post = QPost.post;
         QPostStat postStat = QPostStat.postStat;
+        QUser user = QUser.user;
 
         List<PostSummary> contents = queryFactory
                 .select(Projections.constructor(
                         PostSummary.class,
                         post.id,
                         post.title,
-                        post.refUserId,
-                        post.createdAt,
+                        post.userId,
+                        user.nickname,
                         postStat.likeCount.intValue(),
                         postStat.viewCount.intValue(),
                         postStat.dislikeCount.intValue(),
-                        postStat.commentCount.intValue()
+                        postStat.commentCount.intValue(),
+                        post.createdAt,
+                        post.updatedAt,
+                        post.deleted
                 ))
                 .from(post)
+                .leftJoin(user).on(post.userId.eq(user.id))
                 .leftJoin(postStat).on(post.id.eq(postStat.postId))
-                .where(post.refBoardId.eq(boardId))
+                .where(post.boardId.eq(boardId))
                 .orderBy(post.createdAt.desc())
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
@@ -48,7 +54,7 @@ public class PostQueryRepositoryImpl  implements PostQueryRepository {
         Long total = queryFactory
                 .select(post.count())
                 .from(post)
-                .where(post.refBoardId.eq(boardId))
+                .where(post.boardId.eq(boardId))
                 .fetchOne();
 
         return PageableExecutionUtils.getPage(contents, pageable, () -> total == null ? 0L : total);
