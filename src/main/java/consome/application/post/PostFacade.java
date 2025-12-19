@@ -38,7 +38,7 @@ public class PostFacade {
 
     @Transactional
     public PostStat like(Post post, Long userId) {
-        pointService.earn(post.getRefUserId(), PointHistoryType.POST_LIKE);
+        pointService.earn(post.getUserId(), PointHistoryType.POST_LIKE);
         postService.like(post, userId);
 
         return postService.getPostStat(post.getId());
@@ -47,7 +47,7 @@ public class PostFacade {
     @Transactional
     public PostStat dislike(Post post, Long userId) {
         postService.dislike(post, userId);
-        pointService.penalize(post.getRefUserId(), PointHistoryType.POST_DISLIKE);
+        pointService.penalize(post.getUserId(), PointHistoryType.POST_DISLIKE);
 
         return postService.getPostStat(post.getId());
     }

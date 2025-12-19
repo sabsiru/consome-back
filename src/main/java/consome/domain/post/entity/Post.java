@@ -19,13 +19,13 @@ public class Post {
     private Long id;
 
     @Column(nullable = false)
-    private Long refBoardId;
+    private Long boardId;
 
     @Column(nullable = false)
-    private Long refCategoryId;
+    private Long categoryId;
 
     @Column(nullable = false)
-    private Long refUserId;
+    private Long userId;
 
     @Column(nullable = false)
     private String title;
@@ -42,10 +42,10 @@ public class Post {
     @Column(nullable = false)
     private boolean deleted = false;
 
-    private Post(Long refBoardId, Long refCategoryId, Long refUserId, String title, String content) {
-        this.refBoardId = refBoardId;
-        this.refCategoryId = refCategoryId;
-        this.refUserId = refUserId;
+    private Post(Long boardId, Long categoryId, Long userId, String title, String content) {
+        this.boardId = boardId;
+        this.categoryId = categoryId;
+        this.userId = userId;
         this.title = title;
         this.content = content;
         this.createdAt = LocalDateTime.now();
@@ -72,6 +72,6 @@ public class Post {
     }
 
     public boolean isAuthor(Long userId) {
-        return this.refUserId.equals(userId);
+        return this.userId.equals(userId);
     }
 }

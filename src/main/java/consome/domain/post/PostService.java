@@ -34,7 +34,7 @@ public class PostService {
     public Post edit(String content, Long postId, Long userId) {
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new IllegalArgumentException("게시글을 찾을 수 없습니다."));
-        if (!post.getRefUserId().equals(userId)) {
+        if (!post.getUserId().equals(userId)) {
             throw new IllegalStateException("작성자만 게시글을 수정할 수 있습니다.");
         }
 
@@ -46,7 +46,7 @@ public class PostService {
     public Post delete(Long postId, Long userId) {
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new IllegalArgumentException("게시글을 찾을 수 없습니다."));
-        if (!post.getRefUserId().equals(userId)) {
+        if (!post.getUserId().equals(userId)) {
             throw new IllegalStateException("작성자만 게시글을 삭제할 수 있습니다.");
         }
         post.delete();
