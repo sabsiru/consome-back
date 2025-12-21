@@ -43,7 +43,7 @@ public class CommentV1ControllerE2eTest {
 
     Long 준비_게시글_생성(Long userId) {
         Post post = Post.write(1L, 1L, userId, "title", "content");
-        PostCommand postCommand = PostCommand.of(post.getRefBoardId(), post.getRefCategoryId(), post.getRefUserId(), post.getTitle(), post.getContent());
+        PostCommand postCommand = PostCommand.of(post.getBoardId(), post.getCategoryId(), post.getUserId(), post.getTitle(), post.getContent());
         PostResult postResult = postFacade.post(postCommand);
         return postResult.postId();
     }

@@ -23,9 +23,9 @@ class PostTest {
         Post post = Post.write(boardId, categoryId, userId, title, content);
 
         // then
-        assertThat(post.getRefBoardId()).isEqualTo(boardId);
-        assertThat(post.getRefCategoryId()).isEqualTo(categoryId);
-        assertThat(post.getRefUserId()).isEqualTo(userId);
+        assertThat(post.getBoardId()).isEqualTo(boardId);
+        assertThat(post.getCategoryId()).isEqualTo(categoryId);
+        assertThat(post.getUserId()).isEqualTo(userId);
         assertThat(post.getTitle()).isEqualTo(title);
         assertThat(post.getContent()).isEqualTo(content);
         assertThat(post.getCreatedAt()).isNotNull();
