@@ -1,8 +1,11 @@
-package consome.application.admin;
+package consome.application.board;
 
 import consome.application.post.PostPagingResult;
 import consome.application.post.PostRowResult;
-import consome.domain.admin.*;
+import consome.domain.admin.Board;
+import consome.domain.admin.BoardService;
+import consome.domain.admin.Category;
+import consome.domain.admin.CategoryService;
 import consome.domain.post.PostService;
 import consome.domain.post.PostSummary;
 import lombok.RequiredArgsConstructor;
@@ -17,34 +20,12 @@ import java.util.List;
 public class BoardFacade {
 
     private final BoardService boardService;
-    private final CategoryService categoryService;
     private final PostService postService;
-
-    public Board create(Long sectionId, String name, String description, int displayOrder) {
-        return boardService.create(sectionId, name, description, displayOrder);
-    }
-
-    public Board rename(Long boardId, String newName) {
-        return boardService.rename(boardId, newName);
-    }
-
-    public Board changeOrder(Long boardId, int newOrder) {
-        return boardService.changeOrder(boardId, newOrder);
-    }
-
-    public void reorder(List<BoardOrder> orders) {
-        boardService.reorder(orders);
-    }
-
-    public void delete(Long boardId) {
-        boardService.delete(boardId);
-    }
-
-    public List<Category> getCategories(Long boardId) {
-        return categoryService.findAllOrderedByBoard(boardId);
-    }
+    private final CategoryService categoryService;
 
     public PostPagingResult getPosts(Long boardId, Pageable pageable) {
+        Board board = boardService.findById(boardId);
+
         Page<PostSummary> page = postService.findBoardPosts(boardId, pageable);
 
         List<PostRowResult> rows = page.getContent().stream()
@@ -62,11 +43,23 @@ public class BoardFacade {
                         summary.deleted()
                 ))
                 .toList();
-        return new PostPagingResult(rows,
+        return new PostPagingResult(
+                board.getId(),
+                board.getName(),
+                rows,
                 page.getNumber(),
                 page.getSize(),
                 page.getTotalElements(),
                 page.getTotalPages()
         );
+    }
+
+    public List<Category> getCategories(Long boardId) {
+        return categoryService.findAllOrderedByBoard(boardId);
+    }
+
+    public String findNameById(Long boardId) {
+        Board board = boardService.findById(boardId);
+        return board.getName();
     }
 }
