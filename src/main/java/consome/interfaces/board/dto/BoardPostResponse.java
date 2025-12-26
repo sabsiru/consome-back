@@ -3,10 +3,10 @@ package consome.interfaces.board.dto;
 import consome.application.post.PostRowResult;
 
 public record BoardPostResponse(
-        Long postIt,
+        Long postId,
         String title,
         Long authorId,
-        String authorName,
+        String authorNickName,
         int viewCount,
         int likeCount,
         int dislikeCount,
