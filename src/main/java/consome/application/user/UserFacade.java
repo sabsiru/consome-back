@@ -45,7 +45,7 @@ public class UserFacade {
     public UserMeResult getMyInfo(Long userId) {
         User user = userService.findById(userId);
         int currentPoint = pointService.getCurrentPoint(userId); // ✅ 따로 조회
-        return new UserMeResult(user.getLoginId(), user.getNickname(), currentPoint, user.getRole());
+        return new UserMeResult(user.getId(), user.getLoginId(), user.getNickname(), currentPoint, user.getRole());
     }
 
 }
