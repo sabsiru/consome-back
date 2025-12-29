@@ -4,7 +4,7 @@ import consome.application.user.UserLoginResult;
 import consome.domain.user.Role;
 
 public record UserLoginResponse(
-        Long id,
+        Long userId,
         String loginId,
         String nickname,
         Role role,
@@ -13,7 +13,7 @@ public record UserLoginResponse(
 ) {
     public static UserLoginResponse from(UserLoginResult result) {
         return new UserLoginResponse(
-                result.id(),
+                result.userId(),
                 result.loginId(),
                 result.nickname(),
                 result.role(),
