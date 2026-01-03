@@ -1,7 +1,8 @@
 package consome.interfaces.board;
 
-import consome.application.admin.BoardFacade;
+import consome.application.board.BoardFacade;
 import consome.application.post.PostPagingResult;
+import consome.interfaces.admin.dto.CategoryResponse;
 import consome.interfaces.board.dto.BoardPostListResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
@@ -11,6 +12,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -26,5 +29,18 @@ public class BoardV1Controller {
     ) {
         PostPagingResult result = boardFacade.getPosts(boardId, pageable);
         return ResponseEntity.ok(BoardPostListResponse.from(result));
+    }
+
+    @GetMapping("/{boardId}/categories")
+    public ResponseEntity<List<CategoryResponse>> getCategories(@PathVariable Long boardId) {
+        List<CategoryResponse> categories = boardFacade.getCategories(boardId).stream()
+                .map(CategoryResponse::from)
+                .toList();
+        return ResponseEntity.ok(categories);
+    }
+
+    @GetMapping("/{boardId}")
+    public ResponseEntity<String> findNameById(@PathVariable Long boardId) {
+        return ResponseEntity.ok(boardFacade.findNameById(boardId));
     }
 }
