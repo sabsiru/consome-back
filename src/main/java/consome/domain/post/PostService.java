@@ -22,7 +22,7 @@ public class PostService {
     private final PostViewRepository viewRepository;
     private final PostQueryRepository postQueryRepository;
 
-    public Post post(long boardId, long categoryId, Long authorId, String title, String content) {
+    public Post post(Long boardId, Long categoryId, Long authorId, String title, String content) {
         Post post = Post.write(boardId, categoryId, authorId, title, content);
         PostStat stat = PostStat.init(post);
         postRepository.save(post);
