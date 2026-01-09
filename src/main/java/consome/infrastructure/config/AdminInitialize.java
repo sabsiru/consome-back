@@ -41,13 +41,19 @@ public class AdminInitialize implements CommandLineRunner {
         );
 
         UserRegisterCommand testUser = UserRegisterCommand.of(
-                "zero013",
+                "test1",
                 "테스트",
+                "Test!234"
+        );
+        UserRegisterCommand testUser2 = UserRegisterCommand.of(
+                "test2",
+                "테스트2",
                 "Test!234"
         );
 
         userFacade.register(command);
         userFacade.register(testUser);
+        userFacade.register(testUser2);
 
         User admin = userRepository.findByLoginId(loginId)
                 .orElseThrow(() -> new IllegalStateException("Admin 생성 실패"));
