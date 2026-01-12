@@ -54,7 +54,7 @@ class PostServiceIntegrationTest {
 
         // then
         Post savedPost = postRepository.findById(post.getId()).orElseThrow();
-        assertThat(savedPost.getRefBoardId()).isEqualTo(boardId);
+        assertThat(savedPost.getBoardId()).isEqualTo(boardId);
         assertThat(savedPost.getTitle()).isEqualTo(title);
         assertThat(savedPost.getContent()).isEqualTo(content);
 

@@ -29,6 +29,17 @@ public class PostV1Controller {
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
+    @GetMapping("/{postId}")
+    public ResponseEntity<PostDetailResponse> getPostDetail(@PathVariable Long postId,
+                                                            HttpServletRequest request,
+                                                            @RequestParam(required = false) Long userId) {
+        String userIp = request.getRemoteAddr();
+        PostStat stat = postFacade.increaseViewCount(postId, userIp, userId);
+        Post post = postFacade.getPost(postId);
+
+        return ResponseEntity.ok(PostDetailResponse.of(post, stat));
+    }
+
     @PutMapping("/{postId}")
     public ResponseEntity<EditResponse> edit(@PathVariable Long postId,
                                              @RequestBody @Valid EditRequest request,
@@ -66,16 +77,7 @@ public class PostV1Controller {
         return ResponseEntity.ok(response);
     }
 
-    @GetMapping("/{postId}/view")
-    public ResponseEntity<PostDetailResponse> get(@PathVariable Long postId,
-                                                  HttpServletRequest request,
-                                                  @RequestParam(required = false) Long userId) {
-        String userIp = request.getRemoteAddr();
-        PostStat stat = postFacade.increaseViewCount(postId, userIp, userId);
-        Post post = postFacade.getPost(postId);
 
-        return ResponseEntity.ok(PostDetailResponse.of(post, stat));
-    }
 
 
 }

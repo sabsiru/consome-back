@@ -92,4 +92,10 @@ public class BoardService {
     public List<Board> findAllOrdered() {
         return boardRepository.findByDeletedFalseOrderByDisplayOrder();
     }
+
+    public String findNameById(Long boardId) {
+        Board board = findById(boardId);
+        return board.getName();
+    }
+
 }

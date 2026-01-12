@@ -1,6 +1,6 @@
 package consome.application.navigation;
 
-import consome.application.admin.BoardFacade;
+import consome.application.admin.ManageBoardFacade;
 import consome.application.admin.SectionFacade;
 import consome.domain.admin.Board;
 import consome.domain.admin.Section;
@@ -25,7 +25,7 @@ class NavigationFacadeIntegrationTest {
     SectionFacade sectionFacade;
 
     @Autowired
-    BoardFacade boardFacade;
+    ManageBoardFacade manageBoardFacade;
 
     @Test
     void 섹션을_생성하면_displayOrder_순으로_조회된다() {
@@ -48,7 +48,7 @@ class NavigationFacadeIntegrationTest {
         // given
         Section section = sectionFacade.create("게임", 1);
         IntStream.of(3, 1, 5, 2, 6, 4)
-                .forEach(order -> boardFacade.create(section.getId(), "게시판" + order, "설명" + order, order));
+                .forEach(order -> manageBoardFacade.create(section.getId(), "게시판" + order, "설명" + order, order));
 
         // when
         List<Board> boards = mainFacade.getBoards(section.getId());

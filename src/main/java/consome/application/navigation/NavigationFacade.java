@@ -4,6 +4,7 @@ import consome.domain.admin.Board;
 import consome.domain.admin.BoardService;
 import consome.domain.admin.Section;
 import consome.domain.admin.SectionService;
+import consome.domain.post.PostService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -16,6 +17,7 @@ import java.util.stream.Collectors;
 public class NavigationFacade {
     private final SectionService sectionService;
     private final BoardService boardService;
+    private final PostService postService;
 
     public List<Section> getSections() {
         return sectionService.findAllOrdered();

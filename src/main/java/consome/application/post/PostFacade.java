@@ -6,11 +6,13 @@ import consome.domain.post.entity.Post;
 import consome.domain.post.PostService;
 import consome.domain.post.entity.PostStat;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class PostFacade {
 
     private final PostService postService;
@@ -18,8 +20,12 @@ public class PostFacade {
 
     @Transactional
     public PostResult post(PostCommand command) {
-        pointService.earn(command.refUserId(), PointHistoryType.POST_WRITE);
-        Post post = postService.post(command.refBoardId(), command.refCategoryId(), command.refUserId(), command.title(), command.content());
+        pointService.earn(command.userId(), PointHistoryType.POST_WRITE);
+
+        log.info("BoardId: {}, CategoryId: {}, UserId: {}, Title: {}, Content: {}",
+                command.boardId(), command.categoryId(), command.userId(), command.title(), command.content());
+
+        Post post = postService.post(command.boardId(), command.categoryId(), command.userId(), command.title(), command.content());
         return PostResult.of(post.getId());
 
     }
@@ -38,7 +44,7 @@ public class PostFacade {
 
     @Transactional
     public PostStat like(Post post, Long userId) {
-        pointService.earn(post.getRefUserId(), PointHistoryType.POST_LIKE);
+        pointService.earn(post.getUserId(), PointHistoryType.POST_LIKE);
         postService.like(post, userId);
 
         return postService.getPostStat(post.getId());
@@ -47,7 +53,7 @@ public class PostFacade {
     @Transactional
     public PostStat dislike(Post post, Long userId) {
         postService.dislike(post, userId);
-        pointService.penalize(post.getRefUserId(), PointHistoryType.POST_DISLIKE);
+        pointService.penalize(post.getUserId(), PointHistoryType.POST_DISLIKE);
 
         return postService.getPostStat(post.getId());
     }

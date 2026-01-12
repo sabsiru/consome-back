@@ -1,6 +1,6 @@
 package consome.infrastructure.config;
 
-import consome.application.admin.BoardFacade;
+import consome.application.admin.ManageBoardFacade;
 import consome.application.admin.CategoryFacade;
 import consome.application.admin.SectionFacade;
 import consome.application.user.UserFacade;
@@ -22,7 +22,7 @@ public class AdminInitialize implements CommandLineRunner {
     private final SectionRepository sectionRepository;
 
     private final SectionFacade sectionFacade;
-    private final BoardFacade boardFacade;
+    private final ManageBoardFacade manageBoardFacade;
     private final CategoryFacade categoryFacade;
 
     @Override
@@ -39,7 +39,21 @@ public class AdminInitialize implements CommandLineRunner {
                 "관리자",
                 "Admin!23"
         );
+
+        UserRegisterCommand testUser = UserRegisterCommand.of(
+                "test1",
+                "테스트",
+                "Test!234"
+        );
+        UserRegisterCommand testUser2 = UserRegisterCommand.of(
+                "test2",
+                "테스트2",
+                "Test!234"
+        );
+
         userFacade.register(command);
+        userFacade.register(testUser);
+        userFacade.register(testUser2);
 
         User admin = userRepository.findByLoginId(loginId)
                 .orElseThrow(() -> new IllegalStateException("Admin 생성 실패"));
@@ -50,7 +64,7 @@ public class AdminInitialize implements CommandLineRunner {
 
         if(!sectionRepository.existsAllBy()){
             Section section = sectionFacade.create("자유", 1);
-            Board board = boardFacade.create(section.getId(), "자유게시판", "자유 게시판 입니다.", 1);
+            Board board = manageBoardFacade.create(section.getId(), "자유게시판", "자유 게시판 입니다.", 1);
             categoryFacade.create(board.getId(), "잡담", 1);
         }
     }

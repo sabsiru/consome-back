@@ -6,9 +6,9 @@ import consome.interfaces.post.dto.PostRequest;
 public class PostRequestMapper {
     public static PostCommand toPostCommand(PostRequest request) {
         return new PostCommand(
-                request.refUserId(),
                 request.boardId(),
                 request.categoryId(),
+                request.userId(),
                 request.title(),
                 request.content()
         );

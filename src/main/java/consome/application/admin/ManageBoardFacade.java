@@ -1,7 +1,10 @@
 package consome.application.admin;
 
+import consome.application.post.PostPagingResult;
+import consome.application.post.PostRowResult;
 import consome.domain.admin.*;
 import consome.domain.post.PostService;
+import consome.domain.post.PostSummary;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -11,11 +14,9 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-public class BoardFacade {
+public class ManageBoardFacade {
 
     private final BoardService boardService;
-    private final CategoryService categoryService;
-    private final PostService postService;
 
     public Board create(Long sectionId, String name, String description, int displayOrder) {
         return boardService.create(sectionId, name, description, displayOrder);
@@ -35,23 +36,5 @@ public class BoardFacade {
 
     public void delete(Long boardId) {
         boardService.delete(boardId);
-    }
-
-    public List<Category> getCategories(Long boardId) {
-        return categoryService.findAllOrderedByBoard(boardId);
-    }
-
-    public Page<BoardPostsResult> getPosts(Long refBoardId, Pageable pageable) {
-        return postService.getPostByBoard(refBoardId, pageable)
-                .map(post -> new BoardPostsResult(
-                        post.postId(),
-                        post.title(),
-                        post.authorId(),
-                        post.createdAt(),
-                        post.viewCount(),
-                        post.likeCount(),
-                        post.dislikeCount(),
-                        post.commentCount()
-                ));
     }
 }

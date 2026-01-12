@@ -1,0 +1,34 @@
+package consome.interfaces.board.dto;
+
+import consome.application.post.PostRowResult;
+
+public record BoardPostResponse(
+        Long postId,
+        String title,
+        Long authorId,
+        String authorNickName,
+        int viewCount,
+        int likeCount,
+        int dislikeCount,
+        int commentCount,
+        String createdAt,
+        String updatedAt,
+        Boolean deleted
+
+) {
+    public static BoardPostResponse from(PostRowResult row){
+        return new BoardPostResponse(
+                row.postId(),
+                row.title(),
+                row.authorId(),
+                row.authorNickname(),
+                row.viewCount(),
+                row.likeCount(),
+                row.dislikeCount(),
+                row.commentCount(),
+                row.createdAt().toString(),
+                row.updatedAt().toString(),
+                row.deleted()
+        );
+    }
+}

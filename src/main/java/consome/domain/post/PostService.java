@@ -22,7 +22,7 @@ public class PostService {
     private final PostViewRepository viewRepository;
     private final PostQueryRepository postQueryRepository;
 
-    public Post post(long boardId, long categoryId, Long authorId, String title, String content) {
+    public Post post(Long boardId, Long categoryId, Long authorId, String title, String content) {
         Post post = Post.write(boardId, categoryId, authorId, title, content);
         PostStat stat = PostStat.init(post);
         postRepository.save(post);
@@ -34,7 +34,7 @@ public class PostService {
     public Post edit(String content, Long postId, Long userId) {
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new IllegalArgumentException("게시글을 찾을 수 없습니다."));
-        if (!post.getRefUserId().equals(userId)) {
+        if (!post.getUserId().equals(userId)) {
             throw new IllegalStateException("작성자만 게시글을 수정할 수 있습니다.");
         }
 
@@ -46,7 +46,7 @@ public class PostService {
     public Post delete(Long postId, Long userId) {
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new IllegalArgumentException("게시글을 찾을 수 없습니다."));
-        if (!post.getRefUserId().equals(userId)) {
+        if (!post.getUserId().equals(userId)) {
             throw new IllegalStateException("작성자만 게시글을 삭제할 수 있습니다.");
         }
         post.delete();
@@ -133,6 +133,10 @@ public class PostService {
         PostStat postStat = statRepository.findById(postId)
                 .orElseThrow(() -> new IllegalStateException("게시글을 찾을 수 없습니다."));
         return postStat;
+    }
+
+    public Page<PostSummary> findBoardPosts(Long boardId, Pageable pageable) {
+        return postQueryRepository.findPostWithStatsByBoardId(boardId, pageable);
     }
 
     public Post getPost(Long postId) {

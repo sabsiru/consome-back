@@ -3,7 +3,7 @@ package consome.application.user;
 import consome.domain.user.Role;
 
 public record UserLoginResult(
-        Long id,
+        Long userId,
         String loginId,
         String nickname,
         Role role,

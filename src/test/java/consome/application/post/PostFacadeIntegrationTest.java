@@ -83,7 +83,7 @@ public class PostFacadeIntegrationTest {
         assertThat(result.postId()).isNotNull();
         assertThat(postService.getPost(result.postId()))
                 .isNotNull()
-                .extracting("title", "content", "refUserId")
+                .extracting("title", "content", "userId")
                 .containsExactly("제목입니다", "내용입니다", userId);
         // and
         Point point = pointRepository.findByUserId(userId).orElseThrow();
