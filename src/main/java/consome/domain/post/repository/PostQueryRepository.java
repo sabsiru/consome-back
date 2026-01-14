@@ -6,5 +6,5 @@ import org.springframework.data.domain.Pageable;
 
 public interface PostQueryRepository {
 
-    Page<PostSummary> findPostWithStatsByBoardId(Long boardId, Pageable pageable);
+    Page<PostSummary> findPostWithStatsByBoardId(Long boardId, Pageable pageable, Long categoryId);
 }

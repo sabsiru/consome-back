@@ -5,6 +5,8 @@ import consome.application.post.PostRowResult;
 public record BoardPostResponse(
         Long postId,
         String title,
+        Long categoryId,
+        String categoryName,
         Long authorId,
         String authorNickName,
         int viewCount,
@@ -20,6 +22,8 @@ public record BoardPostResponse(
         return new BoardPostResponse(
                 row.postId(),
                 row.title(),
+                row.categoryId(),
+                row.categoryName(),
                 row.authorId(),
                 row.authorNickname(),
                 row.viewCount(),

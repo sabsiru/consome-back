@@ -135,8 +135,8 @@ public class PostService {
         return postStat;
     }
 
-    public Page<PostSummary> findBoardPosts(Long boardId, Pageable pageable) {
-        return postQueryRepository.findPostWithStatsByBoardId(boardId, pageable);
+    public Page<PostSummary> findBoardPosts(Long boardId, Pageable pageable, Long categoryId) {
+        return postQueryRepository.findPostWithStatsByBoardId(boardId, pageable, categoryId);
     }
 
     public Post getPost(Long postId) {
@@ -144,7 +144,7 @@ public class PostService {
                 .orElseThrow(() -> new IllegalArgumentException("게시글을 찾을 수 없습니다."));
     }
 
-    public Page<PostSummary> getPostByBoard(Long boardId, Pageable pageable) {
-        return postQueryRepository.findPostWithStatsByBoardId(boardId, pageable);
+    public Page<PostSummary> getPostByBoard(Long boardId, Pageable pageable, Long categoryId) {
+        return postQueryRepository.findPostWithStatsByBoardId(boardId, pageable, categoryId);
     }
 }
