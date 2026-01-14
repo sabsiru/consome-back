@@ -69,4 +69,10 @@ public class UserService {
     public Page<UserInfo> findUsers(Pageable pageable) {
         return userQueryRepository.findUsers(pageable);
     }
+
+    public String getNicknameById(Long userId) {
+        return userRepository.findById(userId)
+                .orElseThrow(() -> new UserException.NotFound("사용자를 찾을 수 없습니다."))
+                .getNickname();
+    }
 }
