@@ -1,12 +1,14 @@
 package consome.application.comment;
 
 import consome.domain.comment.Comment;
+import consome.domain.comment.CommentQueryRepository;
 import consome.domain.comment.CommentReaction;
 import consome.domain.comment.CommentService;
 import consome.domain.point.PointHistoryType;
 import consome.domain.point.PointService;
 import consome.domain.post.PostService;
 import consome.domain.post.ReactionType;
+import consome.domain.user.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,14 +22,27 @@ public class CommentFacade {
     private final CommentService commentService;
     private final PointService pointService;
     private final PostService postService;
+    private final UserService userService;
+    private final CommentQueryRepository commentQueryRepository;
 
     @Transactional
-    public Comment comment(Long postId, Long userId, Long parentId, String content) {
+    public CommentResult comment(Long postId, Long userId, Long parentId, String content) {
         postService.getPost(postId);
         postService.increaseCommentCount(postId);
+        String nickname = userService.findById(userId).getNickname();
         Comment comment = commentService.comment(postId, userId, parentId, content);
+        CommentResult result = new CommentResult(
+                comment.getId(),
+                comment.getPostId(),
+                comment.getUserId(),
+                nickname,
+                comment.getContent(),
+                comment.getDepth(),
+                comment.isDeleted(),
+                comment.getCreatedAt()
+        );
         pointService.earn(userId, PointHistoryType.COMMENT_WRITE);
-        return comment;
+        return result;
     }
 
     @Transactional
@@ -39,7 +54,7 @@ public class CommentFacade {
 
     @Transactional
     public Comment delete(Long userId, Long commentId) {
-        pointService.penalize(commentId, PointHistoryType.COMMENT_DEL);
+        pointService.penalize(userId, PointHistoryType.COMMENT_DEL);
         return commentService.delete(userId, commentId);
     }
 
@@ -64,8 +79,7 @@ public class CommentFacade {
     }
 
     @Transactional(readOnly = true)
-    public Page<Comment> listByPost(Long postId, Pageable pageable) {
-        postService.getPost(postId);
-        return commentService.listByPost(postId, pageable);
+    public Page<CommentResult> listByPost(Long postId, Pageable pageable) {
+        return commentQueryRepository.findCommentsByPostId(postId, pageable);
     }
 }

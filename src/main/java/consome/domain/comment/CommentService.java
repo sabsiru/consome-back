@@ -1,9 +1,8 @@
 package consome.domain.comment;
 
 import consome.domain.post.ReactionType;
+import consome.domain.post.repository.PostRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -17,26 +16,52 @@ public class CommentService {
     private final CommentRepository commentRepository;
     private final CommentReactionRepository commentReactionRepository;
     private final CommentQueryRepository commentQueryRepository;
+    private final PostRepository postRepository;
 
     @Transactional
     public Comment comment(Long postId, Long userId, Long parentId, String content) {
 
+        // 1) 루트 댓글
         if (parentId == null) {
-            Comment comment = Comment.reply(postId, userId, null, content, 0);
-            commentRepository.save(comment);
-            return comment;
-        } else {
-            Comment parentComment = commentRepository.findById(parentId)
-                    .orElseThrow(() -> new IllegalArgumentException("잘못된 댓글입니다."));
 
-            int maxStep = commentRepository.findMaxStepByParentId(parentId)
-                    .orElse(0);
+            // Lock
+            postRepository.findByIdForUpdate(postId)
+                    .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 게시글입니다."));
+            // 같은 post 안에서 새 ref 발급 (가장 큰 ref + 1)
+            int newRef = commentQueryRepository.nextRef(postId);
 
-            Comment comment = Comment.reply(postId, userId, parentComment, content, maxStep);
-            commentRepository.updateStepsOtherReply(postId, parentComment.getRef(), comment.getStep());
-            commentRepository.save(comment);
-            return comment;
+            Comment root = Comment.createRoot(postId, userId, content, newRef);
+            return commentRepository.save(root);
         }
+
+        // 2) 대댓글(무한 중첩)
+        Comment parent = commentRepository.findById(parentId)
+                .orElseThrow(() -> new IllegalArgumentException("잘못된 댓글입니다."));
+
+        int ref = parent.getRef();
+        int parentStep = parent.getStep();
+        int parentDepth = parent.getDepth();
+
+        commentRepository.lockThreadRoot(postId, ref);
+
+        // 2-1) 부모 서브트리 “끝 다음” step 찾기
+        Integer boundaryStep = commentQueryRepository.findBoundaryStep(postId, ref, parentStep, parentDepth);
+
+        // 2-2) 삽입 step 결정
+        int insertStep;
+        if (boundaryStep != null) {
+            insertStep = boundaryStep;
+        } else {
+            int maxStep = commentQueryRepository.maxStepInRef(postId, ref);
+            insertStep = maxStep + 1;
+        }
+
+        // 2-3) step 밀기 (반드시 >=)
+        commentQueryRepository.shiftStepsFrom(postId, ref, insertStep);
+
+        // 2-4) 저장
+        Comment reply = Comment.createReply(postId, userId, parent, content, ref, insertStep, parentDepth + 1);
+        return commentRepository.save(reply);
     }
 
     @Transactional
@@ -154,10 +179,4 @@ public class CommentService {
     public long countReactions(Long commentId, ReactionType type) {
         return commentReactionRepository.countByCommentIdAndType(commentId, type);
     }
-
-    @Transactional(readOnly = true)
-    public Page<Comment> listByPost(Long postId, Pageable pageable) {
-        return commentQueryRepository.findCommentsByPostId(postId, pageable);
-    }
-
 }

@@ -1,6 +1,7 @@
 package consome.interfaces.comment.v1;
 
 import consome.application.comment.CommentFacade;
+import consome.application.comment.CommentResult;
 import consome.domain.comment.Comment;
 import consome.domain.comment.CommentReaction;
 import consome.domain.post.ReactionType;
@@ -26,22 +27,24 @@ public class CommentV1Controller {
             @PathVariable Long postId,
             @PageableDefault(size = 50) Pageable pageable) {
 
-        Page<Comment> page = commentFacade.listByPost(postId, pageable);
+        Page<CommentResult> page = commentFacade.listByPost(postId, pageable);
         return ResponseEntity.ok(CommentResponseMapper.toPageResponse(page));
     }
 
     @PostMapping("/{postId}/comments")
-    public ResponseEntity<CommentResponse> create(
+    public ResponseEntity<CommentResponse> comment(
             @PathVariable Long postId,
             @RequestBody @Valid CreateCommentRequest request) {
 
-        Comment comment = commentFacade.comment(postId, request.userId(), request.parentId(), request.content());
+        CommentResult result = commentFacade.comment(postId, request.userId(), request.parentId(), request.content());
         CommentResponse response = new CommentResponse(
-                comment.getId(),
-                comment.getPostId(),
-                comment.getUserId(),
-                comment.getContent(),
-                comment.getCreatedAt()
+                result.commentId(),
+                result.postId(),
+                result.userId(),
+                result.userNickname(),
+                result.content(),
+                result.depth(),
+                result.createdAt()
         );
         return ResponseEntity.ok(response);
     }
@@ -68,7 +71,7 @@ public class CommentV1Controller {
             @PathVariable Long commentId,
             @RequestParam Long userId) {
 
-        commentFacade.delete(commentId, userId);
+        commentFacade.delete(userId, commentId);
         return ResponseEntity.noContent().build();
     }
 
