@@ -10,6 +10,7 @@ public record CommentResult(
         String content,
         int depth,
         Boolean isDeleted,
-        LocalDateTime createdAt
+        LocalDateTime createdAt,
+        LocalDateTime updatedAt
 ) {
 }

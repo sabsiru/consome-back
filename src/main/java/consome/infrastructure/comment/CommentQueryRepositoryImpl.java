@@ -54,7 +54,8 @@ public class CommentQueryRepositoryImpl implements CommentQueryRepository {
                                     c.getContent(),
                                     c.getDepth(),
                                     c.isDeleted(),
-                                    c.getCreatedAt()
+                                    c.getCreatedAt(),
+                                    c.getUpdatedAt()
                             );
                         })
                         .toList(),

@@ -39,9 +39,10 @@ public class CommentFacade {
                 comment.getContent(),
                 comment.getDepth(),
                 comment.isDeleted(),
-                comment.getCreatedAt()
+                comment.getCreatedAt(),
+                comment.getUpdatedAt()
         );
-        pointService.earn(userId, PointHistoryType.COMMENT_WRITE);
+        //pointService.earn(userId, PointHistoryType.COMMENT_WRITE);
         return result;
     }
 
@@ -54,7 +55,7 @@ public class CommentFacade {
 
     @Transactional
     public Comment delete(Long userId, Long commentId) {
-        pointService.penalize(userId, PointHistoryType.COMMENT_DEL);
+        //pointService.penalize(userId, PointHistoryType.COMMENT_DEL);
         return commentService.delete(userId, commentId);
     }
 

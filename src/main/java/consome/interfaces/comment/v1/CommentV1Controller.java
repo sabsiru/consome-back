@@ -44,7 +44,9 @@ public class CommentV1Controller {
                 result.userNickname(),
                 result.content(),
                 result.depth(),
-                result.createdAt()
+                result.isDeleted(),
+                result.createdAt(),
+                result.updatedAt()
         );
         return ResponseEntity.ok(response);
     }

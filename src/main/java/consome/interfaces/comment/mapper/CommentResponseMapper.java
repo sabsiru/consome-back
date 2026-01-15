@@ -19,7 +19,9 @@ public class CommentResponseMapper {
                         comment.userNickname(),
                         comment.isDeleted() ? "삭제된 댓글입니다." : comment.content(),
                         comment.depth(),
-                        comment.createdAt()
+                        comment.isDeleted(),
+                        comment.createdAt(),
+                        comment.updatedAt()
                 ))
                 .toList();
 

@@ -12,7 +12,9 @@ public record CommentResponse(
         String userNickname,
         String content,
         int depth,
-        LocalDateTime createdAt) {
+        Boolean isDeleted,
+        LocalDateTime createdAt,
+        LocalDateTime updatedAt) {
 
     public static CommentResponse from(CommentResult comment) {
         return new CommentResponse(
@@ -22,7 +24,9 @@ public record CommentResponse(
                 comment.userNickname(),
                 comment.content(),
                 comment.depth(),
-                comment.createdAt()
+                comment.isDeleted(),
+                comment.createdAt(),
+                comment.updatedAt()
         );
     }
 }
