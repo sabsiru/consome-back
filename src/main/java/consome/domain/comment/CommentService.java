@@ -65,7 +65,7 @@ public class CommentService {
     }
 
     @Transactional
-    public Comment edit(Long commentId, Long userId, String content) {
+    public Comment edit(Long userId,Long commentId , String content) {
         Comment comment = commentRepository.findById(commentId)
                 .orElseThrow(() -> new IllegalArgumentException("잘못된 댓글입니다."));
         if (comment.isDeleted()) {
@@ -94,7 +94,7 @@ public class CommentService {
     }
 
     @Transactional
-    public Comment delete(Long commentId, Long userId) {
+    public Comment delete(Long userId, Long commentId) {
         Comment comment = commentRepository.findById(commentId)
                 .orElseThrow(() -> new IllegalArgumentException("잘못된 댓글입니다."));
         if (!comment.getUserId().equals(userId)) {
