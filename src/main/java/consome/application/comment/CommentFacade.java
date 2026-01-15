@@ -80,7 +80,7 @@ public class CommentFacade {
     }
 
     @Transactional(readOnly = true)
-    public Page<CommentResult> listByPost(Long postId, Pageable pageable) {
+    public Page<CommentListResult> listByPost(Long postId, Pageable pageable) {
         return commentQueryRepository.findCommentsByPostId(postId, pageable);
     }
 }
