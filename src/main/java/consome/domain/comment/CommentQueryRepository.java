@@ -1,13 +1,11 @@
 package consome.domain.comment;
 
-import consome.application.comment.CommentResult;
+import consome.application.comment.CommentListResult;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
-import java.util.List;
-
 public interface CommentQueryRepository{
-    Page<CommentResult> findCommentsByPostId(Long postId, Pageable pageable);
+    Page<CommentListResult> findCommentsByPostId(Long postId, Pageable pageable);
     int allocateReplyStep(Long postId, int parentRef, int parentStep, int parentDepth);
 
     int nextRef(Long postId);

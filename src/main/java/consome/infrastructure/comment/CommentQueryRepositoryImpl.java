@@ -2,7 +2,7 @@ package consome.infrastructure.comment;
 
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.querydsl.core.Tuple;
-import consome.application.comment.CommentResult;
+import consome.application.comment.CommentListResult;
 import consome.domain.comment.Comment;
 import consome.domain.comment.CommentQueryRepository;
 import consome.domain.comment.QComment;
@@ -22,13 +22,17 @@ public class CommentQueryRepositoryImpl implements CommentQueryRepository {
 
     private final JPAQueryFactory queryFactory;
     private final QComment comment = QComment.comment;
+    private final QComment parentComment = new QComment("parentComment");
     private final QUser user = QUser.user;
+    private final QUser parentUser = new QUser("parentUser");
 
-    public Page<CommentResult> findCommentsByPostId(Long postId, Pageable pageable) {
+    public Page<CommentListResult> findCommentsByPostId(Long postId, Pageable pageable) {
         List<Tuple> results = queryFactory
-                .select(comment, user.nickname)
+                .select(comment, user.nickname, parentUser.nickname)
                 .from(comment)
                 .join(user).on(user.id.eq(comment.userId))
+                .leftJoin(parentComment).on(parentComment.id.eq(comment.parentId))
+                .leftJoin(parentUser).on(parentUser.id.eq(parentComment.userId))
                 .where(comment.postId.eq(postId))
                 .orderBy(comment.ref.asc(), comment.step.asc())
                 .offset(pageable.getOffset())
@@ -46,11 +50,14 @@ public class CommentQueryRepositoryImpl implements CommentQueryRepository {
                         .map(t -> {
                             Comment c = t.get(comment);
                             String nickname = t.get(user.nickname);
-                            return new CommentResult(
+                            String parentNickname = t.get(parentUser.nickname);
+                            return new CommentListResult(
                                     c.getId(),
                                     c.getPostId(),
                                     c.getUserId(),
                                     nickname,
+                                    c.getParentId(),
+                                    parentNickname,
                                     c.getContent(),
                                     c.getDepth(),
                                     c.isDeleted(),
