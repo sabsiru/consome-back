@@ -1,7 +1,6 @@
 package consome.interfaces.comment.dto;
 
 import consome.application.comment.CommentResult;
-import consome.domain.comment.Comment;
 
 import java.time.LocalDateTime;
 

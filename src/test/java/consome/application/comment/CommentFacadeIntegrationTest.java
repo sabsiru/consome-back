@@ -1,6 +1,5 @@
 package consome.application.comment;
 
-import consome.domain.comment.Comment;
 import consome.domain.comment.CommentService;
 import consome.domain.post.PostService;
 import consome.domain.post.entity.Post;

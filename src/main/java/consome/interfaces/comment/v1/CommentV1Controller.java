@@ -1,6 +1,7 @@
 package consome.interfaces.comment.v1;
 
 import consome.application.comment.CommentFacade;
+import consome.application.comment.CommentListResult;
 import consome.application.comment.CommentResult;
 import consome.domain.comment.Comment;
 import consome.domain.comment.CommentReaction;
@@ -27,7 +28,7 @@ public class CommentV1Controller {
             @PathVariable Long postId,
             @PageableDefault(size = 50) Pageable pageable) {
 
-        Page<CommentResult> page = commentFacade.listByPost(postId, pageable);
+        Page<CommentListResult> page = commentFacade.listByPost(postId, pageable);
         return ResponseEntity.ok(CommentResponseMapper.toPageResponse(page));
     }
 

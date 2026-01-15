@@ -7,7 +7,7 @@ import consome.application.user.UserFacade;
 import consome.application.user.UserRegisterCommand;
 import consome.domain.post.entity.Post;
 import consome.domain.user.User;
-import consome.interfaces.comment.dto.CommentResponse;
+import consome.interfaces.comment.dto.CommentPagingResponse;
 import consome.interfaces.comment.dto.CreateCommentRequest;
 import consome.interfaces.comment.dto.EditCommentRequest;
 import consome.interfaces.comment.dto.EditCommentResponse;
@@ -57,12 +57,12 @@ public class CommentV1ControllerE2eTest {
         String url = "/api/v1/posts/" + postId + "/comments";
 
         // when
-        ResponseEntity<CommentResponse> response = restTemplate
-                .postForEntity(url, request, CommentResponse.class);
+        ResponseEntity<CommentPagingResponse> response = restTemplate
+                .postForEntity(url, request, CommentPagingResponse.class);
 
         // then
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-        CommentResponse body = response.getBody();
+        CommentPagingResponse body = response.getBody();
         assertThat(body).isNotNull();
         assertThat(body.commentId()).isNotNull();
         assertThat(body.content()).isEqualTo("댓글 내용");
@@ -77,8 +77,8 @@ public class CommentV1ControllerE2eTest {
         Long postId = 준비_게시글_생성(userId);
         CreateCommentRequest request = new CreateCommentRequest(userId, null, "댓글 내용");
         String url = "/api/v1/posts/" + postId + "/comments";
-        ResponseEntity<CommentResponse> response = restTemplate
-                .postForEntity(url, request, CommentResponse.class);
+        ResponseEntity<CommentPagingResponse> response = restTemplate
+                .postForEntity(url, request, CommentPagingResponse.class);
         Long commentId = response.getBody().commentId();
 
 
@@ -107,8 +107,8 @@ public class CommentV1ControllerE2eTest {
         Long postId = 준비_게시글_생성(userId);
         CreateCommentRequest request = new CreateCommentRequest(userId, null, "댓글 내용");
         String url = "/api/v1/posts/" + postId + "/comments";
-        ResponseEntity<CommentResponse> response = restTemplate
-                .postForEntity(url, request, CommentResponse.class);
+        ResponseEntity<CommentPagingResponse> response = restTemplate
+                .postForEntity(url, request, CommentPagingResponse.class);
         Long commentId = response.getBody().commentId();
 
         // when
@@ -131,8 +131,8 @@ public class CommentV1ControllerE2eTest {
         Long postId = 준비_게시글_생성(userId);
         CreateCommentRequest request = new CreateCommentRequest(userId, null, "댓글 내용");
         String url = "/api/v1/posts/" + postId + "/comments";
-        ResponseEntity<CommentResponse> response = restTemplate
-                .postForEntity(url, request, CommentResponse.class);
+        ResponseEntity<CommentPagingResponse> response = restTemplate
+                .postForEntity(url, request, CommentPagingResponse.class);
         Long commentId = response.getBody().commentId();
 
         //when
@@ -153,8 +153,8 @@ public class CommentV1ControllerE2eTest {
         Long postId = 준비_게시글_생성(userId);
         CreateCommentRequest request = new CreateCommentRequest(userId, null, "댓글 내용");
         String url = "/api/v1/posts/" + postId + "/comments";
-        ResponseEntity<CommentResponse> response = restTemplate
-                .postForEntity(url, request, CommentResponse.class);
+        ResponseEntity<CommentPagingResponse> response = restTemplate
+                .postForEntity(url, request, CommentPagingResponse.class);
         Long commentId = response.getBody().commentId();
 
         // when
