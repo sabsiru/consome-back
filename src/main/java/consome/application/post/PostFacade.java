@@ -20,7 +20,7 @@ public class PostFacade {
 
     @Transactional
     public PostResult post(PostCommand command) {
-        pointService.earn(command.userId(), PointHistoryType.POST_WRITE);
+        //pointService.earn(command.userId(), PointHistoryType.POST_WRITE);
 
         log.info("BoardId: {}, CategoryId: {}, UserId: {}, Title: {}, Content: {}",
                 command.boardId(), command.categoryId(), command.userId(), command.title(), command.content());
@@ -38,7 +38,7 @@ public class PostFacade {
 
     @Transactional
     public Post delete(Long postId, Long userId) {
-        pointService.penalize(userId, PointHistoryType.POST_DEL);
+        //pointService.penalize(userId, PointHistoryType.POST_DEL);
         return postService.delete(postId, userId);
     }
 
