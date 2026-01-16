@@ -2,12 +2,11 @@ package consome.application.comment;
 
 import consome.domain.comment.Comment;
 import consome.domain.comment.CommentQueryRepository;
-import consome.domain.comment.CommentReaction;
 import consome.domain.comment.CommentService;
+import consome.domain.comment.CommentStat;
 import consome.domain.point.PointHistoryType;
 import consome.domain.point.PointService;
 import consome.domain.post.PostService;
-import consome.domain.post.ReactionType;
 import consome.domain.user.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -42,41 +41,31 @@ public class CommentFacade {
                 comment.getCreatedAt(),
                 comment.getUpdatedAt()
         );
-        //pointService.earn(userId, PointHistoryType.COMMENT_WRITE);
         return result;
     }
 
     @Transactional
     public Comment edit(Long userId, Long commentId, String content) {
-        Comment edit = commentService.edit(userId, commentId, content);
-
-        return edit;
+        return commentService.edit(userId, commentId, content);
     }
 
     @Transactional
     public Comment delete(Long userId, Long commentId) {
-        //pointService.penalize(userId, PointHistoryType.COMMENT_DEL);
         return commentService.delete(userId, commentId);
     }
 
     @Transactional
-    public long like(Long commentId, Long userId) {
-        commentService.like(commentId, userId);
+    public CommentStat like(Long commentId, Long userId) {
+        CommentStat stat = commentService.like(commentId, userId);
         pointService.earn(userId, PointHistoryType.COMMENT_LIKE);
-
-        return commentService.countReactions(commentId, ReactionType.LIKE);
+        return stat;
     }
 
     @Transactional
-    public long dislike(Long commentId, Long userId) {
-        commentService.dislike(commentId, userId);
+    public CommentStat dislike(Long commentId, Long userId) {
+        CommentStat stat = commentService.dislike(commentId, userId);
         pointService.penalize(userId, PointHistoryType.COMMENT_DISLIKE);
-
-        return commentService.countReactions(commentId, ReactionType.DISLIKE);
-    }
-
-    public CommentReaction toggleReaction(Long commentId, Long userId, ReactionType type) {
-        return commentService.toggleReaction(commentId, userId, type);
+        return stat;
     }
 
     @Transactional(readOnly = true)
