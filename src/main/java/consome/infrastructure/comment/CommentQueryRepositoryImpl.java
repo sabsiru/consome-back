@@ -6,6 +6,7 @@ import consome.application.comment.CommentListResult;
 import consome.domain.comment.Comment;
 import consome.domain.comment.CommentQueryRepository;
 import consome.domain.comment.QComment;
+import consome.domain.comment.QCommentStat;
 import consome.domain.user.QUser;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
@@ -25,14 +26,16 @@ public class CommentQueryRepositoryImpl implements CommentQueryRepository {
     private final QComment parentComment = new QComment("parentComment");
     private final QUser user = QUser.user;
     private final QUser parentUser = new QUser("parentUser");
+    private final QCommentStat commentStat = QCommentStat.commentStat;
 
     public Page<CommentListResult> findCommentsByPostId(Long postId, Pageable pageable) {
         List<Tuple> results = queryFactory
-                .select(comment, user.nickname, parentUser.nickname)
+                .select(comment, user.nickname, parentUser.nickname, commentStat.likeCount, commentStat.dislikeCount)
                 .from(comment)
                 .join(user).on(user.id.eq(comment.userId))
                 .leftJoin(parentComment).on(parentComment.id.eq(comment.parentId))
                 .leftJoin(parentUser).on(parentUser.id.eq(parentComment.userId))
+                .leftJoin(commentStat).on(commentStat.commentId.eq(comment.id))
                 .where(comment.postId.eq(postId))
                 .orderBy(comment.ref.asc(), comment.step.asc())
                 .offset(pageable.getOffset())
@@ -51,6 +54,8 @@ public class CommentQueryRepositoryImpl implements CommentQueryRepository {
                             Comment c = t.get(comment);
                             String nickname = t.get(user.nickname);
                             String parentNickname = t.get(parentUser.nickname);
+                            Integer likeCount = t.get(commentStat.likeCount);
+                            Integer dislikeCount = t.get(commentStat.dislikeCount);
                             return new CommentListResult(
                                     c.getId(),
                                     c.getPostId(),
@@ -60,6 +65,8 @@ public class CommentQueryRepositoryImpl implements CommentQueryRepository {
                                     parentNickname,
                                     c.getContent(),
                                     c.getDepth(),
+                                    likeCount != null ? likeCount : 0,
+                                    dislikeCount != null ? dislikeCount : 0,
                                     c.isDeleted(),
                                     c.getCreatedAt(),
                                     c.getUpdatedAt()
@@ -72,7 +79,6 @@ public class CommentQueryRepositoryImpl implements CommentQueryRepository {
     }
 
     public int allocateReplyStep(Long postId, int parentRef, int parentStep, int parentDepth) {
-        // 1) 부모 서브트리 다음으로 넘어가는 첫 step 찾기
         Integer next = queryFactory
                 .select(comment.step)
                 .from(comment)
@@ -85,7 +91,6 @@ public class CommentQueryRepositoryImpl implements CommentQueryRepository {
                 .orderBy(comment.step.asc())
                 .fetchFirst();
 
-        // 2) 삽입 위치 결정
         int newStep;
         if (next != null) {
             newStep = next;
@@ -101,7 +106,6 @@ public class CommentQueryRepositoryImpl implements CommentQueryRepository {
             newStep = (max != null ? max : parentStep) + 1;
         }
 
-        // 3) 삽입 위치부터 step 밀기 (반드시 >=)
         queryFactory
                 .update(comment)
                 .set(comment.step, comment.step.add(1))
@@ -125,11 +129,6 @@ public class CommentQueryRepositoryImpl implements CommentQueryRepository {
         return (maxRef == null ? 1 : maxRef + 1);
     }
 
-    /**
-     * 같은 ref 안에서 parentStep 뒤쪽을 보면서,
-     * depth가 parentDepth 이하로 내려오는 "첫 번째 step"을 찾는다.
-     * 이 step이 존재하면 그 위치가 '부모 서브트리 다음'이므로 삽입은 그 step에 한다.
-     */
     public Integer findBoundaryStep(Long postId, int ref, int parentStep, int parentDepth) {
         return queryFactory
                 .select(comment.step)
@@ -164,7 +163,7 @@ public class CommentQueryRepositoryImpl implements CommentQueryRepository {
                 .where(
                         comment.postId.eq(postId)
                                 .and(comment.ref.eq(ref))
-                                .and(comment.step.goe(fromStep)) // >=
+                                .and(comment.step.goe(fromStep))
                 )
                 .execute();
     }
