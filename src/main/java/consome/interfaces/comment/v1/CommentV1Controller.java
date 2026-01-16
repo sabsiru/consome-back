@@ -5,6 +5,7 @@ import consome.application.comment.CommentListResult;
 import consome.application.comment.CommentResult;
 import consome.domain.comment.Comment;
 import consome.domain.comment.CommentReaction;
+import consome.domain.comment.CommentStat;
 import consome.domain.post.ReactionType;
 import consome.interfaces.comment.dto.*;
 import consome.interfaces.comment.mapper.CommentResponseMapper;
@@ -79,23 +80,22 @@ public class CommentV1Controller {
     }
 
     @PostMapping("/{postId}/comments/{commentId}/like")
-    public ResponseEntity<Long> like(
+    public ResponseEntity<CommentStatResponse> like(
             @PathVariable Long postId,
             @PathVariable Long commentId,
             @RequestParam Long userId) {
 
-        long likeCount = commentFacade.like(commentId, userId);
-        return ResponseEntity.ok(likeCount);
+        CommentStat stat = commentFacade.like(commentId, userId);
+        return ResponseEntity.ok(CommentStatResponse.from(stat));
     }
 
-    @PostMapping("/{postId}/comments/{commentId}/reaction")
-    public ResponseEntity<CommentReaction> toggleReaction(
+    @PostMapping("/{postId}/comments/{commentId}/dislike")
+    public ResponseEntity<CommentStatResponse> dislike(
             @PathVariable Long postId,
             @PathVariable Long commentId,
-            @RequestParam Long userId,
-            @RequestParam ReactionType type) {
+            @RequestParam Long userId) {
 
-        CommentReaction commentReaction = commentFacade.toggleReaction(commentId, userId, type);
-        return ResponseEntity.ok(commentReaction);
+        CommentStat stat = commentFacade.dislike(commentId, userId);
+        return ResponseEntity.ok(CommentStatResponse.from(stat));
     }
 }
