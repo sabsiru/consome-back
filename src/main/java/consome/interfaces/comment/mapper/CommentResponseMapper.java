@@ -20,6 +20,8 @@ public class CommentResponseMapper {
                         comment.parentUserNickname(),
                         comment.isDeleted() ? "삭제된 댓글입니다." : comment.content(),
                         comment.depth(),
+                        comment.likeCount(),
+                        comment.dislikeCount(),
                         comment.isDeleted(),
                         comment.createdAt(),
                         comment.updatedAt()
