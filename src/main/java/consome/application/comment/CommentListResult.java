@@ -11,6 +11,8 @@ public record CommentListResult(
         String parentUserNickname,
         String content,
         int depth,
+        int likeCount,
+        int dislikeCount,
         Boolean isDeleted,
         LocalDateTime createdAt,
         LocalDateTime updatedAt
