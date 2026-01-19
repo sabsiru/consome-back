@@ -42,12 +42,12 @@ class CommentFacadeIntegrationTest {
         }
 
         // when
-        Page<CommentResult> firstPage = commentFacade.listByPost(
+        Page<CommentListResult> firstPage = commentFacade.listByPost(
                 post.getId(),
                 PageRequest.of(0, 50, Sort.by(Sort.Direction.DESC, "id"))
         );
 
-        Page<CommentResult> secondPage = commentFacade.listByPost(
+        Page<CommentListResult> secondPage = commentFacade.listByPost(
                 post.getId(),
                 PageRequest.of(1, 50, Sort.by(Sort.Direction.DESC, "id"))
         );
