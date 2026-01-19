@@ -5,6 +5,7 @@ import java.util.List;
 public record PostPagingResult(
         Long boardId,
         String boardName,
+        String description,
         List<PostRowResult> posts,
         int page,
         int size,

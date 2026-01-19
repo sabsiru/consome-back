@@ -8,10 +8,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -25,9 +22,10 @@ public class BoardV1Controller {
     @GetMapping("/{boardId}/posts")
     public ResponseEntity<BoardPostListResponse> getPosts(
             @PathVariable Long boardId,
-            @PageableDefault(size = 20) Pageable pageable
+            @PageableDefault(size = 20) Pageable pageable,
+            @RequestParam(required = false) Long categoryId
     ) {
-        PostPagingResult result = boardFacade.getPosts(boardId, pageable);
+        PostPagingResult result = boardFacade.getPosts(boardId, pageable, categoryId);
         return ResponseEntity.ok(BoardPostListResponse.from(result));
     }
 

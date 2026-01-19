@@ -1,6 +1,6 @@
 package consome.interfaces.comment.dto;
 
-import consome.domain.comment.Comment;
+import consome.application.comment.CommentResult;
 
 import java.time.LocalDateTime;
 
@@ -8,16 +8,24 @@ public record CommentResponse(
         Long commentId,
         Long postId,
         Long userId,
+        String userNickname,
         String content,
-        LocalDateTime createdAt) {
+        int depth,
+        Boolean isDeleted,
+        LocalDateTime createdAt,
+        LocalDateTime updatedAt) {
 
-    public static CommentResponse from(Comment comment) {
+    public static CommentResponse from(CommentResult comment) {
         return new CommentResponse(
-                comment.getId(),
-                comment.getPostId(),
-                comment.getUserId(),
-                comment.getContent(),
-                comment.getCreatedAt()
+                comment.commentId(),
+                comment.postId(),
+                comment.userId(),
+                comment.userNickname(),
+                comment.content(),
+                comment.depth(),
+                comment.isDeleted(),
+                comment.createdAt(),
+                comment.updatedAt()
         );
     }
 }

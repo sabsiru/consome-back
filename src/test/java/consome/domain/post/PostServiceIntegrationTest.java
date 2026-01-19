@@ -422,7 +422,7 @@ class PostServiceIntegrationTest {
         for (int i = 0; i < 20; i++) {
             postService.post(boardId, categoryId, authorId, title + i, content + i);
         }
-        Page<PostSummary> postByBoard = postService.getPostByBoard(boardId, pageable);
+        Page<PostSummary> postByBoard = postService.getPostByBoard(boardId, pageable, categoryId);
 
         //then
         assertThat(postByBoard.getContent()).hasSize(15);

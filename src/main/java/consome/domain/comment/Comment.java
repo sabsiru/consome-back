@@ -56,13 +56,13 @@ public class Comment {
         this.content = content;
         this.createdAt = LocalDateTime.now();
     }
-
-    @PostPersist
-    public void setRefAfterPersist() {
-        if (this.parentId == null) {
-            this.ref = this.id.intValue();
-        }
-    }
+/*ref = postId로 사용할때 (지금은 필요없음)*/
+//    @PostPersist
+//    public void setRefAfterPersist() {
+//        if (this.parentId == null) {
+//            this.ref = this.id.intValue();
+//        }
+//    }
 
     public static Comment reply(Long postId, Long userId, Comment parent, String content, int step) {
         if (parent == null) {
@@ -81,6 +81,22 @@ public class Comment {
     public void delete() {
         this.deleted = true;
         this.updatedAt = LocalDateTime.now();
+    }
+
+    public static Comment createRoot(Long postId, Long userId, String content, int ref) {
+        return new Comment(postId, userId, null, ref, 0, 0, content);
+    }
+
+    public static Comment createReply(
+            Long postId,
+            Long userId,
+            Comment parent,
+            String content,
+            int ref,
+            int step,
+            int depth
+    ) {
+        return new Comment(postId, userId, parent.getId(), ref, step, depth, content);
     }
 
 

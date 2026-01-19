@@ -7,6 +7,7 @@ import java.util.List;
 public record BoardPostListResponse(
         Long boardId,
         String boardName,
+        String description,
         List<BoardPostResponse> posts,
         int page,
         int size,
@@ -22,6 +23,7 @@ public record BoardPostListResponse(
         return new BoardPostListResponse(
                 result.boardId(),
                 result.boardName(),
+                result.description(),
                 posts,
                 result.page(),
                 result.size(),

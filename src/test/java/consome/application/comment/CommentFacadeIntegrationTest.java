@@ -1,6 +1,5 @@
 package consome.application.comment;
 
-import consome.domain.comment.Comment;
 import consome.domain.comment.CommentService;
 import consome.domain.post.PostService;
 import consome.domain.post.entity.Post;
@@ -43,12 +42,12 @@ class CommentFacadeIntegrationTest {
         }
 
         // when
-        Page<Comment> firstPage = commentFacade.listByPost(
+        Page<CommentListResult> firstPage = commentFacade.listByPost(
                 post.getId(),
                 PageRequest.of(0, 50, Sort.by(Sort.Direction.DESC, "id"))
         );
 
-        Page<Comment> secondPage = commentFacade.listByPost(
+        Page<CommentListResult> secondPage = commentFacade.listByPost(
                 post.getId(),
                 PageRequest.of(1, 50, Sort.by(Sort.Direction.DESC, "id"))
         );
@@ -60,9 +59,9 @@ class CommentFacadeIntegrationTest {
         assertThat(firstPage.getContent()).hasSize(50);
         assertThat(secondPage.getContent()).hasSize(50);
 
-        Long firstPageTop = firstPage.getContent().get(0).getId();
-        Long secondPageTop = secondPage.getContent().get(0).getId();
-        Long firstPageLast = firstPage.getContent().get(49).getId();
+        Long firstPageTop = firstPage.getContent().get(0).commentId();
+        Long secondPageTop = secondPage.getContent().get(0).commentId();
+        Long firstPageLast = firstPage.getContent().get(49).commentId();
 
         // 첫 페이지의 첫 댓글이 더 최신이어야 한다
         assertThat(firstPageTop).isGreaterThan(secondPageTop);

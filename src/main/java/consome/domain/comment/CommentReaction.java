@@ -27,8 +27,13 @@ public class CommentReaction {
     @Column(nullable = false)
     private ReactionType type;
 
+    @Column(nullable = false)
+    private boolean deleted = false;
+
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
+
+    private LocalDateTime updatedAt;
 
     private CommentReaction(Long commentId, Long userId, ReactionType type) {
         this.commentId = commentId;
@@ -45,4 +50,8 @@ public class CommentReaction {
         return new CommentReaction(commentId, userId, ReactionType.DISLIKE);
     }
 
+    public void cancel() {
+        this.deleted = true;
+        this.updatedAt = LocalDateTime.now();
+    }
 }

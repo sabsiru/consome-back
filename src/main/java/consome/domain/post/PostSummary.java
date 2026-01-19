@@ -5,6 +5,8 @@ import java.time.LocalDateTime;
 public record PostSummary(
         Long postId,
         String title,
+        Long categoryId,
+        String categoryName,
         Long authorId,
         String authorNickname,
         int viewCount,

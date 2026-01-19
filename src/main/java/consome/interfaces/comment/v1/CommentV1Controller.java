@@ -1,8 +1,11 @@
 package consome.interfaces.comment.v1;
 
 import consome.application.comment.CommentFacade;
+import consome.application.comment.CommentListResult;
+import consome.application.comment.CommentResult;
 import consome.domain.comment.Comment;
 import consome.domain.comment.CommentReaction;
+import consome.domain.comment.CommentStat;
 import consome.domain.post.ReactionType;
 import consome.interfaces.comment.dto.*;
 import consome.interfaces.comment.mapper.CommentResponseMapper;
@@ -26,22 +29,26 @@ public class CommentV1Controller {
             @PathVariable Long postId,
             @PageableDefault(size = 50) Pageable pageable) {
 
-        Page<Comment> page = commentFacade.listByPost(postId, pageable);
+        Page<CommentListResult> page = commentFacade.listByPost(postId, pageable);
         return ResponseEntity.ok(CommentResponseMapper.toPageResponse(page));
     }
 
     @PostMapping("/{postId}/comments")
-    public ResponseEntity<CommentResponse> create(
+    public ResponseEntity<CommentResponse> comment(
             @PathVariable Long postId,
             @RequestBody @Valid CreateCommentRequest request) {
 
-        Comment comment = commentFacade.comment(postId, request.userId(), request.parentId(), request.content());
+        CommentResult result = commentFacade.comment(postId, request.userId(), request.parentId(), request.content());
         CommentResponse response = new CommentResponse(
-                comment.getId(),
-                comment.getPostId(),
-                comment.getUserId(),
-                comment.getContent(),
-                comment.getCreatedAt()
+                result.commentId(),
+                result.postId(),
+                result.userId(),
+                result.userNickname(),
+                result.content(),
+                result.depth(),
+                result.isDeleted(),
+                result.createdAt(),
+                result.updatedAt()
         );
         return ResponseEntity.ok(response);
     }
@@ -68,28 +75,33 @@ public class CommentV1Controller {
             @PathVariable Long commentId,
             @RequestParam Long userId) {
 
-        commentFacade.delete(commentId, userId);
+        commentFacade.delete(userId, commentId);
         return ResponseEntity.noContent().build();
     }
 
     @PostMapping("/{postId}/comments/{commentId}/like")
-    public ResponseEntity<Long> like(
+    public ResponseEntity<CommentStatResponse> like(
             @PathVariable Long postId,
             @PathVariable Long commentId,
-            @RequestParam Long userId) {
+            @RequestParam(required = false) Long userId) {
 
-        long likeCount = commentFacade.like(commentId, userId);
-        return ResponseEntity.ok(likeCount);
+        if (userId == null) {
+            return ResponseEntity.badRequest().build();
+        }
+        CommentStat stat = commentFacade.like(commentId, userId);
+        return ResponseEntity.ok(CommentStatResponse.from(stat));
     }
 
-    @PostMapping("/{postId}/comments/{commentId}/reaction")
-    public ResponseEntity<CommentReaction> toggleReaction(
+    @PostMapping("/{postId}/comments/{commentId}/dislike")
+    public ResponseEntity<CommentStatResponse> dislike(
             @PathVariable Long postId,
             @PathVariable Long commentId,
-            @RequestParam Long userId,
-            @RequestParam ReactionType type) {
+            @RequestParam(required = false) Long userId) {
 
-        CommentReaction commentReaction = commentFacade.toggleReaction(commentId, userId, type);
-        return ResponseEntity.ok(commentReaction);
+        if (userId == null) {
+            return ResponseEntity.badRequest().build();
+        }
+        CommentStat stat = commentFacade.dislike(commentId, userId);
+        return ResponseEntity.ok(CommentStatResponse.from(stat));
     }
 }

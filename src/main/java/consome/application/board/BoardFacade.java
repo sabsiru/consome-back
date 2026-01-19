@@ -23,15 +23,17 @@ public class BoardFacade {
     private final PostService postService;
     private final CategoryService categoryService;
 
-    public PostPagingResult getPosts(Long boardId, Pageable pageable) {
+    public PostPagingResult getPosts(Long boardId, Pageable pageable, Long categoryId) {
         Board board = boardService.findById(boardId);
 
-        Page<PostSummary> page = postService.findBoardPosts(boardId, pageable);
+        Page<PostSummary> page = postService.findBoardPosts(boardId, pageable, categoryId);
 
         List<PostRowResult> rows = page.getContent().stream()
                 .map(summary -> new PostRowResult(
                         summary.postId(),
                         summary.title(),
+                        summary.categoryId(),
+                        summary.categoryName(),
                         summary.authorId(),
                         summary.authorNickname(),
                         summary.viewCount(),
@@ -46,6 +48,7 @@ public class BoardFacade {
         return new PostPagingResult(
                 board.getId(),
                 board.getName(),
+                board.getDescription(),
                 rows,
                 page.getNumber(),
                 page.getSize(),
