@@ -1,6 +1,7 @@
 package consome.interfaces.post.v1;
 
 import consome.application.post.EditResult;
+import consome.application.post.ImageUploadResult;
 import consome.application.post.PostFacade;
 import consome.application.post.PostResult;
 import consome.domain.post.entity.Post;
@@ -12,8 +13,12 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -23,10 +28,19 @@ public class PostV1Controller {
     private final PostFacade postFacade;
 
     @PostMapping
-    public ResponseEntity<PostResponse> post(@RequestBody @Valid PostRequest request) {
+    public ResponseEntity<PostResponse> post(
+            @RequestBody @Valid PostRequest request) {
         PostResult result = postFacade.post(PostRequestMapper.toPostCommand(request));
         PostResponse response = PostResponseMapper.toResponse(result);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
+    @PostMapping(value = "/images", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<ImageUploadResponse> uploadImages(
+            @RequestPart("images") List<MultipartFile> images) {
+        List<ImageUploadResult> results = postFacade.uploadImages(images);
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(ImageUploadResponse.from(results));
     }
 
     @GetMapping("/{postId}")
@@ -41,10 +55,12 @@ public class PostV1Controller {
     }
 
     @PutMapping("/{postId}")
-    public ResponseEntity<EditResponse> edit(@PathVariable Long postId,
-                                             @RequestBody @Valid EditRequest request,
-                                             @RequestParam Long userId) {
-        EditResult result = postFacade.edit(request.content(), postId, userId);
+    public ResponseEntity<EditResponse> edit(
+            @PathVariable Long postId,
+            @RequestPart("request") @Valid EditRequest request,
+            @RequestPart(value = "images", required = false) List<MultipartFile> images,
+            @RequestParam Long userId) {
+        EditResult result = postFacade.edit(request.title(), request.categoryId(), request.content(), postId, userId, images);
         EditResponse response = EditResponse.from(result);
 
         return ResponseEntity.ok(response);
@@ -76,8 +92,6 @@ public class PostV1Controller {
 
         return ResponseEntity.ok(response);
     }
-
-
 
 
 }
