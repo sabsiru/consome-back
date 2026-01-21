@@ -30,7 +30,7 @@ public class Post {
     @Column(nullable = false)
     private String title;
 
-    @Column(nullable = false, columnDefinition = "TEXT")
+    @Column(nullable = false, columnDefinition = "MEDIUMTEXT")
     private String content;
 
     @Column(nullable = false)
@@ -52,7 +52,7 @@ public class Post {
         this.updatedAt = LocalDateTime.now();
     }
 
-    public static Post write(Long boardId, Long categoryId, Long authorId, String title, String content) {
+    public static Post post(Long boardId, Long categoryId, Long authorId, String title, String content) {
         //검증 로직
         return new Post(boardId, categoryId, authorId, title, content);
     }
