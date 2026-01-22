@@ -1,11 +1,15 @@
 spring:
+  servlet:
+    multipart:
+      max-file-size: 50MB
+      max-request-size: 100MB
   datasource:
     url: jdbc:mysql://localhost:13306/consome?characterEncoding=UTF-8&serverTimezone=Asia/Seoul
     username: consome
     password: consome
   jpa:
     hibernate:
-      ddl-auto: none
+      ddl-auto: update
     properties:
       hibernate:
         format_sql: false

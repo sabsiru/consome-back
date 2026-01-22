@@ -63,9 +63,9 @@ public class AdminInitialize implements CommandLineRunner {
         System.out.println("[ADMIN INIT] 관리자 계정 생성 완료 : ID=admin / PW=Admin!23");
 
         if(!sectionRepository.existsAllBy()){
-            Section section = sectionFacade.create("자유", 1);
-            Board board = manageBoardFacade.create(section.getId(), "자유게시판", "자유 게시판 입니다.", 1);
-            categoryFacade.create(board.getId(), "잡담", 1);
+            Section section = sectionFacade.create("게임", 1);
+            Board board = manageBoardFacade.create(section.getId(), "배틀그라운드", "서바이벌 게임의 유행 선두자 PUBG게시판 입니다.", 1);
+            categoryFacade.create(board.getId(), "자유", 1);
         }
     }
 }

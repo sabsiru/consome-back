@@ -66,7 +66,7 @@ public class PostFacadeIntegrationTest {
 
     @DisplayName("게시글을 작성하면 포인트가 적립되고 게시글이 생성된다")
     @Test
-    void createPost_success() {
+    void createPost_V1_success() {
         // given
         Long userId = userFacade.register(userRegisterCommand);
         PostCommand command = PostCommand.of(boardId, categoryId, userId, "제목입니다", "내용입니다");

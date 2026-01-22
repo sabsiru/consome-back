@@ -23,7 +23,7 @@ public class PostService {
     private final PostQueryRepository postQueryRepository;
 
     public Post post(Long boardId, Long categoryId, Long authorId, String title, String content) {
-        Post post = Post.write(boardId, categoryId, authorId, title, content);
+        Post post = Post.post(boardId, categoryId, authorId, title, content);
         PostStat stat = PostStat.init(post);
         postRepository.save(post);
         statRepository.save(stat);
@@ -31,14 +31,14 @@ public class PostService {
         return post;
     }
 
-    public Post edit(String content, Long postId, Long userId) {
+    public Post edit(String title, Long categoryId, String content, Long postId, Long userId) {
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new IllegalArgumentException("게시글을 찾을 수 없습니다."));
         if (!post.getUserId().equals(userId)) {
             throw new IllegalStateException("작성자만 게시글을 수정할 수 있습니다.");
         }
 
-        post.edit(content);
+        post.edit(title, categoryId, content);
 
         return post;
     }
@@ -146,5 +146,10 @@ public class PostService {
 
     public Page<PostSummary> getPostByBoard(Long boardId, Pageable pageable, Long categoryId) {
         return postQueryRepository.findPostWithStatsByBoardId(boardId, pageable, categoryId);
+    }
+
+    public Post getPostForUpdate(Long postId) {
+        return postRepository.findByIdForUpdate(postId)
+                .orElseThrow(() -> new IllegalArgumentException("게시글을 찾을 수 없습니다."));
     }
 }
