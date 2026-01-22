@@ -4,6 +4,7 @@ import consome.application.post.EditResult;
 import consome.application.post.ImageUploadResult;
 import consome.application.post.PostFacade;
 import consome.application.post.PostResult;
+import consome.application.post.VideoUploadResult;
 import consome.domain.post.entity.Post;
 import consome.domain.post.entity.PostStat;
 import consome.interfaces.post.dto.*;
@@ -38,9 +39,29 @@ public class PostV1Controller {
     @PostMapping(value = "/images", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ImageUploadResponse> uploadImages(
             @RequestPart("images") List<MultipartFile> images) {
+        long maxImageSize = 5 * 1024 * 1024; // 5MB
+        for (MultipartFile image : images) {
+            if (image.getSize() > maxImageSize) {
+                return ResponseEntity.badRequest().build();
+            }
+        }
         List<ImageUploadResult> results = postFacade.uploadImages(images);
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ImageUploadResponse.from(results));
+    }
+
+    @PostMapping(value = "/videos", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<VideoUploadResponse> uploadVideos(
+            @RequestPart("videos") List<MultipartFile> videos) {
+        long maxVideoSize = 30 * 1024 * 1024; // 30MB
+        for (MultipartFile video : videos) {
+            if (video.getSize() > maxVideoSize) {
+                return ResponseEntity.badRequest().build();
+            }
+        }
+        List<VideoUploadResult> results = postFacade.uploadVideos(videos);
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(VideoUploadResponse.from(results));
     }
 
     @GetMapping("/{postId}")
