@@ -184,5 +184,13 @@ public class PostFacade {
                 .toList();
     }
 
-
+    @Transactional
+    public List<VideoUploadResult> uploadVideos(List<MultipartFile> videos) {
+        return videos.stream()
+                .map(video -> {
+                    String url = fileStorage.storeAndConvertVideo(video, "videos");
+                    return new VideoUploadResult(url, video.getOriginalFilename());
+                })
+                .toList();
+    }
 }
