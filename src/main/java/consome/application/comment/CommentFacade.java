@@ -1,12 +1,10 @@
 package consome.application.comment;
 
-import consome.domain.comment.Comment;
-import consome.domain.comment.CommentQueryRepository;
-import consome.domain.comment.CommentService;
-import consome.domain.comment.CommentStat;
+import consome.domain.comment.*;
 import consome.domain.point.PointHistoryType;
 import consome.domain.point.PointService;
 import consome.domain.post.PostService;
+import consome.domain.post.ReactionType;
 import consome.domain.user.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -23,6 +21,7 @@ public class CommentFacade {
     private final PostService postService;
     private final UserService userService;
     private final CommentQueryRepository commentQueryRepository;
+    private final CommentReactionRepository commentReactionRepository;
 
     @Transactional
     public CommentResult comment(Long postId, Long userId, Long parentId, String content) {
@@ -68,8 +67,33 @@ public class CommentFacade {
         return stat;
     }
 
+    @Transactional
+    public boolean hasLiked(Long commentId, Long userId) {
+        return commentReactionRepository.findByCommentIdAndUserIdAndTypeAndDeletedFalse(commentId, userId, ReactionType.LIKE).isPresent();
+    }
+
+    @Transactional
+    public boolean hasDisliked(Long commentId, Long userId) {
+        return commentReactionRepository.findByCommentIdAndUserIdAndTypeAndDeletedFalse(commentId, userId, ReactionType.DISLIKE).isPresent();
+    }
+
     @Transactional(readOnly = true)
-    public Page<CommentListResult> listByPost(Long postId, Pageable pageable) {
-        return commentQueryRepository.findCommentsByPostId(postId, pageable);
+    public Page<CommentListResult> listByPost(Long postId, Long userId, Pageable pageable) {
+        Page<CommentListResult> comments =
+                commentQueryRepository.findCommentsByPostId(postId, pageable);
+
+        if (userId == null) {
+            return comments;
+        }
+
+        return comments.map(c -> new CommentListResult(
+                c.commentId(), c.postId(), c.userId(), c.userNickname(),
+                c.parentId(), c.parentUserNickname(),
+                c.content(), c.depth(),
+                c.likeCount(), c.dislikeCount(),
+                c.isDeleted(), c.createdAt(), c.updatedAt(),
+                hasLiked(c.commentId(), userId),
+                hasDisliked(c.commentId(), userId)
+        ));
     }
 }
