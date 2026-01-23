@@ -18,7 +18,7 @@ public class PostService {
 
     private final PostRepository postRepository;
     private final PostStatRepository statRepository;
-    private final PostReactionRepository likeRepository;
+    private final PostReactionRepository postReactionRepository;
     private final PostViewRepository viewRepository;
     private final PostQueryRepository postQueryRepository;
 
@@ -58,13 +58,13 @@ public class PostService {
     public PostStat like(Post post, Long userId) {
         PostStat postStat = getPostStat(post.getId());
 
-        if (likeRepository.findByIdForUpdate(post.getId(), userId, ReactionType.LIKE).isPresent()) {
+        if (postReactionRepository.findByIdForUpdate(post.getId(), userId, ReactionType.LIKE).isPresent()) {
             throw new IllegalStateException("이미 좋아요를 누른 게시글입니다.");
         }
         PostReaction postReaction = PostReaction.like(post.getId(), userId);
         postStat.increaseLikeCount();
 
-        likeRepository.save(postReaction);
+        postReactionRepository.save(postReaction);
 
         return statRepository.save(postStat);
     }
@@ -72,33 +72,33 @@ public class PostService {
     public PostStat dislike(Post post, Long userId) {
         PostStat postStat = getPostStat(post.getId());
 
-        if (likeRepository.findByIdForUpdate(post.getId(), userId, ReactionType.DISLIKE).isPresent()) {
+        if (postReactionRepository.findByIdForUpdate(post.getId(), userId, ReactionType.DISLIKE).isPresent()) {
             throw new IllegalStateException("이미 싫어요를 누른 게시글입니다.");
         }
         PostReaction postReaction = PostReaction.disLike(post.getId(), userId);
         postStat.increaseDislikeCount();
 
-        likeRepository.save(postReaction);
+        postReactionRepository.save(postReaction);
         return statRepository.save(postStat);
     }
 
     public PostStat cancelLike(Post post, Long userId) {
         PostStat postStat = getPostStat(post.getId());
-        Optional<PostReaction> existingLike = likeRepository.findByIdForUpdate(post.getId(), userId, ReactionType.LIKE);
-        if (likeRepository.findByIdForUpdate(post.getId(), userId, ReactionType.LIKE).isEmpty()) {
+        Optional<PostReaction> existingLike = postReactionRepository.findByIdForUpdate(post.getId(), userId, ReactionType.LIKE);
+        if (postReactionRepository.findByIdForUpdate(post.getId(), userId, ReactionType.LIKE).isEmpty()) {
             throw new IllegalStateException("좋아요를 누르지 않았습니다.");
         }
         PostReaction postReaction = existingLike.get();
         postReaction.cancel();
         postStat.decreaseLikeCount();
 
-        likeRepository.save(postReaction);
+        postReactionRepository.save(postReaction);
         return statRepository.save(postStat);
     }
 
     public PostStat cancelDislike(Post post, Long userId) {
         PostStat postStat = getPostStat(post.getId());
-        Optional<PostReaction> existingDislike = likeRepository.findByIdForUpdate(post.getId(), userId, ReactionType.DISLIKE);
+        Optional<PostReaction> existingDislike = postReactionRepository.findByIdForUpdate(post.getId(), userId, ReactionType.DISLIKE);
         if (existingDislike.isEmpty()) {
             throw new IllegalStateException("싫어요를 누르지 않았습니다.");
         }
@@ -106,7 +106,7 @@ public class PostService {
         postReaction.cancel();
         postStat.decreaseDislikeCount();
 
-        likeRepository.save(postReaction);
+        postReactionRepository.save(postReaction);
         return statRepository.save(postStat);
     }
 
