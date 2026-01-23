@@ -94,7 +94,7 @@ class PostV1ControllerE2eTest {
         assertThat(postId).isNotNull();
 
         // when - 게시글 수정
-        EditRequest editRequest = new EditRequest("수정된 내용");
+        EditRequest editRequest = new EditRequest("수정 대상 제목", 1L, "수정 후 내용");
         ResponseEntity<EditResponse> editRes = restTemplate.exchange(
                 "/api/v1/posts/{postId}?userId={userId}",
                 HttpMethod.PUT,

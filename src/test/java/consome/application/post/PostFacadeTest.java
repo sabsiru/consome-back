@@ -101,7 +101,7 @@ class PostFacadeTest {
 
         // when - 이미지 1개만 남기고 수정
         String newContent = "<p>수정됨</p><img src=\"" + savedUrls.get(0) + "\"/>";
-        postFacade.edit(newContent, postId, userId, null);
+        postFacade.edit(command.title(), command.categoryId(),newContent, postId, userId, null);
 
         // then
         assertThat(postImageRepository.findByPostId(postId)).hasSize(1);
@@ -122,7 +122,7 @@ class PostFacadeTest {
         String savedContent = savedPost.getContent();
 
         // when - 같은 이미지로 수정
-        postFacade.edit(savedContent, postId, userId, null);
+        postFacade.edit(command.title(), command.categoryId(),content, postId, userId, null);
 
         // then
         assertThat(postImageRepository.findByPostId(postId)).hasSize(1);
@@ -141,7 +141,7 @@ class PostFacadeTest {
 
         // when
         String newContent = "<p>수정됨</p>";
-        postFacade.edit(newContent, postId, userId, null);
+        postFacade.edit(command.title(), command.categoryId(),newContent, postId, userId, null);
 
         // then
         assertThat(postImageRepository.findByPostId(postId)).isEmpty();

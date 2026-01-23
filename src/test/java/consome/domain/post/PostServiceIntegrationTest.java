@@ -297,7 +297,7 @@ class PostServiceIntegrationTest {
         String newContent = "수정된 내용";
 
         // when
-        postService.edit(newContent, post.getId(), 100L);
+        postService.edit(newTitle,categoryId,newContent, post.getId(), 100L);
 
         // then
         Post updatedPost = postRepository.findById(post.getId()).orElseThrow();
@@ -320,7 +320,7 @@ class PostServiceIntegrationTest {
         String newContent = "수정된 내용";
 
         // when/then
-        assertThatThrownBy(() -> postService.edit(newContent, post.getId(), 101L))
+        assertThatThrownBy(() -> postService.edit(title,categoryId, newContent, post.getId(), 101L))
                 .isInstanceOf(IllegalStateException.class)
                 .hasMessage("작성자만 게시글을 수정할 수 있습니다.");
     }
