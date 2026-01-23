@@ -72,7 +72,10 @@ public class PostV1Controller {
         PostStat stat = postFacade.increaseViewCount(postId, userIp, userId);
         Post post = postFacade.getPost(postId);
 
-        return ResponseEntity.ok(PostDetailResponse.of(post, stat));
+        boolean hasLiked = userId != null && postFacade.hasLiked(postId, userId);
+        boolean hasDisliked = userId != null && postFacade.hasDisliked(postId, userId);
+
+        return ResponseEntity.ok(PostDetailResponse.of(post, stat, hasLiked, hasDisliked));
     }
 
     @PutMapping("/{postId}")

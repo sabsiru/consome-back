@@ -2,12 +2,14 @@ package consome.application.post;
 
 import consome.domain.point.PointHistoryType;
 import consome.domain.point.PointService;
+import consome.domain.post.ReactionType;
 import consome.domain.post.entity.Post;
 import consome.domain.post.PostService;
 import consome.domain.post.entity.PostImage;
 import consome.domain.post.entity.PostStat;
 import consome.domain.post.entity.TempPostImage;
 import consome.domain.post.repository.PostImageRepository;
+import consome.domain.post.repository.PostReactionRepository;
 import consome.domain.post.repository.TempPostImageRepository;
 import consome.infrastructure.storage.FileStorage;
 import lombok.RequiredArgsConstructor;
@@ -24,6 +26,7 @@ public class PostFacade {
     private final PostService postService;
     private final PointService pointService;
     private final FileStorage fileStorage;
+    private final PostReactionRepository postReactionRepository;
     private final PostImageRepository postImageRepository;
     private final TempPostImageRepository tempPostImageRepository;
 
@@ -140,6 +143,18 @@ public class PostFacade {
 
         return postService.getPostStat(post.getId());
     }
+    public boolean hasLiked(Long postId, Long userId) {
+        return
+                postReactionRepository.findByPostIdAndUserIdAndTypeAndDeletedFalse(postId, userId,
+                        ReactionType.LIKE).isPresent();
+    }
+
+    public boolean hasDisliked(Long postId, Long userId) {
+        return
+                postReactionRepository.findByPostIdAndUserIdAndTypeAndDeletedFalse(postId, userId,
+                        ReactionType.DISLIKE).isPresent();
+    }
+
 
     @Transactional
     public PostStat increaseViewCount(Long postId, String userIp, Long userId) {
