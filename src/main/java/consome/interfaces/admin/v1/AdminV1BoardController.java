@@ -24,6 +24,13 @@ public class AdminV1BoardController {
         return BoardResponse.from(board);
     }
 
+    @PatchMapping("/{boardId}")
+    public BoardResponse update(@PathVariable Long boardId,
+                                @RequestBody @Valid UpdateBoardRequest request) {
+        Board board = manageBoardFacade.update(boardId, request.name(), request.description());
+        return BoardResponse.from(board);
+    }
+
     @PatchMapping("/{boardId}/name")
     public BoardResponse rename(@PathVariable Long boardId, @RequestBody RenameRequest request) {
         Board board = manageBoardFacade.rename(boardId, request.getNewName());

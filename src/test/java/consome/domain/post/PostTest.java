@@ -34,8 +34,15 @@ class PostTest {
 
     @Test
     void 게시글_수정_성공_tester() {
-        Post post = Post.post(1L, 2L, 3L, "제목", "본문");
-        post.edit( "수정된 내용");
+        Long boardId = 1L;
+        Long categoryId = 2L;
+        Long userId = 3L;
+        String title = "첫 글";
+        String content = "내용입니다";
+        Post post = Post.post(boardId, categoryId, userId, title, content);
+
+        String newContent = "수정된 내용";
+        post.edit(title, categoryId, newContent);
 
         assertThat(post.getContent()).isEqualTo("수정된 내용");
     }
