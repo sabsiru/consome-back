@@ -123,22 +123,51 @@ class BoardServiceTest {
     }
 
     @Test
-    void rename_할_때_이미_존재하는_이름이면_예외를_던진다() {
+    void update_이름만_수정할_때_name이_변경된다() {
+        // given
+        Long id = 1L;
+        Board existing = Board.create(5L, "자유게시판", "설명", 1);
+        when(boardRepository.findById(id)).thenReturn(Optional.of(existing));
+        when(boardRepository.save(existing)).thenReturn(existing);
+
+        // when
+        Board result = boardService.update(id, "정보게시판", null);
+
+        // then
+        assertThat(result.getName()).isEqualTo("정보게시판");
+        assertThat(result.getDescription()).isEqualTo("설명");
+    }
+
+    @Test
+    void update_설명만_수정할_때_description이_변경된다() {
+        // given
+        Long id = 1L;
+        Board existing = Board.create(5L, "자유게시판", "설명", 1);
+        when(boardRepository.findById(id)).thenReturn(Optional.of(existing));
+        when(boardRepository.save(existing)).thenReturn(existing);
+
+        // when
+        Board result = boardService.update(id, null, "새로운 설명");
+
+        // then
+        assertThat(result.getName()).isEqualTo("자유게시판");
+        assertThat(result.getDescription()).isEqualTo("새로운 설명");
+    }
+
+    @Test
+    void update_중복된_이름으로_수정할_때_예외를_던진다() {
         // given
         Long id = 1L;
         String duplicateName = "중복된게시판";
         Board existing = Board.create(5L, "자유게시판", "설명", 1);
-        Board another = Board.create(5L, duplicateName, "다른설명", 2);
 
         when(boardRepository.findById(id)).thenReturn(Optional.of(existing));
         when(boardRepository.existsByName(duplicateName)).thenReturn(true);
 
         // when / then
-        assertThatThrownBy(() -> boardService.rename(id, duplicateName))
+        assertThatThrownBy(() -> boardService.update(id, duplicateName, null))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("이미 존재하는 게시판 이름입니다.");
-
-        verify(boardRepository).findById(id);
     }
 
 }
