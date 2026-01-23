@@ -18,10 +18,23 @@ public class BoardService {
         return boardRepository.save(board);
     }
 
+    /*사용 안함*/
     public Board rename(Long boardId, String newName) {
         Board board = findById(boardId);
         isNameDuplicate(newName);
         board.rename(newName);
+        return boardRepository.save(board);
+    }
+
+    public Board update(Long boardId, String name, String description) {
+        Board board = findById(boardId);
+        if (name != null) {
+            isNameDuplicate(name);
+            board.rename(name);
+        }
+        if (description != null) {
+            board.changeDescription(description);
+        }
         return boardRepository.save(board);
     }
 

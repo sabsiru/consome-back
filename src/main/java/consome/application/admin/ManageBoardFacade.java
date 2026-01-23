@@ -22,6 +22,10 @@ public class ManageBoardFacade {
         return boardService.create(sectionId, name, description, displayOrder);
     }
 
+    public Board update(Long boardId, String name, String description) {
+        return boardService.update(boardId, name, description);
+    }
+
     public Board rename(Long boardId, String newName) {
         return boardService.rename(boardId, newName);
     }
