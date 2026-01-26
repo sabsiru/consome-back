@@ -22,6 +22,7 @@ public class ManageTreeResponse {
     public static class Board {
         private final Long id;
         private final String name;
+        private final String description;
         private final int displayOrder;
         private final List<Category> categories;
     }
@@ -39,7 +40,8 @@ public class ManageTreeResponse {
                         s.id(), s.name(), s.displayOrder(),
                         s.boards().stream()
                                 .map(b -> new Board(
-                                        b.id(), b.name(), b.displayOrder(),
+                                        b.id(), b.name(), b.description(),
+                                        b.displayOrder(),
                                         b.categories().stream()
                                                 .map(c -> new Category(c.id(), c.name(), c.displayOrder()))
                                                 .toList()

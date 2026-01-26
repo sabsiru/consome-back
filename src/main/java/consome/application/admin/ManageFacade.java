@@ -1,13 +1,18 @@
 package consome.application.admin;
 
 import consome.application.admin.result.ManageTreeResult;
+import consome.application.user.UserSearchCommand;
+import consome.application.user.UserSearchPagingResult;
+import consome.application.user.UserSearchResult;
 import consome.domain.admin.*;
 import consome.domain.user.UserInfo;
+import consome.domain.user.UserQueryRepository;
 import consome.domain.user.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Map;
@@ -20,6 +25,7 @@ public class ManageFacade {
     private final CategoryService categoryService;
     private final SectionService sectionService;
     private final UserService userService;
+    private final UserQueryRepository userQueryRepository;
 
     public ManageTreeResult getTree() {
         List<Section> sections = sectionService.findAllOrdered();
@@ -40,6 +46,7 @@ public class ManageFacade {
                                 .map(board -> new ManageTreeResult.BoardNode(
                                         board.getId(),
                                         board.getName(),
+                                        board.getDescription(),
                                         board.getDisplayOrder(),
                                         catsByBoard.getOrDefault(board.getId(), List.of()).stream()
                                                 .map(cat -> new ManageTreeResult.CategoryNode(
@@ -71,6 +78,19 @@ public class ManageFacade {
 
         return new UserPagingResult(
                 content,
+                page.getNumber(),
+                page.getSize(),
+                page.getTotalElements(),
+                page.getTotalPages()
+        );
+    }
+
+    @Transactional(readOnly = true)
+    public UserSearchPagingResult searchUsers(UserSearchCommand command, Pageable pageable) {
+        Page<UserSearchResult> page = userQueryRepository.search(command, pageable);
+
+        return new UserSearchPagingResult(
+                page.getContent(),
                 page.getNumber(),
                 page.getSize(),
                 page.getTotalElements(),

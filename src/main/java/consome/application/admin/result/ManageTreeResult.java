@@ -16,6 +16,7 @@ public record ManageTreeResult(
     public record BoardNode(
             Long id,
             String name,
+            String description,
             int displayOrder,
             List<CategoryNode> categories
     ) {}
