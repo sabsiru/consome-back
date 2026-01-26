@@ -17,10 +17,12 @@ public record PostDetailResponse(
         int viewCount,
         int likeCount,
         int dislikeCount,
-        int commentCount
+        int commentCount,
+        boolean hasLiked,
+        boolean hasDisliked
 ) {
     /** Post + PostStat 동시 제공 시 사용 */
-    public static PostDetailResponse of(Post post, PostStat stat) {
+    public static PostDetailResponse of(Post post, PostStat stat, boolean hasLiked, boolean hasDisliked) {
         return new PostDetailResponse(
                 post.getId(),
                 post.getTitle(),
@@ -33,7 +35,9 @@ public record PostDetailResponse(
                 stat != null ? stat.getViewCount()    : 0,
                 stat != null ? stat.getLikeCount()    : 0,
                 stat != null ? stat.getDislikeCount() : 0,
-                stat != null ? stat.getCommentCount() : 0
+                stat != null ? stat.getCommentCount() : 0,
+                hasLiked,
+                hasDisliked
         );
     }
 
@@ -48,7 +52,9 @@ public record PostDetailResponse(
                 post.getCategoryId(),
                 post.getCreatedAt(),
                 post.getUpdatedAt(),
-                0, 0, 0, 0
+                0, 0, 0, 0,
+                false,
+                false
         );
     }
 }

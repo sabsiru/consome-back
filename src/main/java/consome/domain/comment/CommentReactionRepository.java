@@ -15,4 +15,7 @@ public interface CommentReactionRepository extends JpaRepository<CommentReaction
     Optional<CommentReaction> findByIdForUpdate(Long commentId, Long userId, ReactionType type);
 
     Optional<CommentReaction> findByCommentIdAndUserIdAndDeletedFalse(Long commentId, Long userId);
+
+    Optional<CommentReaction>findByCommentIdAndUserIdAndTypeAndDeletedFalse(Long commentId, Long userId, ReactionType type);
+
 }

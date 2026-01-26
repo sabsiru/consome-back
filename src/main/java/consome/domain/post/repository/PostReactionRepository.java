@@ -16,4 +16,6 @@ public interface PostReactionRepository extends JpaRepository<PostReaction, Long
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT pl FROM PostReaction pl WHERE pl.postId = :postId AND pl.userId = :userId AND pl.type = :type AND pl.deleted = false")
     Optional<PostReaction> findByIdForUpdate(Long postId, Long userId, ReactionType type);
+
+    Optional<PostReaction> findByPostIdAndUserIdAndTypeAndDeletedFalse(Long postId, Long userId, ReactionType type);
 }

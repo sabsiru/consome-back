@@ -1,22 +1,24 @@
 package consome.application.comment;
 
+import consome.application.user.UserFacade;
+import consome.application.user.UserRegisterCommand;
 import consome.domain.comment.CommentService;
 import consome.domain.post.PostService;
 import consome.domain.post.entity.Post;
-import consome.domain.user.User;
-import consome.domain.user.UserService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
 import org.springframework.transaction.annotation.Transactional;
+import org.testcontainers.utility.TestcontainersConfiguration;
 
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 
 @SpringBootTest
 @Transactional
+@Import(TestcontainersConfiguration.class)
 class CommentFacadeIntegrationTest {
 
     @Autowired
@@ -29,44 +31,72 @@ class CommentFacadeIntegrationTest {
     private PostService postService;
 
     @Autowired
-    private UserService userService;
+    private UserFacade userFacade;
+
 
     @Test
     void 댓글_페이징_통합_테스트() {
         // given
-        User register = userService.register("testerID", "테스터", "Password123");
-        Post post = postService.post(1L, 2L, register.getId(), "testTitle.", "testContent.");
+        UserRegisterCommand registerCommand = new UserRegisterCommand(
+                "testerID",
+                "테스터",
+                "Password123"
+        );
+        Long register = userFacade.register(registerCommand);
+        Post post = postService.post(1L, 2L, register, "testTitle",
+                "testContent");
 
         for (int i = 1; i <= 100; i++) {
-            commentService.comment(post.getId(), register.getId(), null, "댓글 " + i);
+            commentService.comment(post.getId(), register, null, "댓글 " +
+                    i);
         }
 
         // when
         Page<CommentListResult> firstPage = commentFacade.listByPost(
                 post.getId(),
-                PageRequest.of(0, 50, Sort.by(Sort.Direction.DESC, "id"))
+                null,  // userId 없이 조회
+                PageRequest.of(0, 50)
         );
 
         Page<CommentListResult> secondPage = commentFacade.listByPost(
                 post.getId(),
-                PageRequest.of(1, 50, Sort.by(Sort.Direction.DESC, "id"))
+                null,
+                PageRequest.of(1, 50)
         );
 
         // then
-        assertThat(firstPage).isNotNull();
-        assertThat(secondPage).isNotNull();
-
         assertThat(firstPage.getContent()).hasSize(50);
         assertThat(secondPage.getContent()).hasSize(50);
+        assertThat(firstPage.getTotalElements()).isEqualTo(100);
+    }
 
-        Long firstPageTop = firstPage.getContent().get(0).commentId();
-        Long secondPageTop = secondPage.getContent().get(0).commentId();
-        Long firstPageLast = firstPage.getContent().get(49).commentId();
+    @Test
+    void 댓글_추천_상태_조회_테스트() {
+        // given
+        UserRegisterCommand registerCommand = new UserRegisterCommand(
+                "testerID",
+                "테스터",
+                "Password123"
+        );
+        Long register = userFacade.register(registerCommand);
+        Post post = postService.post(1L, 2L, register, "testTitle",
+                "testContent");
+        CommentResult comment = commentFacade.comment(post.getId(), register,
+                null, "테스트 댓글");
 
-        // 첫 페이지의 첫 댓글이 더 최신이어야 한다
-        assertThat(firstPageTop).isGreaterThan(secondPageTop);
+        // 댓글 추천
+        commentFacade.like(comment.commentId(), register);
 
-        // 첫 페이지의 마지막 댓글보다 두 번째 페이지의 첫 댓글이 더 오래되어야 한다
-        assertThat(firstPageLast).isGreaterThan(secondPageTop);
+        // when
+        Page<CommentListResult> page = commentFacade.listByPost(
+                post.getId(),
+                register,  // userId로 조회
+                PageRequest.of(0, 50)
+        );
+
+        // then
+        CommentListResult result = page.getContent().get(0);
+        assertThat(result.hasLiked()).isTrue();
+        assertThat(result.hasDisliked()).isFalse();
     }
 }

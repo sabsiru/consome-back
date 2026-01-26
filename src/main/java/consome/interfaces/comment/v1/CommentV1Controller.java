@@ -27,9 +27,10 @@ public class CommentV1Controller {
     @GetMapping("{postId}/comments")
     public ResponseEntity<CommentPageResponse> list(
             @PathVariable Long postId,
+            @RequestParam(required = false) Long userId,
             @PageableDefault(size = 50) Pageable pageable) {
 
-        Page<CommentListResult> page = commentFacade.listByPost(postId, pageable);
+        Page<CommentListResult> page = commentFacade.listByPost(postId, userId, pageable);
         return ResponseEntity.ok(CommentResponseMapper.toPageResponse(page));
     }
 

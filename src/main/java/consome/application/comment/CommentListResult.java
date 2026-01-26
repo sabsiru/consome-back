@@ -15,6 +15,8 @@ public record CommentListResult(
         int dislikeCount,
         Boolean isDeleted,
         LocalDateTime createdAt,
-        LocalDateTime updatedAt
+        LocalDateTime updatedAt,
+        boolean hasLiked,
+        boolean hasDisliked
 ) {
 }

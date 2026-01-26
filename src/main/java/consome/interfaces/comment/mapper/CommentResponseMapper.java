@@ -24,7 +24,9 @@ public class CommentResponseMapper {
                         comment.dislikeCount(),
                         comment.isDeleted(),
                         comment.createdAt(),
-                        comment.updatedAt()
+                        comment.updatedAt(),
+                        comment.hasLiked(),
+                        comment.hasDisliked()
                 ))
                 .toList();
 

@@ -69,7 +69,9 @@ public class CommentQueryRepositoryImpl implements CommentQueryRepository {
                                     dislikeCount != null ? dislikeCount : 0,
                                     c.isDeleted(),
                                     c.getCreatedAt(),
-                                    c.getUpdatedAt()
+                                    c.getUpdatedAt(),
+                                    false,
+                                    false
                             );
                         })
                         .toList(),
