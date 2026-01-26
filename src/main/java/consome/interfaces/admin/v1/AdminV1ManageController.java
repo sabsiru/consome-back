@@ -3,14 +3,18 @@ package consome.interfaces.admin.v1;
 import consome.application.admin.ManageFacade;
 import consome.application.admin.UserPagingResult;
 import consome.application.admin.result.ManageTreeResult;
+import consome.application.user.UserSearchCommand;
+import consome.application.user.UserSearchPagingResult;
 import consome.interfaces.admin.dto.manage.ManageTreeResponse;
 import consome.interfaces.admin.dto.manage.ManageUserListResponse;
+import consome.interfaces.admin.dto.manage.UserSearchListResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -28,9 +32,20 @@ public class AdminV1ManageController {
 
     @GetMapping("/users")
     public ResponseEntity<ManageUserListResponse> getUsers(@PageableDefault(size= 20) Pageable pageable) {
-        System.out.println("[AdminV1ManageController] /api/v1/admin/manage/users page="
-                + pageable.getPageNumber() + ", size=" + pageable.getPageSize());
         UserPagingResult result = manageFacade.getUsers(pageable);
         return ResponseEntity.ok(ManageUserListResponse.from(result));
+    }
+
+    @GetMapping("/users/search")
+    public ResponseEntity<UserSearchListResponse> searchUsers(
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) Long id,
+            @RequestParam(required = false) String loginId,
+            @RequestParam(required = false) String nickname,
+            @PageableDefault(size = 20) Pageable pageable
+    ) {
+        UserSearchCommand command = new UserSearchCommand(keyword, id, loginId, nickname);
+        UserSearchPagingResult result = manageFacade.searchUsers(command, pageable);
+        return ResponseEntity.ok(UserSearchListResponse.from(result));
     }
 }
