@@ -1,9 +1,6 @@
 package consome.application.admin;
 
-import consome.domain.admin.BoardOrder;
-import consome.domain.admin.Category;
-import consome.domain.admin.CategoryOrder;
-import consome.domain.admin.CategoryService;
+import consome.domain.admin.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -19,8 +16,9 @@ public class CategoryFacade {
         return categoryService.create(boardId, name, displayOrder);
     }
 
-    public Category rename(Long categoryId, String newName) {
-        return categoryService.rename(categoryId, newName);
+    public Category rename(Long categoryId, String name, Long boardId) {
+
+        return categoryService.rename(categoryId, name, boardId);
     }
 
     public Category changeOrder(Long categoryId, int newOrder) {

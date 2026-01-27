@@ -9,5 +9,6 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class RenameRequest {
     private Long id;
-    private String newName;
+    private String name;
+    private Long boardId;
 }

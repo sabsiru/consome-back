@@ -14,15 +14,15 @@ public class CategoryService {
     private final CategoryRepository categoryRepository;
 
     public Category create(Long boardId, String name, int displayOrder) {
-        isNameDuplicate(name);
+        isNameDuplicate(name, boardId);
         Category category = Category.create(boardId, name, displayOrder);
         return categoryRepository.save(category);
     }
 
-    public Category rename(Long categoryId, String newName) {
+    public Category rename(Long categoryId, String name, Long boardId) {
+        isNameDuplicate(name, boardId);
         Category category = findById(categoryId);
-        isNameDuplicate(newName);
-        category.rename(newName);
+        category.rename(name);
         return categoryRepository.save(category);
     }
 
@@ -71,19 +71,19 @@ public class CategoryService {
         categoryRepository.save(category);
     }
 
-    public boolean isNameDuplicate(String name) {
-        if (categoryRepository.existsByName(name)) {
+    public boolean isNameDuplicate(String name, Long boardId) {
+        if (categoryRepository.existsByNameAndBoardId(name, boardId)) {
             throw new IllegalArgumentException("이미 존재하는 카테고리 이름입니다.");
         }
         if (name == null || name.trim().isEmpty() || name.length() < 1 || name.length() > 10) {
             throw new IllegalArgumentException("카테고리 이름은 1자 이상 10자 이하로 입력해야 합니다.");
         }
-        return categoryRepository.existsByName(name);
+        return categoryRepository.existsByNameAndBoardId(name, boardId);
     }
 
     public Category findById(Long categoryId) {
         return categoryRepository.findById(categoryId)
-                .orElseThrow(() -> new IllegalArgumentException("잘못된 접근입니다."));
+                .orElseThrow(() -> new IllegalArgumentException("categoryId에 해당하는 카테고리가 존재하지 않습니다."));
     }
 
     public List<Category> findAllOrderedByBoard(Long boardId) {

@@ -4,7 +4,11 @@ import consome.application.admin.result.ManageTreeResult;
 import consome.application.user.UserSearchCommand;
 import consome.application.user.UserSearchPagingResult;
 import consome.application.user.UserSearchResult;
-import consome.domain.admin.*;
+import consome.domain.admin.Board;
+import consome.domain.admin.BoardQueryRepository;
+import consome.domain.admin.BoardService;
+import consome.domain.admin.Category;
+import consome.domain.admin.CategoryService;
 import consome.domain.user.UserInfo;
 import consome.domain.user.UserQueryRepository;
 import consome.domain.user.UserService;
@@ -22,45 +26,35 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class ManageFacade {
     private final BoardService boardService;
+    private final BoardQueryRepository boardQueryRepository;
     private final CategoryService categoryService;
-    private final SectionService sectionService;
     private final UserService userService;
     private final UserQueryRepository userQueryRepository;
 
     public ManageTreeResult getTree() {
-        List<Section> sections = sectionService.findAllOrdered();
         List<Board> boards = boardService.findAllOrdered();
         List<Category> categories = categoryService.findAllOrdered();
 
-        Map<Long, List<Board>> boardsBySection = boards.stream()
-                .collect(Collectors.groupingBy(Board::getSectionId));
         Map<Long, List<Category>> catsByBoard = categories.stream()
                 .collect(Collectors.groupingBy(Category::getBoardId));
 
-        List<ManageTreeResult.SectionNode> sectionNodes = sections.stream()
-                .map(section -> new ManageTreeResult.SectionNode(
-                        section.getId(),
-                        section.getName(),
-                        section.getDisplayOrder(),
-                        boardsBySection.getOrDefault(section.getId(), List.of()).stream()
-                                .map(board -> new ManageTreeResult.BoardNode(
-                                        board.getId(),
-                                        board.getName(),
-                                        board.getDescription(),
-                                        board.getDisplayOrder(),
-                                        catsByBoard.getOrDefault(board.getId(), List.of()).stream()
-                                                .map(cat -> new ManageTreeResult.CategoryNode(
-                                                        cat.getId(),
-                                                        cat.getName(),
-                                                        cat.getDisplayOrder()
-                                                ))
-                                                .toList()
+        List<ManageTreeResult.BoardNode> boardNodes = boards.stream()
+                .map(board -> new ManageTreeResult.BoardNode(
+                        board.getId(),
+                        board.getName(),
+                        board.getDescription(),
+                        board.getDisplayOrder(),
+                        catsByBoard.getOrDefault(board.getId(), List.of()).stream()
+                                .map(cat -> new ManageTreeResult.CategoryNode(
+                                        cat.getId(),
+                                        cat.getName(),
+                                        cat.getDisplayOrder()
                                 ))
                                 .toList()
                 ))
                 .toList();
 
-        return new ManageTreeResult(sectionNodes);
+        return new ManageTreeResult(boardNodes);
     }
 
     public UserPagingResult getUsers(Pageable pageable) {
@@ -90,6 +84,32 @@ public class ManageFacade {
         Page<UserSearchResult> page = userQueryRepository.search(command, pageable);
 
         return new UserSearchPagingResult(
+                page.getContent(),
+                page.getNumber(),
+                page.getSize(),
+                page.getTotalElements(),
+                page.getTotalPages()
+        );
+    }
+
+    @Transactional(readOnly = true)
+    public BoardPagingResult getBoards(Pageable pageable) {
+        Page<BoardSearchResult> page = boardQueryRepository.findBoards(pageable);
+
+        return new BoardPagingResult(
+                page.getContent(),
+                page.getNumber(),
+                page.getSize(),
+                page.getTotalElements(),
+                page.getTotalPages()
+        );
+    }
+
+    @Transactional(readOnly = true)
+    public BoardPagingResult searchBoards(BoardSearchCommand command, Pageable pageable) {
+        Page<BoardSearchResult> page = boardQueryRepository.search(command, pageable);
+
+        return new BoardPagingResult(
                 page.getContent(),
                 page.getNumber(),
                 page.getSize(),

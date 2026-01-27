@@ -15,19 +15,11 @@ import java.time.LocalDateTime;
 @Getter
 @EntityListeners(AuditingEntityListener.class)
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@Table(
-        name = "board",
-        uniqueConstraints = {
-                @UniqueConstraint(columnNames = {"section_id", "display_order"})
-        }
-)
+@Table(name = "board")
 public class Board {
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
-    @Column(nullable = false)
-    private Long sectionId;
 
     @Size(min = 1, max = 20)
     @Column(nullable = false, unique = true, length = 20)
@@ -49,15 +41,14 @@ public class Board {
     @LastModifiedDate
     private LocalDateTime updatedAt;
 
-    private Board(Long sectionId, String name, String description, int displayOrder) {
-        this.sectionId = sectionId;
+    private Board(String name, String description, int displayOrder) {
         this.name = name;
         this.description = description;
         this.displayOrder = displayOrder;
     }
 
-    public static Board create(Long refSectionId, String name, String description, int displayOrder) {
-        return new Board(refSectionId, name, description, displayOrder);
+    public static Board create(String name, String description, int displayOrder) {
+        return new Board(name, description, displayOrder);
     }
 
     public void rename(String newName) {

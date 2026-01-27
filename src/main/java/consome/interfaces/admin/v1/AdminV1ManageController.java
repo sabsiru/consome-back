@@ -1,10 +1,13 @@
 package consome.interfaces.admin.v1;
 
+import consome.application.admin.BoardPagingResult;
+import consome.application.admin.BoardSearchCommand;
 import consome.application.admin.ManageFacade;
 import consome.application.admin.UserPagingResult;
 import consome.application.admin.result.ManageTreeResult;
 import consome.application.user.UserSearchCommand;
 import consome.application.user.UserSearchPagingResult;
+import consome.interfaces.admin.dto.manage.BoardSearchListResponse;
 import consome.interfaces.admin.dto.manage.ManageTreeResponse;
 import consome.interfaces.admin.dto.manage.ManageUserListResponse;
 import consome.interfaces.admin.dto.manage.UserSearchListResponse;
@@ -47,5 +50,23 @@ public class AdminV1ManageController {
         UserSearchCommand command = new UserSearchCommand(keyword, id, loginId, nickname);
         UserSearchPagingResult result = manageFacade.searchUsers(command, pageable);
         return ResponseEntity.ok(UserSearchListResponse.from(result));
+    }
+
+    @GetMapping("/boards")
+    public ResponseEntity<BoardSearchListResponse> getBoards(@PageableDefault(size = 20) Pageable pageable) {
+        BoardPagingResult result = manageFacade.getBoards(pageable);
+        return ResponseEntity.ok(BoardSearchListResponse.from(result));
+    }
+
+    @GetMapping("/boards/search")
+    public ResponseEntity<BoardSearchListResponse> searchBoards(
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) Long id,
+            @RequestParam(required = false) String name,
+            @PageableDefault(size = 20) Pageable pageable
+    ) {
+        BoardSearchCommand command = new BoardSearchCommand(keyword, id, name);
+        BoardPagingResult result = manageFacade.searchBoards(command, pageable);
+        return ResponseEntity.ok(BoardSearchListResponse.from(result));
     }
 }

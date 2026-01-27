@@ -1,11 +1,10 @@
 package consome.infrastructure.config;
 
-import consome.application.admin.ManageBoardFacade;
 import consome.application.admin.CategoryFacade;
-import consome.application.admin.SectionFacade;
+import consome.application.admin.ManageBoardFacade;
 import consome.application.user.UserFacade;
 import consome.application.user.UserRegisterCommand;
-import consome.domain.admin.*;
+import consome.domain.admin.Board;
 import consome.domain.user.Role;
 import consome.domain.user.User;
 import consome.domain.user.UserRepository;
@@ -19,9 +18,6 @@ public class AdminInitialize implements CommandLineRunner {
 
     private final UserFacade userFacade;
     private final UserRepository userRepository;
-    private final SectionRepository sectionRepository;
-
-    private final SectionFacade sectionFacade;
     private final ManageBoardFacade manageBoardFacade;
     private final CategoryFacade categoryFacade;
 
@@ -62,11 +58,8 @@ public class AdminInitialize implements CommandLineRunner {
 
         System.out.println("[ADMIN INIT] 관리자 계정 생성 완료 : ID=admin / PW=Admin!23");
 
-        if(!sectionRepository.existsAllBy()){
-            Section section = sectionFacade.create("게임", 1);
-            Board board = manageBoardFacade.create(section.getId(), "배틀그라운드", "서바이벌 게임의 유행 선두자 PUBG게시판 입니다.", 1);
+            Board board = manageBoardFacade.create("배틀그라운드", "서바이벌 게임의 유행 선두자 PUBG게시판 입니다.", 1);
             categoryFacade.create(board.getId(), "자유", 1);
         }
-    }
 }
 
