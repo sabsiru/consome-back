@@ -6,6 +6,7 @@ import consome.domain.admin.CategoryOrder;
 import consome.interfaces.admin.dto.*;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -14,6 +15,7 @@ import java.util.List;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/admin/categories")
+@Slf4j
 public class AdminV1CategoryController {
 
     private final CategoryFacade categoryFacade;
@@ -25,13 +27,14 @@ public class AdminV1CategoryController {
     }
 
     @PatchMapping("/{categoryId}/name")
-    public CategoryResponse rename(@PathVariable Long boardId, @PathVariable Long categoryId, @RequestBody RenameRequest request) {
-        Category category = categoryFacade.rename(categoryId, request.getNewName());
+    public CategoryResponse rename(@PathVariable Long categoryId, @RequestBody RenameRequest request) {
+        log.info("Renaming category with ID {} to new name '{}' boardId '{}'", categoryId, request.getName(), request.getBoardId());
+        Category category = categoryFacade.rename(categoryId, request.getName(), request.getBoardId());
         return CategoryResponse.from(category);
     }
 
     @PatchMapping("/{categoryId}/order")
-    public CategoryResponse changeOrder(@PathVariable Long boardId, @PathVariable Long categoryId, @RequestBody ChangeOrderRequest request) {
+    public CategoryResponse changeOrder(@PathVariable Long categoryId, @RequestBody ChangeOrderRequest request) {
         Category category = categoryFacade.changeOrder(categoryId, request.getNewOrder());
         return CategoryResponse.from(category);
     }

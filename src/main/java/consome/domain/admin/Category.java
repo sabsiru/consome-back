@@ -30,7 +30,7 @@ public class Category {
     private Long boardId;
 
     @Size(min = 1, max = 20)
-    @Column(nullable = false, unique = true, length = 20)
+    @Column(nullable = false, length = 20)
     private String name;
 
     @Column(nullable = false)

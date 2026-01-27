@@ -1,13 +1,7 @@
 package consome.application.admin;
 
-import consome.application.post.PostPagingResult;
-import consome.application.post.PostRowResult;
 import consome.domain.admin.*;
-import consome.domain.post.PostService;
-import consome.domain.post.PostSummary;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -17,17 +11,14 @@ import java.util.List;
 public class ManageBoardFacade {
 
     private final BoardService boardService;
+    private final CategoryService categoryService;
 
-    public Board create(Long sectionId, String name, String description, int displayOrder) {
-        return boardService.create(sectionId, name, description, displayOrder);
+    public Board create(String name, String description, int displayOrder) {
+        return boardService.create(name, description, displayOrder);
     }
 
     public Board update(Long boardId, String name, String description) {
         return boardService.update(boardId, name, description);
-    }
-
-    public Board rename(Long boardId, String newName) {
-        return boardService.rename(boardId, newName);
     }
 
     public Board changeOrder(Long boardId, int newOrder) {
@@ -40,5 +31,9 @@ public class ManageBoardFacade {
 
     public void delete(Long boardId) {
         boardService.delete(boardId);
+    }
+
+    public List<Category> findAllOrderedByBoard(Long boardId) {
+        return categoryService.findAllOrderedByBoard(boardId);
     }
 }

@@ -2,7 +2,6 @@ package consome.domain.admin;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
@@ -12,17 +11,9 @@ import java.util.List;
 public class BoardService {
     private final BoardRepository boardRepository;
 
-    public Board create(Long sectionId, String name, String description, int displayOrder) {
+    public Board create(String name, String description, int displayOrder) {
         isNameDuplicate(name);
-        Board board = Board.create(sectionId, name, description, displayOrder);
-        return boardRepository.save(board);
-    }
-
-    /*사용 안함*/
-    public Board rename(Long boardId, String newName) {
-        Board board = findById(boardId);
-        isNameDuplicate(newName);
-        board.rename(newName);
+        Board board = Board.create(name, description, displayOrder);
         return boardRepository.save(board);
     }
 
@@ -46,21 +37,7 @@ public class BoardService {
 
     @Transactional
     public void reorder(List<BoardOrder> orders) {
-        List<Long> sectionIds = orders.stream()
-                .map(BoardOrder::sectionId)
-                .distinct()
-                .toList();
-
-        for (Long sectionId : sectionIds) {
-            reorderBySectionId(sectionId, orders.stream()
-                    .filter(o -> o.sectionId().equals(sectionId))
-                    .toList());
-        }
-    }
-
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public void reorderBySectionId(Long sectionId, List<BoardOrder> sectionOrders) {
-        List<Board> boards = boardRepository.findBySectionIdAndDeletedFalseOrderByDisplayOrder(sectionId);
+        List<Board> boards = boardRepository.findByDeletedFalseOrderByDisplayOrder();
 
         // 1️⃣ 임시 음수화
         for (Board board : boards) {
@@ -69,7 +46,7 @@ public class BoardService {
         boardRepository.flush();
 
         // 2️⃣ 실제 순서 반영
-        for (BoardOrder order : sectionOrders) {
+        for (BoardOrder order : orders) {
             Board board = boardRepository.findById(order.boardId())
                     .orElseThrow(() -> new IllegalArgumentException("잘못된 접근입니다."));
             board.changeOrder(order.displayOrder());
@@ -98,10 +75,6 @@ public class BoardService {
                 .orElseThrow(() -> new IllegalArgumentException("잘못된 접근입니다."));
     }
 
-    public List<Board> findAllBySectionId(Long sectionId) {
-        return boardRepository.findBySectionIdAndDeletedFalseOrderByDisplayOrder(sectionId);
-    }
-
     public List<Board> findAllOrdered() {
         return boardRepository.findByDeletedFalseOrderByDisplayOrder();
     }
@@ -110,5 +83,4 @@ public class BoardService {
         Board board = findById(boardId);
         return board.getName();
     }
-
 }

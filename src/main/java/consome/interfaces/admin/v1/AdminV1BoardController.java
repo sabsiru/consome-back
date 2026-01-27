@@ -20,7 +20,7 @@ public class AdminV1BoardController {
 
     @PostMapping()
     public BoardResponse create(@RequestBody @Valid CreateBoardRequest request) {
-        Board board = manageBoardFacade.create(request.getSectionId(), request.getName(), request.getDescription(), request.getDisplayOrder());
+        Board board = manageBoardFacade.create(request.getName(), request.getDescription(), request.getDisplayOrder());
         return BoardResponse.from(board);
     }
 
@@ -28,12 +28,6 @@ public class AdminV1BoardController {
     public BoardResponse update(@PathVariable Long boardId,
                                 @RequestBody @Valid UpdateBoardRequest request) {
         Board board = manageBoardFacade.update(boardId, request.name(), request.description());
-        return BoardResponse.from(board);
-    }
-
-    @PatchMapping("/{boardId}/name")
-    public BoardResponse rename(@PathVariable Long boardId, @RequestBody RenameRequest request) {
-        Board board = manageBoardFacade.rename(boardId, request.getNewName());
         return BoardResponse.from(board);
     }
 
@@ -46,7 +40,7 @@ public class AdminV1BoardController {
     @PutMapping("/reorder")
     public ResponseEntity<Void> reorder(@RequestBody BoardReorderRequest request) {
         List<BoardOrder> orders = request.orders().stream()
-                .map(o -> new BoardOrder(o.sectionId(), o.boardId(), o.displayOrder()))
+                .map(o -> new BoardOrder(o.boardId(), o.displayOrder()))
                 .toList();
 
         manageBoardFacade.reorder(orders);
@@ -57,5 +51,12 @@ public class AdminV1BoardController {
     public void delete(@PathVariable Long boardId) {
         manageBoardFacade.delete(boardId);
     }
-
+    
+    @GetMapping("/{boardId}/categories")
+    public ResponseEntity<List<CategoryResponse>> findAllOrderedByBoard(@PathVariable Long boardId) {
+        List<CategoryResponse> categories = manageBoardFacade.findAllOrderedByBoard(boardId).stream()
+                .map(CategoryResponse::from)
+                .toList();
+        return ResponseEntity.ok(categories);
+    }
 }
