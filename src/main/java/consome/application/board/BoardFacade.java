@@ -65,4 +65,8 @@ public class BoardFacade {
         Board board = boardService.findById(boardId);
         return board.getName();
     }
+
+    public List<UserBoardSearchResult> searchBoards(String keyword, int limit) {
+        return boardService.searchByKeyword(keyword, limit);
+    }
 }
