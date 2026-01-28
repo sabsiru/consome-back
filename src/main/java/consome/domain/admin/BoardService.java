@@ -1,5 +1,6 @@
 package consome.domain.admin;
 
+import consome.application.board.UserBoardSearchResult;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -10,6 +11,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class BoardService {
     private final BoardRepository boardRepository;
+    private final BoardQueryRepository boardQueryRepository;
 
     public Board create(String name, String description, int displayOrder) {
         isNameDuplicate(name);
@@ -82,5 +84,9 @@ public class BoardService {
     public String findNameById(Long boardId) {
         Board board = findById(boardId);
         return board.getName();
+    }
+
+    public List<UserBoardSearchResult> searchByKeyword(String keyword, int limit) {
+        return boardQueryRepository.searchByKeyword(keyword, limit);
     }
 }

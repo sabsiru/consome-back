@@ -4,6 +4,7 @@ import consome.application.board.BoardFacade;
 import consome.application.post.PostPagingResult;
 import consome.interfaces.admin.dto.CategoryResponse;
 import consome.interfaces.board.dto.BoardPostListResponse;
+import consome.interfaces.board.dto.BoardSearchResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
@@ -28,7 +29,7 @@ public class BoardV1Controller {
         PostPagingResult result = boardFacade.getPosts(boardId, pageable, categoryId);
         return ResponseEntity.ok(BoardPostListResponse.from(result));
     }
-
+    
     @GetMapping("/{boardId}/categories")
     public ResponseEntity<List<CategoryResponse>> getCategories(@PathVariable Long boardId) {
         List<CategoryResponse> categories = boardFacade.getCategories(boardId).stream()
@@ -40,5 +41,17 @@ public class BoardV1Controller {
     @GetMapping("/{boardId}")
     public ResponseEntity<String> findNameById(@PathVariable Long boardId) {
         return ResponseEntity.ok(boardFacade.findNameById(boardId));
+    }
+
+    @GetMapping("/search")
+    public ResponseEntity<List<BoardSearchResponse>> searchBoards(
+            @RequestParam(required = false) String keyword,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+        List<BoardSearchResponse> results = boardFacade.searchBoards(keyword, size)
+                .stream()
+                .map(BoardSearchResponse::from)
+                .toList();
+        return ResponseEntity.ok(results);
     }
 }
