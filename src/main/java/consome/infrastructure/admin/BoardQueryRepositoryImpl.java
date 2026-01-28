@@ -5,6 +5,7 @@ import com.querydsl.core.types.Projections;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import consome.application.admin.BoardSearchCommand;
 import consome.application.admin.BoardSearchResult;
+import consome.application.board.UserBoardSearchResult;
 import consome.domain.admin.BoardQueryRepository;
 import consome.domain.admin.QBoard;
 import lombok.RequiredArgsConstructor;
@@ -90,5 +91,26 @@ public class BoardQueryRepositoryImpl implements BoardQueryRepository {
                 .fetchOne();
 
         return new PageImpl<>(content, pageable, total != null ? total : 0);
+    }
+
+    @Override
+    public List<UserBoardSearchResult> searchByKeyword(String keyword, int limit) {
+        BooleanBuilder builder = new BooleanBuilder();
+        builder.and(board.deleted.isFalse());
+
+        if (StringUtils.hasText(keyword)) {
+            builder.and(board.name.containsIgnoreCase(keyword));
+        }
+
+        return queryFactory
+                .select(Projections.constructor(UserBoardSearchResult.class,
+                        board.id,
+                        board.name
+                ))
+                .from(board)
+                .where(builder)
+                .orderBy(board.name.asc())
+                .limit(limit)
+                .fetch();
     }
 }
