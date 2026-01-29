@@ -1,14 +1,18 @@
 package consome.interfaces.admin.dto.manage;
 
 import consome.application.admin.UserRowResult;
+import consome.domain.admin.ManagedBoardInfo;
 import consome.domain.user.Role;
+
+import java.util.List;
 
 public record ManageUserResponse(
         Long userId,
         String loginId,
         String nickname,
         Role role,
-        int userPoint
+        int userPoint,
+        List<ManagedBoardInfo> managedBoards
 ) {
     public static ManageUserResponse from(UserRowResult result) {
         return new ManageUserResponse(
@@ -16,7 +20,8 @@ public record ManageUserResponse(
                 result.loginId(),
                 result.nickname(),
                 result.role(),
-                result.userPoint()
+                result.userPoint(),
+                result.managedBoards()
         );
     }
 }
