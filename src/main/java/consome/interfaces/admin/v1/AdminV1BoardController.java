@@ -51,7 +51,7 @@ public class AdminV1BoardController {
     public void delete(@PathVariable Long boardId) {
         manageBoardFacade.delete(boardId);
     }
-    
+
     @GetMapping("/{boardId}/categories")
     public ResponseEntity<List<CategoryResponse>> findAllOrderedByBoard(@PathVariable Long boardId) {
         List<CategoryResponse> categories = manageBoardFacade.findAllOrderedByBoard(boardId).stream()

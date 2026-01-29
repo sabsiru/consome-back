@@ -5,6 +5,8 @@ import consome.application.user.UserSearchCommand;
 import consome.application.user.UserSearchPagingResult;
 import consome.application.user.UserSearchResult;
 import consome.domain.admin.Board;
+import consome.domain.admin.BoardManager;
+import consome.domain.admin.BoardManagerService;
 import consome.domain.admin.BoardQueryRepository;
 import consome.domain.admin.BoardService;
 import consome.domain.admin.Category;
@@ -30,6 +32,7 @@ public class ManageFacade {
     private final CategoryService categoryService;
     private final UserService userService;
     private final UserQueryRepository userQueryRepository;
+    private final BoardManagerService boardManagerService;
 
     public ManageTreeResult getTree() {
         List<Board> boards = boardService.findAllOrdered();
@@ -66,7 +69,8 @@ public class ManageFacade {
                         userInfo.loginId(),
                         userInfo.nickname(),
                         userInfo.role(),
-                        userInfo.userPoint()
+                        userInfo.userPoint(),
+                        boardManagerService.getManagedBoards(userInfo.userId())
                 ))
                 .toList();
 
@@ -116,5 +120,27 @@ public class ManageFacade {
                 page.getTotalElements(),
                 page.getTotalPages()
         );
+    }
+
+    @Transactional
+    public BoardManager assignManager(Long boardId, Long userId) {
+        return boardManagerService.assignManager(boardId, userId);
+    }
+
+    @Transactional
+    public void removeManager(Long boardId, Long userId) {
+        boardManagerService.removeManager(boardId, userId);
+    }
+
+    @Transactional(readOnly = true)
+    public List<ManagerResult> getManagersByBoard(Long boardId) {
+        Board board = boardService.findById(boardId);
+        return boardManagerService.getManagersByBoard(boardId).stream()
+                .map(bm -> new ManagerResult(
+                        bm.getUserId(),
+                        userService.getNicknameById(bm.getUserId()),
+                        board.getName()
+                ))
+                .toList();
     }
 }
