@@ -9,15 +9,21 @@ public record BoardPostListResponse(
         String boardName,
         String description,
         List<BoardPostResponse> posts,
+        List<ManagerResponse> managers,
         int page,
         int size,
         long totalElements,
         int totalPages
 ) {
+    public record ManagerResponse(Long userId, String nickname) {}
 
     public static BoardPostListResponse from (PostPagingResult result){
         List<BoardPostResponse> posts = result.posts().stream()
                 .map(BoardPostResponse::from)
+                .toList();
+
+        List<ManagerResponse> managers = result.managers().stream()
+                .map(m -> new ManagerResponse(m.userId(), m.nickname()))
                 .toList();
 
         return new BoardPostListResponse(
@@ -25,6 +31,7 @@ public record BoardPostListResponse(
                 result.boardName(),
                 result.description(),
                 posts,
+                managers,
                 result.page(),
                 result.size(),
                 result.totalElements(),
