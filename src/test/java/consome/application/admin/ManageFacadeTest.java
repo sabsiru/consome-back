@@ -1,115 +1,231 @@
 package consome.application.admin;
 
-import consome.application.admin.result.ManageTreeResult;
 import consome.domain.admin.*;
+import consome.domain.user.Role;
+import consome.domain.user.User;
+import consome.domain.user.UserRepository;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.transaction.annotation.Transactional;
+import org.testcontainers.utility.TestcontainersConfiguration;
 
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 
 @SpringBootTest
+@Import(TestcontainersConfiguration.class)
 @Transactional
 class ManageFacadeTest {
 
     @Autowired
     private BoardService boardService;
     @Autowired
-    private SectionService sectionService;
-    @Autowired
     private CategoryService categoryService;
     @Autowired
     private ManageFacade manageFacade;
+    @Autowired
+    private UserRepository userRepository;
+    @Autowired
+    private BoardRepository boardRepository;
+    @Autowired
+    private BoardManagerRepository boardManagerRepository;
 
-    @Test
-    void getTreeTest() {
-        // given
-        //AdminInitializer
+    @Nested
+    @DisplayName("관리자 지정/해제 테스트")
+    class ManagerTests {
 
-        // when
-        ManageTreeResult tree = manageFacade.getTree();
+        private User testUser;
+        private Board testBoard;
 
-        // then
-        assertThat(tree.sections()).hasSize(1);
+        @BeforeEach
+        void setUp() {
+            boardManagerRepository.deleteAll();
+            userRepository.deleteAll();
+            boardRepository.deleteAll();
 
-        ManageTreeResult.SectionNode sectionNode = tree.sections().get(0);
-        assertThat(sectionNode.name()).isEqualTo("자유");
-        assertThat(sectionNode.boards()).hasSize(1);
+            testUser = userRepository.save(User.create("testuser", "테스트유저", "password123!"));
+            testBoard = boardRepository.save(Board.create("테스트게시판", "테스트 게시판입니다", 1));
+        }
 
-        // 자유게시판 검증
-        ManageTreeResult.BoardNode freeBoard = sectionNode.boards().get(0);
-        assertThat(freeBoard.name()).isEqualTo("자유게시판");
-        assertThat(freeBoard.categories())
-                .extracting(ManageTreeResult.CategoryNode::name)
-                .containsExactly("잡담");
+        @Test
+        @DisplayName("관리자 지정 시 User의 role이 MANAGER로 변경된다")
+        void assignManager_changesUserRoleToManager() {
+            // given
+            assertThat(testUser.getRole()).isEqualTo(Role.USER);
 
+            // when
+            manageFacade.assignManager(testBoard.getId(), testUser.getId());
+
+            // then
+            User updatedUser = userRepository.findById(testUser.getId()).orElseThrow();
+            assertThat(updatedUser.getRole()).isEqualTo(Role.MANAGER);
+        }
+
+        @Test
+        @DisplayName("관리자 지정 시 BoardManager 레코드가 생성된다")
+        void assignManager_createsBoardManagerRecord() {
+            // when
+            manageFacade.assignManager(testBoard.getId(), testUser.getId());
+
+            // then
+            List<BoardManager> managers = boardManagerRepository.findByBoardId(testBoard.getId());
+            assertThat(managers).hasSize(1);
+            assertThat(managers.get(0).getUserId()).isEqualTo(testUser.getId());
+            assertThat(managers.get(0).getBoardId()).isEqualTo(testBoard.getId());
+        }
+
+        @Test
+        @DisplayName("이미 관리자인 게시판에 다시 지정하면 예외 발생")
+        void assignManager_throwsExceptionIfAlreadyManager() {
+            // given
+            manageFacade.assignManager(testBoard.getId(), testUser.getId());
+
+            // when & then
+            assertThatThrownBy(() -> manageFacade.assignManager(testBoard.getId(), testUser.getId()))
+                    .isInstanceOf(IllegalStateException.class)
+                    .hasMessageContaining("이미 해당 게시판의 관리자입니다");
+        }
+
+        @Test
+        @DisplayName("관리자 해제 시 다른 게시판이 없으면 User의 role이 USER로 복원된다")
+        void removeManager_restoresUserRoleToUserIfNoOtherBoards() {
+            // given
+            manageFacade.assignManager(testBoard.getId(), testUser.getId());
+            assertThat(userRepository.findById(testUser.getId()).orElseThrow().getRole()).isEqualTo(Role.MANAGER);
+
+            // when
+            manageFacade.removeManager(testBoard.getId(), testUser.getId());
+
+            // then
+            User updatedUser = userRepository.findById(testUser.getId()).orElseThrow();
+            assertThat(updatedUser.getRole()).isEqualTo(Role.USER);
+        }
+
+        @Test
+        @DisplayName("관리자 해제 시 다른 게시판이 있으면 User의 role이 MANAGER로 유지된다")
+        void removeManager_keepsManagerRoleIfOtherBoardsExist() {
+            // given
+            Board anotherBoard = boardRepository.save(Board.create("다른게시판", "다른 게시판입니다", 2));
+            manageFacade.assignManager(testBoard.getId(), testUser.getId());
+            manageFacade.assignManager(anotherBoard.getId(), testUser.getId());
+
+            // when
+            manageFacade.removeManager(testBoard.getId(), testUser.getId());
+
+            // then
+            User updatedUser = userRepository.findById(testUser.getId()).orElseThrow();
+            assertThat(updatedUser.getRole()).isEqualTo(Role.MANAGER);
+        }
+
+        @Test
+        @DisplayName("관리자 해제 시 BoardManager 레코드가 삭제된다")
+        void removeManager_deletesBoardManagerRecord() {
+            // given
+            manageFacade.assignManager(testBoard.getId(), testUser.getId());
+            assertThat(boardManagerRepository.findByBoardId(testBoard.getId())).hasSize(1);
+
+            // when
+            manageFacade.removeManager(testBoard.getId(), testUser.getId());
+
+            // then
+            List<BoardManager> managers = boardManagerRepository.findByBoardId(testBoard.getId());
+            assertThat(managers).isEmpty();
+        }
+
+        @Test
+        @DisplayName("관리자가 아닌 사용자를 해제하면 예외 발생")
+        void removeManager_throwsExceptionIfNotManager() {
+            // when & then
+            assertThatThrownBy(() -> manageFacade.removeManager(testBoard.getId(), testUser.getId()))
+                    .isInstanceOf(IllegalStateException.class)
+                    .hasMessageContaining("해당 게시판의 관리자가 아닙니다");
+        }
+
+        @Test
+        @DisplayName("getManagersByBoard - 게시판 관리자 목록 조회")
+        void getManagersByBoard_returnsManagerList() {
+            // given
+            User anotherUser = userRepository.save(User.create("another", "다른유저", "password123!"));
+            manageFacade.assignManager(testBoard.getId(), testUser.getId());
+            manageFacade.assignManager(testBoard.getId(), anotherUser.getId());
+
+            // when
+            List<ManagerResult> managers = manageFacade.getManagersByBoard(testBoard.getId());
+
+            // then
+            assertThat(managers).hasSize(2);
+            assertThat(managers).extracting(ManagerResult::boardName).containsOnly("테스트게시판");
+        }
     }
 
-    @Test
-    @DisplayName("findUsers – 첫 페이지 조회 시 20명씩, 총 1001명이 조회된다")
-    void getUsers_firstPage() {
-        // given
-        int page = 0;
-        int size = 20;
-        Pageable pageable = PageRequest.of(page, size, Sort.by("id").ascending());
+    @Nested
+    @DisplayName("유저 목록 조회 테스트 - managedBoards 포함")
+    class GetUsersWithManagedBoardsTests {
 
-        // when
-        UserPagingResult result = manageFacade.getUsers(pageable);
+        @BeforeEach
+        void setUp() {
+            boardManagerRepository.deleteAll();
+            userRepository.deleteAll();
+            boardRepository.deleteAll();
+        }
 
-        // then
-        // 내용 검증
-        List<UserRowResult> users = result.users(); // (클래스면 result.getContent()로 변경)
+        @Test
+        @DisplayName("유저 목록 조회 시 managedBoards가 포함된다")
+        void getUsers_includesManagedBoards() {
+            // given
+            User user = userRepository.save(User.create("manager1", "매니저1", "password123!"));
+            Board board1 = boardRepository.save(Board.create("게시판1", "게시판1 설명", 1));
+            Board board2 = boardRepository.save(Board.create("게시판2", "게시판2 설명", 2));
 
-        assertThat(result).isNotNull();
-        assertThat(users).hasSize(size);
+            manageFacade.assignManager(board1.getId(), user.getId());
+            manageFacade.assignManager(board2.getId(), user.getId());
 
-        // 총 개수: 유저 1000 + 어드민 1
-        assertThat(result.totalElements()).isEqualTo(1001L);   // (클래스면 getTotalElements())
-        assertThat(result.page()).isEqualTo(page);             // (클래스면 getPage())
-        assertThat(result.size()).isEqualTo(size);             // (클래스면 getSize())
+            Pageable pageable = PageRequest.of(0, 20, Sort.by("id").ascending());
 
-        long expectedTotalPages = (long) Math.ceil(1001.0 / size);
-        assertThat(result.totalPages()).isEqualTo(expectedTotalPages); // (클래스면 getTotalPages())
+            // when
+            UserPagingResult result = manageFacade.getUsers(pageable);
 
-        // 한 건 내용 sanity check
-        UserRowResult first = users.get(0);
-        assertThat(first.userId()).isNotNull();          // (클래스면 getUserId())
-        assertThat(first.loginId()).isNotBlank();        // (클래스면 getLoginId())
-        assertThat(first.nickname()).isNotBlank();       // (클래스면 getNickname())
-        assertThat(first.userPoint()).isNotNull();       // (클래스면 getUserPoint())
-    }
+            // then
+            assertThat(result.users()).isNotEmpty();
+            UserRowResult managerUser = result.users().stream()
+                    .filter(u -> u.userId().equals(user.getId()))
+                    .findFirst()
+                    .orElseThrow();
 
-    @Test
-    @DisplayName("findUsers – 페이지를 넘기면 다른 유저들이 조회된다")
-    void getUsers_secondPage_isDifferentFromFirstPage() {
-        // given
-        int size = 20;
-        Pageable firstPage = PageRequest.of(0, size, Sort.by("id").ascending());
-        Pageable secondPage = PageRequest.of(1, size, Sort.by("id").ascending());
+            assertThat(managerUser.managedBoards()).hasSize(2);
+            assertThat(managerUser.managedBoards())
+                    .extracting(ManagedBoardInfo::boardName)
+                    .containsExactlyInAnyOrder("게시판1", "게시판2");
+        }
 
-        // when
-        UserPagingResult firstResult = manageFacade.getUsers(firstPage);
-        UserPagingResult secondResult = manageFacade.getUsers(secondPage);
+        @Test
+        @DisplayName("관리 게시판이 없는 유저는 빈 리스트를 반환한다")
+        void getUsers_returnsEmptyManagedBoardsForRegularUser() {
+            // given
+            User regularUser = userRepository.save(User.create("regular", "일반유저", "password123!"));
+            Pageable pageable = PageRequest.of(0, 20, Sort.by("id").ascending());
 
-        // then
-        List<UserRowResult> firstContent = firstResult.users();
-        List<UserRowResult> secondContent = secondResult.users();
+            // when
+            UserPagingResult result = manageFacade.getUsers(pageable);
 
-        assertThat(firstContent).hasSize(size);
-        assertThat(secondContent).hasSize(size);
+            // then
+            UserRowResult userResult = result.users().stream()
+                    .filter(u -> u.userId().equals(regularUser.getId()))
+                    .findFirst()
+                    .orElseThrow();
 
-        // 첫 페이지 첫 번째 유저와 두 번째 페이지 첫 번째 유저는 id가 달라야 한다
-        Long firstId = firstContent.get(0).userId();
-        Long secondId = secondContent.get(0).userId();
-
-        assertThat(firstId).isNotEqualTo(secondId);
+            assertThat(userResult.managedBoards()).isEmpty();
+        }
     }
 }

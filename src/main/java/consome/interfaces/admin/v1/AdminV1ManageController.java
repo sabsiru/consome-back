@@ -7,6 +7,7 @@ import consome.application.admin.UserPagingResult;
 import consome.application.admin.result.ManageTreeResult;
 import consome.application.user.UserSearchCommand;
 import consome.application.user.UserSearchPagingResult;
+import consome.interfaces.admin.dto.ManagerResponse;
 import consome.interfaces.admin.dto.manage.BoardSearchListResponse;
 import consome.interfaces.admin.dto.manage.ManageTreeResponse;
 import consome.interfaces.admin.dto.manage.ManageUserListResponse;
@@ -15,10 +16,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequiredArgsConstructor
@@ -68,5 +66,25 @@ public class AdminV1ManageController {
         BoardSearchCommand command = new BoardSearchCommand(keyword, id, name);
         BoardPagingResult result = manageFacade.searchBoards(command, pageable);
         return ResponseEntity.ok(BoardSearchListResponse.from(result));
+    }
+
+    @PostMapping("/users/{userId}/role")
+    public ResponseEntity<ManagerResponse> assignManager(
+            @PathVariable Long userId,
+            @RequestParam Long boardId) {
+        manageFacade.assignManager(boardId, userId);
+        var result = manageFacade.getManagersByBoard(boardId).stream()
+                .filter(m -> m.userId().equals(userId))
+                .findFirst()
+                .orElseThrow();
+        return ResponseEntity.ok(ManagerResponse.from(result));
+    }
+
+    @DeleteMapping("/users/{userId}/role")
+    public ResponseEntity<Void> removeManager(
+            @PathVariable Long userId,
+            @RequestParam Long boardId) {
+        manageFacade.removeManager(boardId, userId);
+        return ResponseEntity.ok().build();
     }
 }

@@ -46,12 +46,13 @@ class CategoryServiceTest {
     void 기존_카테고리ID와_새_이름으로_변경할_때_이름이_수정된다() {
         // given
         Long id = 1L;
+        Long boardId = 5L;
         Category existing = Category.create(5L, "롤", 1);
         when(categoryRepository.findById(id)).thenReturn(Optional.of(existing));
         when(categoryRepository.save(existing)).thenReturn(existing);
 
         // when
-        Category result = categoryService.rename(id, "피파");
+        Category result = categoryService.rename(id, "피파", boardId);
 
         // then
         assertThat(result.getName()).isEqualTo("피파");

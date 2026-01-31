@@ -76,12 +76,13 @@ public class CategoryServiceIntegrationTest {
         //given
         Long categoryId = 1L;
         String name = "게임";
+        Long boardId = 1L;
         int displayOrder = 1;
         Category category = categoryService.create(categoryId, name, displayOrder);
 
         //when
         String newName = "스포츠";
-        Category renamedCategory = categoryService.rename(category.getId(), newName);
+        Category renamedCategory = categoryService.rename(category.getId(), newName, boardId);
 
         //then
         assertThat(renamedCategory.getName()).isEqualTo(newName);
@@ -92,6 +93,7 @@ public class CategoryServiceIntegrationTest {
         //given
         Long categoryId = 1L;
         String name = "카테고리1";
+        Long boardId = 1L;
         int displayOrder = 1;
         Category category1 = categoryService.create(categoryId, name, displayOrder);
 
@@ -99,7 +101,7 @@ public class CategoryServiceIntegrationTest {
         categoryService.create(categoryId, duplicateName, displayOrder + 1);
 
         //when & then
-        assertThatThrownBy(() -> categoryService.rename(category1.getId(), duplicateName))
+        assertThatThrownBy(() -> categoryService.rename(category1.getId(), duplicateName, boardId))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("이미 존재하는 카테고리 이름입니다.");
     }

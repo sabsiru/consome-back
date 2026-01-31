@@ -1,6 +1,8 @@
 package consome.application.user;
 
 
+import consome.domain.admin.BoardManager;
+import consome.domain.admin.BoardManagerRepository;
 import consome.domain.comment.Comment;
 import consome.domain.comment.CommentReaction;
 import consome.domain.comment.CommentService;
@@ -17,6 +19,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 public class UserFacade {
@@ -24,6 +28,7 @@ public class UserFacade {
     private final UserService userService;
     private final PointService pointService;
     private final JwtProvider jwtProvider;
+    private final BoardManagerRepository boardManagerRepository;
 
     @Transactional
     public Long register(UserRegisterCommand command) {
@@ -36,16 +41,24 @@ public class UserFacade {
     public UserLoginResult login(UserLoginCommand command) {
         User user = userService.login(command.loginId(), command.password());
         int currentPoint = pointService.getCurrentPoint(user.getId());
+        List<Long> managedBoardIds = boardManagerRepository.findByUserId(user.getId())
+                .stream()
+                .map(BoardManager::getBoardId)
+                .toList();
 
         String accessToken = jwtProvider.createAccessToken(user.getId(), user.getRole());
-        return new UserLoginResult(user.getId(), user.getLoginId(), user.getNickname(), user.getRole(), currentPoint, accessToken);
+        return new UserLoginResult(user.getId(), user.getLoginId(), user.getNickname(), user.getRole(), currentPoint, accessToken, managedBoardIds);
     }
 
     @Transactional(readOnly = true)
     public UserMeResult getMyInfo(Long userId) {
         User user = userService.findById(userId);
-        int currentPoint = pointService.getCurrentPoint(userId); // ✅ 따로 조회
-        return new UserMeResult(user.getId(), user.getLoginId(), user.getNickname(), currentPoint, user.getRole());
+        int currentPoint = pointService.getCurrentPoint(userId);
+        List<Long> managedBoardIds = boardManagerRepository.findByUserId(userId)
+                .stream()
+                .map(BoardManager::getBoardId)
+                .toList();
+        return new UserMeResult(user.getId(), user.getLoginId(), user.getNickname(), currentPoint, user.getRole(), managedBoardIds);
     }
 
 }

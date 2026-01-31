@@ -7,9 +7,11 @@ public record PostPagingResult(
         String boardName,
         String description,
         List<PostRowResult> posts,
+        List<ManagerInfo> managers,
         int page,
         int size,
         long totalElements,
         int totalPages
 ) {
+    public record ManagerInfo(Long userId, String nickname) {}
 }

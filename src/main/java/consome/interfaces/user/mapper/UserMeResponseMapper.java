@@ -10,7 +10,8 @@ public class UserMeResponseMapper {
                 result.loginId(),
                 result.nickname(),
                 result.point(),
-                result.role()
+                result.role(),
+                result.managedBoardIds()
         );
     }
 }

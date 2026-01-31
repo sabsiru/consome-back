@@ -3,11 +3,15 @@ package consome.application.board;
 import consome.application.post.PostPagingResult;
 import consome.application.post.PostRowResult;
 import consome.domain.admin.Board;
+import consome.domain.admin.BoardManager;
+import consome.domain.admin.BoardManagerRepository;
 import consome.domain.admin.BoardService;
 import consome.domain.admin.Category;
 import consome.domain.admin.CategoryService;
 import consome.domain.post.PostService;
 import consome.domain.post.PostSummary;
+import consome.domain.user.User;
+import consome.domain.user.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -22,6 +26,8 @@ public class BoardFacade {
     private final BoardService boardService;
     private final PostService postService;
     private final CategoryService categoryService;
+    private final BoardManagerRepository boardManagerRepository;
+    private final UserService userService;
 
     public PostPagingResult getPosts(Long boardId, Pageable pageable, Long categoryId) {
         Board board = boardService.findById(boardId);
@@ -45,11 +51,20 @@ public class BoardFacade {
                         summary.deleted()
                 ))
                 .toList();
+
+        List<PostPagingResult.ManagerInfo> managers = boardManagerRepository.findByBoardId(boardId).stream()
+                .map(bm -> {
+                    User user = userService.findById(bm.getUserId());
+                    return new PostPagingResult.ManagerInfo(user.getId(), user.getNickname());
+                })
+                .toList();
+
         return new PostPagingResult(
                 board.getId(),
                 board.getName(),
                 board.getDescription(),
                 rows,
+                managers,
                 page.getNumber(),
                 page.getSize(),
                 page.getTotalElements(),
