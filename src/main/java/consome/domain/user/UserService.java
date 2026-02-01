@@ -3,6 +3,8 @@ package consome.domain.user;
 import consome.domain.auth.PasswordEncryptor;
 import consome.domain.auth.PasswordPolicy;
 import consome.domain.user.exception.UserException;
+import consome.domain.user.repository.UserQueryRepository;
+import consome.domain.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;

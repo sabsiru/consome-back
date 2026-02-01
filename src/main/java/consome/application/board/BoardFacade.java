@@ -4,7 +4,7 @@ import consome.application.post.PostPagingResult;
 import consome.application.post.PostRowResult;
 import consome.domain.admin.Board;
 import consome.domain.admin.BoardManager;
-import consome.domain.admin.BoardManagerRepository;
+import consome.domain.admin.repository.BoardManagerRepository;
 import consome.domain.admin.BoardService;
 import consome.domain.admin.Category;
 import consome.domain.admin.CategoryService;

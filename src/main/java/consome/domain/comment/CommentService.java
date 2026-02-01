@@ -1,5 +1,9 @@
 package consome.domain.comment;
 
+import consome.domain.comment.repository.CommentQueryRepository;
+import consome.domain.comment.repository.CommentReactionRepository;
+import consome.domain.comment.repository.CommentRepository;
+import consome.domain.comment.repository.CommentStatRepository;
 import consome.domain.post.ReactionType;
 import consome.domain.post.repository.PostRepository;
 import lombok.RequiredArgsConstructor;

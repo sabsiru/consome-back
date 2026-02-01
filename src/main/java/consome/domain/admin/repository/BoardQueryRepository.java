@@ -1,4 +1,4 @@
-package consome.domain.admin;
+package consome.domain.admin.repository;
 
 import consome.application.admin.BoardSearchCommand;
 import consome.application.admin.BoardSearchResult;

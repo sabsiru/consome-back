@@ -1,4 +1,4 @@
-package consome.domain.comment;
+package consome.domain.comment.repository;
 
 import consome.application.comment.CommentListResult;
 import org.springframework.data.domain.Page;
