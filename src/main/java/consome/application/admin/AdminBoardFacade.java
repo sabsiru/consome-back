@@ -8,7 +8,7 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-public class ManageBoardFacade {
+public class AdminBoardFacade {
 
     private final BoardService boardService;
     private final CategoryService categoryService;
