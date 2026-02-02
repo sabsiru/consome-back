@@ -1,12 +1,12 @@
 package consome.application.user;
 
-import consome.domain.comment.CommentReactionRepository;
-import consome.domain.comment.CommentRepository;
+import consome.domain.comment.repository.CommentReactionRepository;
+import consome.domain.comment.repository.CommentRepository;
 import consome.domain.comment.CommentService;
 import consome.domain.point.*;
 import consome.domain.post.PostService;
 import consome.domain.user.User;
-import consome.domain.user.UserRepository;
+import consome.domain.user.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
