@@ -1,5 +1,7 @@
 package consome.domain.point;
 
+import consome.domain.point.repository.PointHistoryRepository;
+import consome.domain.point.repository.PointRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 

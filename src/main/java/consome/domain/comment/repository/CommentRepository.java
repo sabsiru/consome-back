@@ -1,4 +1,6 @@
-package consome.domain.comment;
+package consome.domain.comment.repository;
+
+import consome.domain.comment.Comment;
 
 import jakarta.persistence.LockModeType;
 import org.springframework.data.domain.Page;

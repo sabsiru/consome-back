@@ -1,8 +1,10 @@
 package consome.domain.admin;
 
+import consome.domain.admin.repository.BoardManagerRepository;
+import consome.domain.admin.repository.BoardRepository;
 import consome.domain.user.Role;
 import consome.domain.user.User;
-import consome.domain.user.UserRepository;
+import consome.domain.user.repository.UserRepository;
 import consome.domain.user.exception.UserException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

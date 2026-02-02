@@ -4,7 +4,7 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.querydsl.core.Tuple;
 import consome.application.comment.CommentListResult;
 import consome.domain.comment.Comment;
-import consome.domain.comment.CommentQueryRepository;
+import consome.domain.comment.repository.CommentQueryRepository;
 import consome.domain.comment.QComment;
 import consome.domain.comment.QCommentStat;
 import consome.domain.user.QUser;

@@ -5,7 +5,7 @@ import consome.application.user.UserRegisterCommand;
 import consome.domain.post.PostService;
 import consome.domain.post.entity.Post;
 import consome.domain.post.repository.PostImageRepository;
-import consome.domain.user.UserRepository;
+import consome.domain.user.repository.UserRepository;
 import consome.infrastructure.storage.FileStorage;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;

@@ -10,7 +10,7 @@ import consome.domain.point.QPoint;
 import consome.domain.user.QUser;
 import consome.domain.user.QUserInfo;
 import consome.domain.user.UserInfo;
-import consome.domain.user.UserQueryRepository;
+import consome.domain.user.repository.UserQueryRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;

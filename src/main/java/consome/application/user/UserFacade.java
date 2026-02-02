@@ -2,7 +2,7 @@ package consome.application.user;
 
 
 import consome.domain.admin.BoardManager;
-import consome.domain.admin.BoardManagerRepository;
+import consome.domain.admin.repository.BoardManagerRepository;
 import consome.domain.comment.Comment;
 import consome.domain.comment.CommentReaction;
 import consome.domain.comment.CommentService;

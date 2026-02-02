@@ -1,4 +1,6 @@
-package consome.domain.point;
+package consome.domain.point.repository;
+
+import consome.domain.point.Point;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 

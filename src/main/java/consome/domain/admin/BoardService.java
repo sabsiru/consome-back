@@ -1,6 +1,8 @@
 package consome.domain.admin;
 
 import consome.application.board.UserBoardSearchResult;
+import consome.domain.admin.repository.BoardQueryRepository;
+import consome.domain.admin.repository.BoardRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

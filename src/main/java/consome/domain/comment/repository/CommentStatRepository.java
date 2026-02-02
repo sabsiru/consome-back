@@ -1,4 +1,6 @@
-package consome.domain.comment;
+package consome.domain.comment.repository;
+
+import consome.domain.comment.CommentStat;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 

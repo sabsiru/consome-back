@@ -1,4 +1,6 @@
-package consome.domain.comment;
+package consome.domain.comment.repository;
+
+import consome.domain.comment.CommentReaction;
 
 import consome.domain.post.ReactionType;
 import jakarta.persistence.LockModeType;

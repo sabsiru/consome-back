@@ -6,7 +6,7 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import consome.application.admin.BoardSearchCommand;
 import consome.application.admin.BoardSearchResult;
 import consome.application.board.UserBoardSearchResult;
-import consome.domain.admin.BoardQueryRepository;
+import consome.domain.admin.repository.BoardQueryRepository;
 import consome.domain.admin.QBoard;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;

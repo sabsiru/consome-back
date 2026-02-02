@@ -1,4 +1,6 @@
-package consome.domain.user;
+package consome.domain.user.repository;
+
+import consome.domain.user.User;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 

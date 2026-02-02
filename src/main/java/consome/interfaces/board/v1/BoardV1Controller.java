@@ -1,4 +1,4 @@
-package consome.interfaces.board;
+package consome.interfaces.board.v1;
 
 import consome.application.board.BoardFacade;
 import consome.application.post.PostPagingResult;

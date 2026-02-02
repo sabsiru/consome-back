@@ -8,7 +8,7 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-public class CategoryFacade {
+public class AdminCategoryFacade {
 
     private final CategoryService categoryService;
 

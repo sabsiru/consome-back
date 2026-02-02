@@ -7,12 +7,12 @@ import consome.application.user.UserSearchResult;
 import consome.domain.admin.Board;
 import consome.domain.admin.BoardManager;
 import consome.domain.admin.BoardManagerService;
-import consome.domain.admin.BoardQueryRepository;
+import consome.domain.admin.repository.BoardQueryRepository;
 import consome.domain.admin.BoardService;
 import consome.domain.admin.Category;
 import consome.domain.admin.CategoryService;
 import consome.domain.user.UserInfo;
-import consome.domain.user.UserQueryRepository;
+import consome.domain.user.repository.UserQueryRepository;
 import consome.domain.user.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -26,7 +26,7 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
-public class ManageFacade {
+public class AdminDashboardFacade {
     private final BoardService boardService;
     private final BoardQueryRepository boardQueryRepository;
     private final CategoryService categoryService;

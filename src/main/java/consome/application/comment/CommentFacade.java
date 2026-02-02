@@ -1,6 +1,8 @@
 package consome.application.comment;
 
 import consome.domain.comment.*;
+import consome.domain.comment.repository.CommentQueryRepository;
+import consome.domain.comment.repository.CommentReactionRepository;
 import consome.domain.point.PointHistoryType;
 import consome.domain.point.PointService;
 import consome.domain.post.PostService;

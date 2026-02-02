@@ -1,7 +1,7 @@
 package consome.interfaces.admin.v1;
 
+import consome.application.storage.OrphanFileCleanupFacade;
 import consome.application.storage.OrphanFileCleanupResult;
-import consome.application.storage.OrphanFileCleanupService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -13,11 +13,11 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/v1/admin/storage")
 public class AdminV1StorageController {
 
-    private final OrphanFileCleanupService orphanFileCleanupService;
+    private final OrphanFileCleanupFacade orphanFileCleanupFacade;
 
     @DeleteMapping("/orphan-files")
     public ResponseEntity<OrphanFileCleanupResult> cleanupOrphanFiles() {
-        OrphanFileCleanupResult result = orphanFileCleanupService.cleanup();
+        OrphanFileCleanupResult result = orphanFileCleanupFacade.cleanupOrphanFiles();
         return ResponseEntity.ok(result);
     }
 }
