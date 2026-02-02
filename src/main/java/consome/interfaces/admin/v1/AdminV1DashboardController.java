@@ -2,7 +2,7 @@ package consome.interfaces.admin.v1;
 
 import consome.application.admin.BoardPagingResult;
 import consome.application.admin.BoardSearchCommand;
-import consome.application.admin.ManageFacade;
+import consome.application.admin.AdminDashboardFacade;
 import consome.application.admin.UserPagingResult;
 import consome.application.admin.result.ManageTreeResult;
 import consome.application.user.UserSearchCommand;
@@ -21,19 +21,19 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/admin/manage")
-public class AdminV1ManageController {
+public class AdminV1DashboardController {
 
-    private final ManageFacade manageFacade;
+    private final AdminDashboardFacade adminDashboardFacade;
 
     @GetMapping("/tree")
     public ResponseEntity<ManageTreeResponse> getTree() {
-        ManageTreeResult result = manageFacade.getTree();
+        ManageTreeResult result = adminDashboardFacade.getTree();
         return ResponseEntity.ok(ManageTreeResponse.from(result));
     }
 
     @GetMapping("/users")
     public ResponseEntity<ManageUserListResponse> getUsers(@PageableDefault(size= 20) Pageable pageable) {
-        UserPagingResult result = manageFacade.getUsers(pageable);
+        UserPagingResult result = adminDashboardFacade.getUsers(pageable);
         return ResponseEntity.ok(ManageUserListResponse.from(result));
     }
 
@@ -46,13 +46,13 @@ public class AdminV1ManageController {
             @PageableDefault(size = 20) Pageable pageable
     ) {
         UserSearchCommand command = new UserSearchCommand(keyword, id, loginId, nickname);
-        UserSearchPagingResult result = manageFacade.searchUsers(command, pageable);
+        UserSearchPagingResult result = adminDashboardFacade.searchUsers(command, pageable);
         return ResponseEntity.ok(UserSearchListResponse.from(result));
     }
 
     @GetMapping("/boards")
     public ResponseEntity<BoardSearchListResponse> getBoards(@PageableDefault(size = 20) Pageable pageable) {
-        BoardPagingResult result = manageFacade.getBoards(pageable);
+        BoardPagingResult result = adminDashboardFacade.getBoards(pageable);
         return ResponseEntity.ok(BoardSearchListResponse.from(result));
     }
 
@@ -64,7 +64,7 @@ public class AdminV1ManageController {
             @PageableDefault(size = 20) Pageable pageable
     ) {
         BoardSearchCommand command = new BoardSearchCommand(keyword, id, name);
-        BoardPagingResult result = manageFacade.searchBoards(command, pageable);
+        BoardPagingResult result = adminDashboardFacade.searchBoards(command, pageable);
         return ResponseEntity.ok(BoardSearchListResponse.from(result));
     }
 
@@ -72,8 +72,8 @@ public class AdminV1ManageController {
     public ResponseEntity<ManagerResponse> assignManager(
             @PathVariable Long userId,
             @RequestParam Long boardId) {
-        manageFacade.assignManager(boardId, userId);
-        var result = manageFacade.getManagersByBoard(boardId).stream()
+        adminDashboardFacade.assignManager(boardId, userId);
+        var result = adminDashboardFacade.getManagersByBoard(boardId).stream()
                 .filter(m -> m.userId().equals(userId))
                 .findFirst()
                 .orElseThrow();
@@ -84,7 +84,7 @@ public class AdminV1ManageController {
     public ResponseEntity<Void> removeManager(
             @PathVariable Long userId,
             @RequestParam Long boardId) {
-        manageFacade.removeManager(boardId, userId);
+        adminDashboardFacade.removeManager(boardId, userId);
         return ResponseEntity.ok().build();
     }
 }

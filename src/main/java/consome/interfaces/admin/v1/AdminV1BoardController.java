@@ -1,6 +1,6 @@
 package consome.interfaces.admin.v1;
 
-import consome.application.admin.ManageBoardFacade;
+import consome.application.admin.AdminBoardFacade;
 import consome.domain.admin.Board;
 import consome.domain.admin.BoardOrder;
 import consome.interfaces.admin.dto.*;
@@ -16,24 +16,24 @@ import java.util.List;
 @RequestMapping("/api/v1/admin/boards")
 public class AdminV1BoardController {
 
-    private final ManageBoardFacade manageBoardFacade;
+    private final AdminBoardFacade adminBoardFacade;
 
     @PostMapping()
     public BoardResponse create(@RequestBody @Valid CreateBoardRequest request) {
-        Board board = manageBoardFacade.create(request.getName(), request.getDescription(), request.getDisplayOrder());
+        Board board = adminBoardFacade.create(request.getName(), request.getDescription(), request.getDisplayOrder());
         return BoardResponse.from(board);
     }
 
     @PatchMapping("/{boardId}")
     public BoardResponse update(@PathVariable Long boardId,
                                 @RequestBody @Valid UpdateBoardRequest request) {
-        Board board = manageBoardFacade.update(boardId, request.name(), request.description());
+        Board board = adminBoardFacade.update(boardId, request.name(), request.description());
         return BoardResponse.from(board);
     }
 
     @PatchMapping("/{boardId}/order")
     public BoardResponse changeOrder(@PathVariable Long boardId, @RequestBody ChangeOrderRequest request) {
-        Board board = manageBoardFacade.changeOrder(boardId, request.getNewOrder());
+        Board board = adminBoardFacade.changeOrder(boardId, request.getNewOrder());
         return BoardResponse.from(board);
     }
 
@@ -43,18 +43,18 @@ public class AdminV1BoardController {
                 .map(o -> new BoardOrder(o.boardId(), o.displayOrder()))
                 .toList();
 
-        manageBoardFacade.reorder(orders);
+        adminBoardFacade.reorder(orders);
         return ResponseEntity.ok().build();
     }
 
     @DeleteMapping("/{boardId}")
     public void delete(@PathVariable Long boardId) {
-        manageBoardFacade.delete(boardId);
+        adminBoardFacade.delete(boardId);
     }
 
     @GetMapping("/{boardId}/categories")
     public ResponseEntity<List<CategoryResponse>> findAllOrderedByBoard(@PathVariable Long boardId) {
-        List<CategoryResponse> categories = manageBoardFacade.findAllOrderedByBoard(boardId).stream()
+        List<CategoryResponse> categories = adminBoardFacade.findAllOrderedByBoard(boardId).stream()
                 .map(CategoryResponse::from)
                 .toList();
         return ResponseEntity.ok(categories);
