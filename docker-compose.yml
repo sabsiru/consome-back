@@ -10,3 +10,28 @@ services:
       MYSQL_PASSWORD: consome
     ports:
       - "13306:3306"
+
+  redis-master:
+    image: redis:7-alpine
+    container_name: consome-redis-master
+    ports:
+      - "16379:6379"
+    command: redis-server --appendonly yes
+
+  redis-replica-1:
+    image: redis:7-alpine
+    container_name: consome-redis-replica-1
+    ports:
+      - "16380:6379"
+    command: redis-server --replicaof redis-master 6379
+    depends_on:
+      - redis-master
+
+  redis-replica-2:
+    image: redis:7-alpine
+    container_name: consome-redis-replica-2
+    ports:
+      - "16381:6379"
+    command: redis-server --replicaof redis-master 6379
+    depends_on:
+      - redis-master
