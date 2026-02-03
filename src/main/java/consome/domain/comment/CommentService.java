@@ -90,7 +90,7 @@ public class CommentService {
 
     @Transactional
     public CommentStat like(Long commentId, Long userId) {
-        CommentStat stat = getCommentStat(commentId);
+        CommentStat stat = getCommentStatForUpdate(commentId);
 
         if (commentReactionRepository.findByIdForUpdate(commentId, userId, ReactionType.LIKE).isPresent()) {
             throw new IllegalStateException("이미 추천했습니다.");
@@ -105,7 +105,7 @@ public class CommentService {
 
     @Transactional
     public CommentStat dislike(Long commentId, Long userId) {
-        CommentStat stat = getCommentStat(commentId);
+        CommentStat stat = getCommentStatForUpdate(commentId);
 
         if (commentReactionRepository.findByIdForUpdate(commentId, userId, ReactionType.DISLIKE).isPresent()) {
             throw new IllegalStateException("이미 비추천했습니다.");
@@ -121,6 +121,11 @@ public class CommentService {
     @Transactional(readOnly = true)
     public CommentStat getCommentStat(Long commentId) {
         return commentStatRepository.findById(commentId)
+                .orElseThrow(() -> new IllegalArgumentException("댓글 통계를 찾을 수 없습니다."));
+    }
+
+    public CommentStat getCommentStatForUpdate(Long commentId) {
+        return commentStatRepository.findByCommentIdForUpdate(commentId)
                 .orElseThrow(() -> new IllegalArgumentException("댓글 통계를 찾을 수 없습니다."));
     }
 }

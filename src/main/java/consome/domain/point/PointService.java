@@ -4,6 +4,7 @@ import consome.domain.point.repository.PointHistoryRepository;
 import consome.domain.point.repository.PointRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -19,16 +20,18 @@ public class PointService {
         return initializedPoint.getUserPoint();
     }
 
+    @Transactional
     public int earn(Long userId, PointHistoryType pointHistoryType) {
-        Point point = findPointByUserId(userId);
+        Point point = findPointByUserIdForUpdate(userId);
         point.earn(pointHistoryType.getPoint());
         Point earnPoint = pointRepository.save(point);
         pointHistoryRepository.save(PointHistory.create(userId, pointHistoryType.getPoint(), pointHistoryType, point.getUserPoint(), earnPoint.getUserPoint()));
         return earnPoint.getUserPoint();
     }
 
+    @Transactional
     public int penalize(Long userId, PointHistoryType pointHistoryType) {
-        Point point = findPointByUserId(userId);
+        Point point = findPointByUserIdForUpdate(userId);
         point.penalize(pointHistoryType.getPoint());
         Point penalizedPoint = pointRepository.save(point);
         pointHistoryRepository.save(PointHistory.create(userId, pointHistoryType.getPoint(), pointHistoryType, point.getUserPoint(), penalizedPoint.getUserPoint()));
@@ -41,6 +44,11 @@ public class PointService {
 
     public Point findPointByUserId(Long userId) {
         return pointRepository.findByUserId(userId)
+                .orElseThrow(() -> new IllegalStateException("사용자를 찾을 수 없습니다."));
+    }
+
+    public Point findPointByUserIdForUpdate(Long userId) {
+        return pointRepository.findByUserIdForUpdate(userId)
                 .orElseThrow(() -> new IllegalStateException("사용자를 찾을 수 없습니다."));
     }
 }
