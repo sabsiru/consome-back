@@ -1,5 +1,7 @@
 package consome.domain.point;
 
+import consome.domain.point.repository.PointHistoryRepository;
+import consome.domain.point.repository.PointRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

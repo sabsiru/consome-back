@@ -10,6 +10,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import org.springframework.transaction.annotation.Transactional;
+
 import java.util.Optional;
 
 @Service
@@ -55,8 +57,9 @@ public class PostService {
         return postRepository.save(post);
     }
 
+    @Transactional
     public PostStat like(Post post, Long userId) {
-        PostStat postStat = getPostStat(post.getId());
+        PostStat postStat = getPostStatForUpdate(post.getId());
 
         if (postReactionRepository.findByIdForUpdate(post.getId(), userId, ReactionType.LIKE).isPresent()) {
             throw new IllegalStateException("이미 좋아요를 누른 게시글입니다.");
@@ -69,8 +72,9 @@ public class PostService {
         return statRepository.save(postStat);
     }
 
+    @Transactional
     public PostStat dislike(Post post, Long userId) {
-        PostStat postStat = getPostStat(post.getId());
+        PostStat postStat = getPostStatForUpdate(post.getId());
 
         if (postReactionRepository.findByIdForUpdate(post.getId(), userId, ReactionType.DISLIKE).isPresent()) {
             throw new IllegalStateException("이미 싫어요를 누른 게시글입니다.");
@@ -82,10 +86,11 @@ public class PostService {
         return statRepository.save(postStat);
     }
 
+    @Transactional
     public PostStat cancelLike(Post post, Long userId) {
-        PostStat postStat = getPostStat(post.getId());
+        PostStat postStat = getPostStatForUpdate(post.getId());
         Optional<PostReaction> existingLike = postReactionRepository.findByIdForUpdate(post.getId(), userId, ReactionType.LIKE);
-        if (postReactionRepository.findByIdForUpdate(post.getId(), userId, ReactionType.LIKE).isEmpty()) {
+        if (existingLike.isEmpty()) {
             throw new IllegalStateException("좋아요를 누르지 않았습니다.");
         }
         PostReaction postReaction = existingLike.get();
@@ -96,8 +101,9 @@ public class PostService {
         return statRepository.save(postStat);
     }
 
+    @Transactional
     public PostStat cancelDislike(Post post, Long userId) {
-        PostStat postStat = getPostStat(post.getId());
+        PostStat postStat = getPostStatForUpdate(post.getId());
         Optional<PostReaction> existingDislike = postReactionRepository.findByIdForUpdate(post.getId(), userId, ReactionType.DISLIKE);
         if (existingDislike.isEmpty()) {
             throw new IllegalStateException("싫어요를 누르지 않았습니다.");
@@ -110,8 +116,9 @@ public class PostService {
         return statRepository.save(postStat);
     }
 
+    @Transactional
     public PostStat increaseViewCount(Long postId, String userIp, Long userId) {
-        PostStat postStat = getPostStat(postId);
+        PostStat postStat = getPostStatForUpdate(postId);
         Optional<PostView> byPostIdAndUserIp = viewRepository.findByPostIdAndUserIdOrUserIp(postId, userIp, userId);
         if (byPostIdAndUserIp.isPresent()) {
             return postStat;
@@ -123,16 +130,21 @@ public class PostService {
 
     }
 
+    @Transactional
     public PostStat increaseCommentCount(Long postId) {
-        PostStat postStat = getPostStat(postId);
+        PostStat postStat = getPostStatForUpdate(postId);
         postStat.increaseCommentCount();
         return statRepository.save(postStat);
     }
 
     public PostStat getPostStat(Long postId) {
-        PostStat postStat = statRepository.findById(postId)
+        return statRepository.findById(postId)
                 .orElseThrow(() -> new IllegalStateException("게시글을 찾을 수 없습니다."));
-        return postStat;
+    }
+
+    public PostStat getPostStatForUpdate(Long postId) {
+        return statRepository.findByPostIdForUpdate(postId)
+                .orElseThrow(() -> new IllegalStateException("게시글을 찾을 수 없습니다."));
     }
 
     public Page<PostSummary> findBoardPosts(Long boardId, Pageable pageable, Long categoryId) {
