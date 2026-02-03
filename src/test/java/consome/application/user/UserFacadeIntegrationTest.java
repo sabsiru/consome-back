@@ -4,6 +4,8 @@ import consome.domain.comment.repository.CommentReactionRepository;
 import consome.domain.comment.repository.CommentRepository;
 import consome.domain.comment.CommentService;
 import consome.domain.point.*;
+import consome.domain.point.repository.PointHistoryRepository;
+import consome.domain.point.repository.PointRepository;
 import consome.domain.post.PostService;
 import consome.domain.user.User;
 import consome.domain.user.repository.UserRepository;

@@ -1,5 +1,6 @@
 package consome.domain.admin;
 
+import consome.domain.admin.repository.BoardRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;

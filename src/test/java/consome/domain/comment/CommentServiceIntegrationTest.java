@@ -1,5 +1,7 @@
 package consome.domain.comment;
 
+import consome.domain.comment.repository.CommentReactionRepository;
+import consome.domain.comment.repository.CommentRepository;
 import consome.domain.post.ReactionType;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

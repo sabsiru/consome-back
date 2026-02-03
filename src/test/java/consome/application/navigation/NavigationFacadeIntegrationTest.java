@@ -1,6 +1,6 @@
 package consome.application.navigation;
 
-import consome.application.admin.ManageBoardFacade;
+import consome.application.admin.AdminBoardFacade;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -13,6 +13,6 @@ class NavigationFacadeIntegrationTest {
     NavigationFacade mainFacade;
 
     @Autowired
-    ManageBoardFacade manageBoardFacade;
+    AdminBoardFacade adminBoardFacade;
 
 }
