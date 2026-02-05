@@ -16,7 +16,19 @@ public class DummyController {
 
     @PostMapping("/userInsert")
     public ResponseEntity<String> insertUser(@RequestParam(defaultValue = "1000") int count) {
-        dummyService.bulkInsertDummyData(count);
+        dummyService.bulkInsertUsersWithPoint(count);
         return ResponseEntity.ok("User insert dummy endpoint");
+    }
+
+    @PostMapping("/postInsert")
+    public ResponseEntity<String> insertPost(@RequestParam(defaultValue = "10000") int count) {
+        dummyService.bulkInsertPosts(count);
+        return ResponseEntity.ok("Post insert dummy endpoint");
+    }
+
+    @PostMapping("/postStatInsert")
+    public ResponseEntity<String> insertPostStat(@RequestParam int maxViews, int maxLikes) {
+        dummyService.bulkUpdatePostStats(maxViews, maxLikes);
+        return ResponseEntity.ok("PostStat insert dummy endpoint");
     }
 }
