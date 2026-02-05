@@ -14,7 +14,9 @@ public class AdminBoardFacade {
     private final CategoryService categoryService;
 
     public Board create(String name, String description, int displayOrder) {
-        return boardService.create(name, description, displayOrder);
+        Board board = boardService.create(name, description, displayOrder);
+        categoryService.create(board.getId(), "자유", 1);
+        return board;
     }
 
     public Board update(Long boardId, String name, String description) {
