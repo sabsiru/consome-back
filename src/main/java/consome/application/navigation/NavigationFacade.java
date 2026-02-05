@@ -3,6 +3,7 @@ package consome.application.navigation;
 import consome.domain.admin.Board;
 import consome.domain.admin.BoardService;
 import consome.domain.post.BoardPopularityRow;
+import consome.domain.post.PopularPostRow;
 import consome.domain.post.PostPreviewRow;
 import consome.domain.post.repository.PostQueryRepository;
 import lombok.RequiredArgsConstructor;
@@ -10,6 +11,7 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -38,7 +40,8 @@ public class NavigationFacade {
 
     @Cacheable(
             value = "popular-boards",
-            key = "#criteria.sortBy + ':' + #criteria.days + ':' + #criteria.boardLimit + ':' + #criteria.previewLimit"
+            key = "#criteria.sortBy + ':' + #criteria.days + ':' + #criteria.boardLimit + ':' + #criteria.previewLimit",
+            sync = true
     )
     public List<PopularBoardResult> getPopularBoards(PopularBoardCriteria criteria) {
         LocalDateTime since = LocalDateTime.now().minusDays(criteria.days());
@@ -82,6 +85,34 @@ public class NavigationFacade {
                                 ))
                                 .toList()
                 ))
+                .toList();
+    }
+
+    @Cacheable(
+            value = "popular-posts",
+            key = "#criteria.limit + ':' + #criteria.days + ':' + #criteria.minViews",
+            sync = true
+    )
+    public List<PopularPostResult> getPopularPosts(PopularPostCriteria criteria) {
+        LocalDateTime since = LocalDateTime.now().minusDays(criteria.days());
+
+        List<PopularPostRow> posts = postQueryRepository.findPopularPosts(since, criteria.minViews());
+
+        return posts.stream()
+                .map(p -> new PopularPostResult(
+                        p.postId(),
+                        p.boardId(),
+                        p.boardName(),
+                        p.title(),
+                        p.nickname(),
+                        p.viewCount(),
+                        p.likeCount(),
+                        p.commentCount(),
+                        WilsonScoreCalculator.calculate(p.viewCount(), p.likeCount(), p.commentCount()),
+                        p.createdAt()
+                ))
+                .sorted(Comparator.comparing(PopularPostResult::score).reversed())
+                .limit(criteria.limit())
                 .toList();
     }
 }

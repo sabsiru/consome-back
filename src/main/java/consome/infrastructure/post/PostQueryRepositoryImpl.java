@@ -7,6 +7,7 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import consome.domain.admin.QBoard;
 import consome.domain.admin.QCategory;
 import consome.domain.post.BoardPopularityRow;
+import consome.domain.post.PopularPostRow;
 import consome.domain.post.PopularityType;
 import consome.domain.post.PostPreviewRow;
 import consome.domain.post.PostSummary;
@@ -143,6 +144,38 @@ public class PostQueryRepositoryImpl implements PostQueryRepository {
                 .flatMap(boardId -> grouped.getOrDefault(boardId, List.of()).stream()
                         .limit(previewLimit))
                 .toList();
+    }
+
+    @Override
+    public List<PopularPostRow> findPopularPosts(LocalDateTime since, int minViews) {
+        QPost post = QPost.post;
+        QPostStat postStat = QPostStat.postStat;
+        QBoard board = QBoard.board;
+        QUser user = QUser.user;
+
+        return queryFactory
+                .select(Projections.constructor(
+                        PopularPostRow.class,
+                        post.id,
+                        post.boardId,
+                        board.name,
+                        post.title,
+                        user.nickname,
+                        postStat.viewCount.coalesce(0),
+                        postStat.likeCount.coalesce(0),
+                        postStat.commentCount.coalesce(0),
+                        post.createdAt
+                ))
+                .from(post)
+                .leftJoin(postStat).on(post.id.eq(postStat.postId))
+                .leftJoin(board).on(post.boardId.eq(board.id))
+                .leftJoin(user).on(post.userId.eq(user.id))
+                .where(
+                        post.createdAt.goe(since),
+                        postStat.viewCount.goe(minViews)
+                )
+                .orderBy(post.createdAt.desc())
+                .fetch();
     }
 
     private NumberExpression<Double> buildScoreExpression(PopularityType sortBy, QPostStat postStat, QPost post) {

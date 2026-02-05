@@ -1,6 +1,7 @@
 package consome.domain.post.repository;
 
 import consome.domain.post.BoardPopularityRow;
+import consome.domain.post.PopularPostRow;
 import consome.domain.post.PopularityType;
 import consome.domain.post.PostPreviewRow;
 import consome.domain.post.PostSummary;
@@ -17,4 +18,6 @@ public interface PostQueryRepository {
     List<BoardPopularityRow> findPopularBoards(LocalDateTime since, PopularityType sortBy, int limit);
 
     List<PostPreviewRow> findLatestPostsByBoardIds(List<Long> boardIds, int previewLimit);
+
+    List<PopularPostRow> findPopularPosts(LocalDateTime since, int minViews);
 }
