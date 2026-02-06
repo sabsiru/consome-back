@@ -3,7 +3,9 @@ package consome.infrastructure.post;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.NumberExpression;
+import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
+import consome.domain.comment.QComment;
 import consome.domain.admin.QBoard;
 import consome.domain.admin.QCategory;
 import consome.domain.post.BoardPopularityRow;
@@ -188,6 +190,87 @@ public class PostQueryRepositoryImpl implements PostQueryRepository {
                     .add(postStat.commentCount.sum().doubleValue().multiply(0.8))
                     .add(postStat.likeCount.sum().doubleValue().multiply(0.5))
                     .add(post.id.count().doubleValue().multiply(0.2));
+        };
+    }
+
+    @Override
+    public Page<PostSummary> searchPosts(Long boardId, String keyword, String searchType, Pageable pageable) {
+        QPost post = QPost.post;
+        QPostStat postStat = QPostStat.postStat;
+        QUser user = QUser.user;
+        QCategory category = QCategory.category;
+        QComment comment = QComment.comment;
+
+        BooleanExpression searchCondition = buildSearchCondition(post, comment, keyword, searchType);
+
+        List<PostSummary> contents = queryFactory
+                .select(Projections.constructor(
+                        PostSummary.class,
+                        post.id,
+                        post.title,
+                        post.categoryId,
+                        category.name,
+                        post.userId,
+                        user.nickname,
+                        postStat.viewCount,
+                        postStat.likeCount,
+                        postStat.dislikeCount,
+                        postStat.commentCount,
+                        post.createdAt,
+                        post.updatedAt,
+                        post.deleted
+                ))
+                .from(post)
+                .leftJoin(user).on(post.userId.eq(user.id))
+                .leftJoin(category).on(post.categoryId.eq(category.id))
+                .leftJoin(postStat).on(post.id.eq(postStat.postId))
+                .where(
+                        post.boardId.eq(boardId),
+                        searchCondition
+                )
+                .orderBy(post.createdAt.desc())
+                .offset(pageable.getOffset())
+                .limit(pageable.getPageSize())
+                .fetch();
+
+        Long total = queryFactory
+                .select(post.count())
+                .from(post)
+                .where(
+                        post.boardId.eq(boardId),
+                        searchCondition
+                )
+                .fetchOne();
+
+        return PageableExecutionUtils.getPage(contents, pageable, () -> total == null ? 0L : total);
+    }
+
+    private BooleanExpression buildSearchCondition(QPost post, QComment comment, String keyword, String searchType) {
+        if (keyword == null || keyword.isBlank()) {
+            return null;
+        }
+
+        return switch (searchType.toLowerCase()) {
+            case "title" -> post.title.containsIgnoreCase(keyword);
+            case "content" -> post.content.containsIgnoreCase(keyword);
+            case "comment" -> post.id.in(
+                    JPAExpressions.select(comment.postId)
+                            .from(comment)
+                            .where(
+                                    comment.content.containsIgnoreCase(keyword),
+                                    comment.deleted.isFalse()
+                            )
+            );
+            default -> post.title.containsIgnoreCase(keyword)
+                    .or(post.content.containsIgnoreCase(keyword))
+                    .or(post.id.in(
+                            JPAExpressions.select(comment.postId)
+                                    .from(comment)
+                                    .where(
+                                            comment.content.containsIgnoreCase(keyword),
+                                            comment.deleted.isFalse()
+                                    )
+                    ));
         };
     }
 }

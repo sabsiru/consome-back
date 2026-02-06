@@ -164,4 +164,8 @@ public class PostService {
         return postRepository.findByIdForUpdate(postId)
                 .orElseThrow(() -> new IllegalArgumentException("게시글을 찾을 수 없습니다."));
     }
+
+    public Page<PostSummary> searchPosts(Long boardId, String keyword, String searchType, Pageable pageable) {
+        return postQueryRepository.searchPosts(boardId, keyword, searchType, pageable);
+    }
 }
