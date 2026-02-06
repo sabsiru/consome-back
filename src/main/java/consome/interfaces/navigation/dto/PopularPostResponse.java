@@ -14,7 +14,6 @@ public record PopularPostResponse(
         int viewCount,
         int likeCount,
         int commentCount,
-        Double score,
         LocalDateTime createdAt
 ) {
     public static PopularPostResponse from(PopularPostResult result) {
@@ -27,7 +26,6 @@ public record PopularPostResponse(
                 result.viewCount(),
                 result.likeCount(),
                 result.commentCount(),
-                result.score(),
                 result.createdAt()
         );
     }

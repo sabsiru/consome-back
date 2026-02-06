@@ -12,6 +12,5 @@ public record PopularPostResult(
         int viewCount,
         int likeCount,
         int commentCount,
-        Double score,
         LocalDateTime createdAt
 ) implements Serializable {}
