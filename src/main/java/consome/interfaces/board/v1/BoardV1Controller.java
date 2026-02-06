@@ -29,6 +29,17 @@ public class BoardV1Controller {
         PostPagingResult result = boardFacade.getPosts(boardId, pageable, categoryId);
         return ResponseEntity.ok(BoardPostListResponse.from(result));
     }
+
+    @GetMapping("/{boardId}/posts/search")
+    public ResponseEntity<BoardPostListResponse> searchPosts(
+            @PathVariable Long boardId,
+            @RequestParam String keyword,
+            @RequestParam(defaultValue = "all") String type,
+            @PageableDefault(size = 20) Pageable pageable
+    ) {
+        PostPagingResult result = boardFacade.searchPosts(boardId, keyword, type, pageable);
+        return ResponseEntity.ok(BoardPostListResponse.from(result));
+    }
     
     @GetMapping("/{boardId}/categories")
     public ResponseEntity<List<CategoryResponse>> getCategories(@PathVariable Long boardId) {
