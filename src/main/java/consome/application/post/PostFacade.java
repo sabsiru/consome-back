@@ -2,6 +2,7 @@ package consome.application.post;
 
 import consome.domain.point.PointHistoryType;
 import consome.domain.point.PointService;
+import consome.domain.post.PopularPostService;
 import consome.domain.post.ReactionType;
 import consome.domain.post.entity.Post;
 import consome.domain.post.PostService;
@@ -25,6 +26,7 @@ public class PostFacade {
 
     private final PostService postService;
     private final PointService pointService;
+    private final PopularPostService popularPostService;
     private final FileStorage fileStorage;
     private final PostReactionRepository postReactionRepository;
     private final PostImageRepository postImageRepository;
@@ -132,6 +134,7 @@ public class PostFacade {
     public PostStat like(Post post, Long userId) {
         pointService.earn(post.getUserId(), PointHistoryType.POST_LIKE);
         postService.like(post, userId);
+        popularPostService.updateScore(post.getId());
 
         return postService.getPostStat(post.getId());
     }
@@ -159,6 +162,7 @@ public class PostFacade {
     @Transactional
     public PostStat increaseViewCount(Long postId, String userIp, Long userId) {
         postService.increaseViewCount(postId, userIp, userId);
+        popularPostService.updateScore(postId);
 
         return postService.getPostStat(postId);
     }

@@ -5,6 +5,7 @@ import consome.domain.comment.repository.CommentQueryRepository;
 import consome.domain.comment.repository.CommentReactionRepository;
 import consome.domain.point.PointHistoryType;
 import consome.domain.point.PointService;
+import consome.domain.post.PopularPostService;
 import consome.domain.post.PostService;
 import consome.domain.post.ReactionType;
 import consome.domain.user.UserService;
@@ -21,6 +22,7 @@ public class CommentFacade {
     private final CommentService commentService;
     private final PointService pointService;
     private final PostService postService;
+    private final PopularPostService popularPostService;
     private final UserService userService;
     private final CommentQueryRepository commentQueryRepository;
     private final CommentReactionRepository commentReactionRepository;
@@ -29,6 +31,7 @@ public class CommentFacade {
     public CommentResult comment(Long postId, Long userId, Long parentId, String content) {
         postService.getPost(postId);
         postService.increaseCommentCount(postId);
+        popularPostService.updateScore(postId);
         String nickname = userService.findById(userId).getNickname();
         Comment comment = commentService.comment(postId, userId, parentId, content);
         CommentResult result = new CommentResult(
