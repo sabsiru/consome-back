@@ -10,6 +10,8 @@ import consome.application.user.UserRegisterCommand;
 import consome.domain.admin.Board;
 import consome.domain.post.PopularityType;
 import consome.domain.post.entity.Post;
+import consome.domain.post.repository.PopularPostRepository;
+import consome.infrastructure.redis.PopularPostRedisRepository;
 import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -21,6 +23,7 @@ import org.springframework.context.annotation.Import;
 import org.testcontainers.utility.TestcontainersConfiguration;
 
 import java.util.List;
+import java.util.UUID;
 
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 
@@ -41,6 +44,10 @@ class NavigationFacadeIntegrationTest {
     CommentFacade commentFacade;
     @Autowired
     CacheManager cacheManager;
+    @Autowired
+    PopularPostRedisRepository popularPostRedisRepository;
+    @Autowired
+    PopularPostRepository popularPostRepository;
 
     private Long userId;
     private Long userId2;
@@ -48,8 +55,9 @@ class NavigationFacadeIntegrationTest {
 
     @BeforeEach
     void setUp() {
-        userId = userFacade.register(UserRegisterCommand.of("testuser1", "닉네임1", "Password123"));
-        userId2 = userFacade.register(UserRegisterCommand.of("testuser2", "닉네임2", "Password123"));
+        String suffix = UUID.randomUUID().toString().replace("-", "").substring(0, 8);
+        userId = userFacade.register(UserRegisterCommand.of("navtest" + suffix, "네비닉" + suffix, "Password123"));
+        userId2 = userFacade.register(UserRegisterCommand.of("navtest2" + suffix, "네비닉2" + suffix, "Password123"));
         cacheManager.getCacheNames().forEach(name ->
                 cacheManager.getCache(name).clear());
     }
@@ -202,129 +210,161 @@ class NavigationFacadeIntegrationTest {
     }
 
     @Test
-    @DisplayName("인기 게시글 조회 - 기본")
-    void getPopularPosts_default() {
+    @DisplayName("인기 게시글 - 추천 시 Redis에 점수 저장")
+    void popularPost_likeAddsScoreToRedis() {
         // given
         Board board = adminBoardFacade.create("테스트게시판", "설명", 91);
-        PostResult post = postFacade.post(PostCommand.of(board.getId(), categoryId, userId, "인기글", "내용"));
+        PostResult post = postFacade.post(PostCommand.of(board.getId(), categoryId, userId, "테스트글", "내용"));
+        Post postEntity = postFacade.getPost(post.postId());
 
-        // 조회수 증가 (minViews 충족) - 각기 다른 IP와 null userId로 호출
-        for (int i = 0; i < 60; i++) {
-            postFacade.increaseViewCount(post.postId(), "192.168." + i + ".1", null);
+        // when
+        postFacade.like(postEntity, userId2);
+
+        // then
+        Double score = popularPostRedisRepository.getScore(post.postId());
+        assertThat(score).isNotNull();
+    }
+
+    @Test
+    @DisplayName("인기 게시글 - 조회 시 Redis에 점수 저장")
+    void popularPost_viewAddsScoreToRedis() {
+        // given
+        Board board = adminBoardFacade.create("테스트게시판", "설명", 91);
+        PostResult post = postFacade.post(PostCommand.of(board.getId(), categoryId, userId, "테스트글", "내용"));
+
+        // when
+        postFacade.increaseViewCount(post.postId(), "192.168.0.1", userId2);
+
+        // then
+        Double score = popularPostRedisRepository.getScore(post.postId());
+        assertThat(score).isNotNull();
+    }
+
+    @Test
+    @DisplayName("인기 게시글 - 댓글 시 Redis에 점수 저장")
+    void popularPost_commentAddsScoreToRedis() {
+        // given
+        Board board = adminBoardFacade.create("테스트게시판", "설명", 91);
+        PostResult post = postFacade.post(PostCommand.of(board.getId(), categoryId, userId, "테스트글", "내용"));
+
+        // when
+        commentFacade.comment(post.postId(), userId2, null, "댓글 내용");
+
+        // then
+        Double score = popularPostRedisRepository.getScore(post.postId());
+        assertThat(score).isNotNull();
+    }
+
+    @Test
+    @DisplayName("인기 게시글 - 임계값 미달 시 Redis에만 존재")
+    void popularPost_belowThresholdStaysInRedis() {
+        // given - 평균값 높게 설정하여 상대 점수가 낮도록
+        Board board = adminBoardFacade.create("테스트게시판", "설명", 91);
+        board.updateStats(100.0, 100.0, 100.0);
+        PostResult post = postFacade.post(PostCommand.of(board.getId(), categoryId, userId, "일반글", "내용"));
+        Post postEntity = postFacade.getPost(post.postId());
+
+        // when - 추천 1회 (score < 1.0)
+        postFacade.like(postEntity, userId2);
+
+        // then - Redis에만 존재, DB에는 없음
+        Double redisScore = popularPostRedisRepository.getScore(post.postId());
+        boolean existsInDb = popularPostRepository.existsByPostId(post.postId());
+
+        assertThat(redisScore).isNotNull();
+        assertThat(redisScore).isLessThan(1.0);
+        assertThat(existsInDb).isFalse();
+    }
+
+    @Test
+    @DisplayName("인기 게시글 - 임계값 도달 시 DB 적재 및 Redis 삭제")
+    void popularPost_thresholdReachedSavesToDbAndRemovesFromRedis() {
+        // given - 평균값 1로 설정하여 상대 점수가 높도록
+        String suffix = UUID.randomUUID().toString().replace("-", "").substring(0, 8);
+        Board board = adminBoardFacade.create("테스트게시판", "설명", 91);
+        board.updateStats(1.0, 1.0, 1.0);
+        PostResult post = postFacade.post(PostCommand.of(board.getId(), categoryId, userId, "인기글", "내용"));
+        Post postEntity = postFacade.getPost(post.postId());
+
+        // when - 추천 6회 (score >= 1.0 && likeCount >= 5)
+        for (int i = 0; i < 6; i++) {
+            Long tempUserId = userFacade.register(UserRegisterCommand.of("poplike" + suffix + i, "추천닉" + suffix + i, "Password123"));
+            postFacade.like(postEntity, tempUserId);
+        }
+
+        // then
+        boolean existsInDb = popularPostRepository.existsByPostId(post.postId());
+        Double redisScore = popularPostRedisRepository.getScore(post.postId());
+
+        assertThat(existsInDb).isTrue();
+        assertThat(redisScore).isNull();
+    }
+
+    @Test
+    @DisplayName("인기 게시글 - 이미 등록된 게시글은 중복 처리 안함")
+    void popularPost_alreadyRegisteredSkipped() {
+        // given
+        String suffix = UUID.randomUUID().toString().replace("-", "").substring(0, 8);
+        Board board = adminBoardFacade.create("테스트게시판", "설명", 91);
+        board.updateStats(1.0, 1.0, 1.0);
+        PostResult post = postFacade.post(PostCommand.of(board.getId(), categoryId, userId, "인기글", "내용"));
+        Post postEntity = postFacade.getPost(post.postId());
+
+        // 인기 게시글로 등록
+        for (int i = 0; i < 6; i++) {
+            Long tempUserId = userFacade.register(UserRegisterCommand.of("first" + suffix + i, "첫번째" + suffix + i, "Password123"));
+            postFacade.like(postEntity, tempUserId);
+        }
+        assertThat(popularPostRepository.existsByPostId(post.postId())).isTrue();
+
+        // when - 추가 추천
+        Long extraUser = userFacade.register(UserRegisterCommand.of("extra" + suffix, "추가" + suffix, "Password123"));
+        postFacade.like(postEntity, extraUser);
+
+        // then - Redis에 다시 추가되지 않음
+        Double redisScore = popularPostRedisRepository.getScore(post.postId());
+        assertThat(redisScore).isNull();
+    }
+
+    @Test
+    @DisplayName("인기 게시글 - DB에서 조회")
+    void popularPost_fetchFromDb() {
+        // given
+        String suffix = UUID.randomUUID().toString().replace("-", "").substring(0, 8);
+        Board board = adminBoardFacade.create("테스트게시판", "설명", 91);
+        board.updateStats(1.0, 1.0, 1.0);
+        PostResult post = postFacade.post(PostCommand.of(board.getId(), categoryId, userId, "인기글", "내용"));
+        Post postEntity = postFacade.getPost(post.postId());
+
+        for (int i = 0; i < 6; i++) {
+            Long tempUserId = userFacade.register(UserRegisterCommand.of("popfetch" + suffix + i, "조회닉" + suffix + i, "Password123"));
+            postFacade.like(postEntity, tempUserId);
         }
 
         // when
-        List<PopularPostResult> results = navigationFacade.getPopularPosts(PopularPostCriteria.defaults());
+        List<PopularPostResult> results = navigationFacade.getPopularPosts(new PopularPostCriteria(20));
 
         // then
         assertThat(results.stream().anyMatch(r -> r.postId().equals(post.postId()))).isTrue();
     }
 
     @Test
-    @DisplayName("인기 게시글 조회 - 최소 조회수 미달 제외")
-    void getPopularPosts_excludeBelowMinViews() {
-        // given
+    @DisplayName("인기 게시글 - 점수 계산 검증 (추천 가중치 0.7)")
+    void popularPost_scoreCalculation() {
+        // given - 평균값 1로 설정
         Board board = adminBoardFacade.create("테스트게시판", "설명", 91);
-        PostResult post = postFacade.post(PostCommand.of(board.getId(), categoryId, userId, "조회수적은글", "내용"));
+        board.updateStats(1.0, 1.0, 1.0);
+        PostResult post = postFacade.post(PostCommand.of(board.getId(), categoryId, userId, "테스트글", "내용"));
+        Post postEntity = postFacade.getPost(post.postId());
 
-        // 조회수 10 (minViews 50 미달)
-        for (int i = 0; i < 10; i++) {
-            postFacade.increaseViewCount(post.postId(), "192.168.0." + i, userId2);
-        }
-
-        // when
-        PopularPostCriteria criteria = new PopularPostCriteria(100, 7, 50);
-        List<PopularPostResult> results = navigationFacade.getPopularPosts(criteria);
+        // when - 추천 1회 (relativeLike = 1, score = 1 * 0.7 = 0.7)
+        postFacade.like(postEntity, userId2);
 
         // then
-        assertThat(results.stream().noneMatch(r -> r.postId().equals(post.postId()))).isTrue();
-    }
-
-    @Test
-    @DisplayName("인기 게시글 조회 - Wilson Score 정렬")
-    void getPopularPosts_sortedByWilsonScore() {
-        // given
-        Board board = adminBoardFacade.create("테스트게시판", "설명", 91);
-
-        // 게시글1: 조회 100, 좋아요 20 (참여율 20%)
-        PostResult post1 = postFacade.post(PostCommand.of(board.getId(), categoryId, userId, "참여율높은글", "내용"));
-        for (int i = 0; i < 100; i++) {
-            postFacade.increaseViewCount(post1.postId(), "10.0." + i + ".1", null);
-        }
-        Post postEntity1 = postFacade.getPost(post1.postId());
-        for (int i = 0; i < 20; i++) {
-            Long tempUserId = userFacade.register(UserRegisterCommand.of("temp" + i, "임시" + i, "Password123"));
-            postFacade.like(postEntity1, tempUserId);
-        }
-
-        // 게시글2: 조회 100, 좋아요 5 (참여율 5%)
-        PostResult post2 = postFacade.post(PostCommand.of(board.getId(), categoryId, userId, "참여율낮은글", "내용"));
-        for (int i = 0; i < 100; i++) {
-            postFacade.increaseViewCount(post2.postId(), "20.0." + i + ".1", null);
-        }
-        Post postEntity2 = postFacade.getPost(post2.postId());
-        for (int i = 0; i < 5; i++) {
-            Long tempUserId = userFacade.register(UserRegisterCommand.of("tempB" + i, "임시B" + i, "Password123"));
-            postFacade.like(postEntity2, tempUserId);
-        }
-
-        // when
-        PopularPostCriteria criteria = new PopularPostCriteria(100, 7, 50);
-        List<PopularPostResult> results = navigationFacade.getPopularPosts(criteria);
-
-        // then
-        PopularPostResult result1 = results.stream().filter(r -> r.postId().equals(post1.postId())).findFirst().orElseThrow();
-        PopularPostResult result2 = results.stream().filter(r -> r.postId().equals(post2.postId())).findFirst().orElseThrow();
-        assertThat(result1.score()).isGreaterThan(result2.score());
-    }
-
-    @Test
-    @DisplayName("인기 게시글 조회 - 댓글 가중치 반영")
-    void getPopularPosts_commentWeightApplied() {
-        // given
-        Board board = adminBoardFacade.create("테스트게시판", "설명", 91);
-
-        // post1: 조회 100, 좋아요 10, 댓글 0 → positive = 10
-        PostResult post1 = postFacade.post(PostCommand.of(board.getId(), categoryId, userId,
-                "좋아요만", "내용"));
-        for (int i = 0; i < 100; i++) {
-            postFacade.increaseViewCount(post1.postId(), "10.0." + i + ".1", null);
-        }
-        Post postEntity1 = postFacade.getPost(post1.postId());
-        for (int i = 0; i < 10; i++) {
-            Long tempUserId = userFacade.register(UserRegisterCommand.of("likeUser" + i,
-                    "좋아요유저" + i, "Password123"));
-            postFacade.like(postEntity1, tempUserId);
-        }
-
-        // post2: 조회 100, 좋아요 5, 댓글 17 → positive = 5 + (17 * 0.3) = 10.1
-        PostResult post2 = postFacade.post(PostCommand.of(board.getId(), categoryId, userId,
-                "댓글많음", "내용"));
-        for (int i = 0; i < 100; i++) {
-            postFacade.increaseViewCount(post2.postId(), "20.0." + i + ".1", null);
-        }
-        Post postEntity2 = postFacade.getPost(post2.postId());
-        for (int i = 0; i < 5; i++) {
-            Long tempUserId = userFacade.register(UserRegisterCommand.of("likeUserB" + i,
-                    "좋아요유저B" + i, "Password123"));
-            postFacade.like(postEntity2, tempUserId);
-        }
-        for (int i = 0; i < 17; i++) {
-            Long tempUserId = userFacade.register(UserRegisterCommand.of("commentUser" + i,
-                    "댓글유저" + i, "Password123"));
-            commentFacade.comment(post2.postId(), tempUserId, null, "댓글" + i);
-        }
-
-        // when
-        PopularPostCriteria criteria = new PopularPostCriteria(100, 7, 50);
-        List<PopularPostResult> results = navigationFacade.getPopularPosts(criteria);
-
-        // then
-        PopularPostResult result1 = results.stream().filter(r ->
-                r.postId().equals(post1.postId())).findFirst().orElseThrow();
-        PopularPostResult result2 = results.stream().filter(r ->
-                r.postId().equals(post2.postId())).findFirst().orElseThrow();
-        assertThat(result2.score()).isGreaterThan(result1.score());
+        Double score = popularPostRedisRepository.getScore(post.postId());
+        assertThat(score).isNotNull();
+        assertThat(score).isGreaterThan(0.6);
+        assertThat(score).isLessThan(0.8);
     }
 
 }
