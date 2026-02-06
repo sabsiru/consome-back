@@ -20,4 +20,6 @@ public interface PostQueryRepository {
     List<PostPreviewRow> findLatestPostsByBoardIds(List<Long> boardIds, int previewLimit);
 
     List<PopularPostRow> findPopularPosts(LocalDateTime since, int minViews);
+
+    Page<PostSummary> searchPosts(Long boardId, String keyword, String searchType, Pageable pageable);
 }
