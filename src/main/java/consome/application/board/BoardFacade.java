@@ -84,4 +84,47 @@ public class BoardFacade {
     public List<UserBoardSearchResult> searchBoards(String keyword, int limit) {
         return boardService.searchByKeyword(keyword, limit);
     }
+
+    public PostPagingResult searchPosts(Long boardId, String keyword, String searchType, Pageable pageable) {
+        Board board = boardService.findById(boardId);
+
+        Page<PostSummary> page = postService.searchPosts(boardId, keyword, searchType, pageable);
+
+        List<PostRowResult> rows = page.getContent().stream()
+                .map(summary -> new PostRowResult(
+                        summary.postId(),
+                        summary.title(),
+                        summary.categoryId(),
+                        summary.categoryName(),
+                        summary.authorId(),
+                        summary.authorNickname(),
+                        summary.viewCount(),
+                        summary.likeCount(),
+                        summary.dislikeCount(),
+                        summary.commentCount(),
+                        summary.createdAt(),
+                        summary.updatedAt(),
+                        summary.deleted()
+                ))
+                .toList();
+
+        List<PostPagingResult.ManagerInfo> managers = boardManagerRepository.findByBoardId(boardId).stream()
+                .map(bm -> {
+                    User user = userService.findById(bm.getUserId());
+                    return new PostPagingResult.ManagerInfo(user.getId(), user.getNickname());
+                })
+                .toList();
+
+        return new PostPagingResult(
+                board.getId(),
+                board.getName(),
+                board.getDescription(),
+                rows,
+                managers,
+                page.getNumber(),
+                page.getSize(),
+                page.getTotalElements(),
+                page.getTotalPages()
+        );
+    }
 }
