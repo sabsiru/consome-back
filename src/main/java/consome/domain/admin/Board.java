@@ -41,6 +41,17 @@ public class Board {
     @LastModifiedDate
     private LocalDateTime updatedAt;
 
+    @Column(nullable = false)
+    private double avgViewCount = 0;
+
+    @Column(nullable = false)
+    private double avgLikeCount = 0;
+
+    @Column(nullable = false)
+    private double avgCommentCount = 0;
+
+    private LocalDateTime statUpdatedAt;
+
     private Board(String name, String description, int displayOrder) {
         this.name = name;
         this.description = description;
@@ -65,5 +76,12 @@ public class Board {
 
     public void delete() {
         this.deleted = true;
+    }
+
+    public void updateStats(double avgViewCount, double avgLikeCount, double avgCommentCount) {
+        this.avgViewCount = avgViewCount;
+        this.avgLikeCount = avgLikeCount;
+        this.avgCommentCount = avgCommentCount;
+        this.statUpdatedAt = LocalDateTime.now();
     }
 }

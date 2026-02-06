@@ -49,11 +49,9 @@ public class NavigationV1Controller {
 
     @GetMapping("/popular-posts")
     public ResponseEntity<List<PopularPostResponse>> getPopularPosts(
-            @RequestParam(defaultValue = "20") int limit,
-            @RequestParam(defaultValue = "3") int days,
-            @RequestParam(defaultValue = "50") int minViews
+            @RequestParam(defaultValue = "20") int limit
     ) {
-        PopularPostCriteria criteria = new PopularPostCriteria(limit, days, minViews);
+        PopularPostCriteria criteria = new PopularPostCriteria(limit);
         List<PopularPostResponse> response = PopularPostResponse.fromList(
                 navigationFacade.getPopularPosts(criteria)
         );
