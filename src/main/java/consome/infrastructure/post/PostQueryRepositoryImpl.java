@@ -201,7 +201,7 @@ public class PostQueryRepositoryImpl implements PostQueryRepository {
         QCategory category = QCategory.category;
         QComment comment = QComment.comment;
 
-        BooleanExpression searchCondition = buildSearchCondition(post, comment, keyword, searchType);
+        BooleanExpression searchCondition = buildSearchCondition(post, user, comment, keyword, searchType);
 
         List<PostSummary> contents = queryFactory
                 .select(Projections.constructor(
@@ -236,6 +236,7 @@ public class PostQueryRepositoryImpl implements PostQueryRepository {
         Long total = queryFactory
                 .select(post.count())
                 .from(post)
+                .leftJoin(user).on(post.userId.eq(user.id))
                 .where(
                         post.boardId.eq(boardId),
                         searchCondition
@@ -245,7 +246,7 @@ public class PostQueryRepositoryImpl implements PostQueryRepository {
         return PageableExecutionUtils.getPage(contents, pageable, () -> total == null ? 0L : total);
     }
 
-    private BooleanExpression buildSearchCondition(QPost post, QComment comment, String keyword, String searchType) {
+    private BooleanExpression buildSearchCondition(QPost post, QUser user, QComment comment, String keyword, String searchType) {
         if (keyword == null || keyword.isBlank()) {
             return null;
         }
@@ -253,6 +254,7 @@ public class PostQueryRepositoryImpl implements PostQueryRepository {
         return switch (searchType.toLowerCase()) {
             case "title" -> post.title.containsIgnoreCase(keyword);
             case "content" -> post.content.containsIgnoreCase(keyword);
+            case "nickname" -> user.nickname.containsIgnoreCase(keyword);
             case "comment" -> post.id.in(
                     JPAExpressions.select(comment.postId)
                             .from(comment)
@@ -263,6 +265,7 @@ public class PostQueryRepositoryImpl implements PostQueryRepository {
             );
             default -> post.title.containsIgnoreCase(keyword)
                     .or(post.content.containsIgnoreCase(keyword))
+                    .or(user.nickname.containsIgnoreCase(keyword))
                     .or(post.id.in(
                             JPAExpressions.select(comment.postId)
                                     .from(comment)
