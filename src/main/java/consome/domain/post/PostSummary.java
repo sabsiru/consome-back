@@ -9,7 +9,6 @@ public record PostSummary(
         String categoryName,
         Long authorId,
         String authorNickname,
-        int authorLevel,
         int viewCount,
         int likeCount,
         int dislikeCount,

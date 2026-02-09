@@ -11,7 +11,6 @@ public record UserRowResult(
         String nickname,
         Role role,
         int userPoint,
-        int level,
         List<ManagedBoardInfo> managedBoards
 ) {
 }

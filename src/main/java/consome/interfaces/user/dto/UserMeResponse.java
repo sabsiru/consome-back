@@ -9,7 +9,6 @@ public record UserMeResponse(
         String loginId,
         String nickname,
         int point,
-        int level,
         Role role,
         List<Long> managedBoardIds
 ) {}

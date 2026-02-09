@@ -70,7 +70,6 @@ public class AdminDashboardFacade {
                         userInfo.nickname(),
                         userInfo.role(),
                         userInfo.userPoint(),
-                        userInfo.level(),
                         boardManagerService.getManagedBoards(userInfo.userId())
                 ))
                 .toList();

@@ -92,7 +92,7 @@ public class CommentFacade {
         }
 
         return comments.map(c -> new CommentListResult(
-                c.commentId(), c.postId(), c.userId(), c.userNickname(), c.userLevel(),
+                c.commentId(), c.postId(), c.userId(), c.userNickname(),
                 c.parentId(), c.parentUserNickname(),
                 c.content(), c.depth(),
                 c.likeCount(), c.dislikeCount(),

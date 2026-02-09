@@ -7,7 +7,6 @@ public record CommentListResult(
         Long postId,
         Long userId,
         String userNickname,
-        int userLevel,
         Long parentId,
         String parentUserNickname,
         String content,

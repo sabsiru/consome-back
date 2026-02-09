@@ -10,7 +10,6 @@ public record PostDetailResponse(
         String title,
         String content,
         Long authorId,
-        int authorLevel,
         Long boardId,
         Long categoryId,
         LocalDateTime createdAt,
@@ -23,13 +22,12 @@ public record PostDetailResponse(
         boolean hasDisliked
 ) {
     /** Post + PostStat 동시 제공 시 사용 */
-    public static PostDetailResponse of(Post post, PostStat stat, int authorLevel, boolean hasLiked, boolean hasDisliked) {
+    public static PostDetailResponse of(Post post, PostStat stat, boolean hasLiked, boolean hasDisliked) {
         return new PostDetailResponse(
                 post.getId(),
                 post.getTitle(),
                 post.getContent(),
                 post.getUserId(),
-                authorLevel,
                 post.getBoardId(),
                 post.getCategoryId(),
                 post.getCreatedAt(),
@@ -44,13 +42,12 @@ public record PostDetailResponse(
     }
 
     /** 아직 PostStat이 생성되지 않았거나 별도 조회하지 않은 경우 사용(카운트 0 처리) */
-    public static PostDetailResponse from(Post post, int authorLevel) {
+    public static PostDetailResponse from(Post post) {
         return new PostDetailResponse(
                 post.getId(),
                 post.getTitle(),
                 post.getContent(),
                 post.getUserId(),
-                authorLevel,
                 post.getBoardId(),
                 post.getCategoryId(),
                 post.getCreatedAt(),

@@ -12,7 +12,6 @@ public record ManageUserResponse(
         String nickname,
         Role role,
         int userPoint,
-        int level,
         List<ManagedBoardInfo> managedBoards
 ) {
     public static ManageUserResponse from(UserRowResult result) {
@@ -22,7 +21,6 @@ public record ManageUserResponse(
                 result.nickname(),
                 result.role(),
                 result.userPoint(),
-                result.level(),
                 result.managedBoards()
         );
     }
