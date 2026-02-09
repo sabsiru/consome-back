@@ -7,7 +7,8 @@ public record UserInfo(
         String loginId,
         String nickname,
         Role role,
-        int userPoint
+        int userPoint,
+        int level
 ) {
     @QueryProjection
     public UserInfo {
