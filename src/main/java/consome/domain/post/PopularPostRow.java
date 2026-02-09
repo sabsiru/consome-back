@@ -8,6 +8,7 @@ public record PopularPostRow(
         String boardName,
         String title,
         String nickname,
+        int authorLevel,
         int viewCount,
         int likeCount,
         int commentCount,

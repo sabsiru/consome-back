@@ -7,6 +7,8 @@ import consome.domain.comment.Comment;
 import consome.domain.comment.repository.CommentQueryRepository;
 import consome.domain.comment.QComment;
 import consome.domain.comment.QCommentStat;
+import consome.domain.level.LevelInfo;
+import consome.domain.point.QPoint;
 import consome.domain.user.QUser;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
@@ -27,12 +29,14 @@ public class CommentQueryRepositoryImpl implements CommentQueryRepository {
     private final QUser user = QUser.user;
     private final QUser parentUser = new QUser("parentUser");
     private final QCommentStat commentStat = QCommentStat.commentStat;
+    private final QPoint point = QPoint.point;
 
     public Page<CommentListResult> findCommentsByPostId(Long postId, Pageable pageable) {
         List<Tuple> results = queryFactory
-                .select(comment, user.nickname, parentUser.nickname, commentStat.likeCount, commentStat.dislikeCount)
+                .select(comment, user.nickname, point.userPoint, parentUser.nickname, commentStat.likeCount, commentStat.dislikeCount)
                 .from(comment)
                 .join(user).on(user.id.eq(comment.userId))
+                .leftJoin(point).on(point.userId.eq(comment.userId))
                 .leftJoin(parentComment).on(parentComment.id.eq(comment.parentId))
                 .leftJoin(parentUser).on(parentUser.id.eq(parentComment.userId))
                 .leftJoin(commentStat).on(commentStat.commentId.eq(comment.id))
@@ -53,6 +57,7 @@ public class CommentQueryRepositoryImpl implements CommentQueryRepository {
                         .map(t -> {
                             Comment c = t.get(comment);
                             String nickname = t.get(user.nickname);
+                            Integer userPoint = t.get(point.userPoint);
                             String parentNickname = t.get(parentUser.nickname);
                             Integer likeCount = t.get(commentStat.likeCount);
                             Integer dislikeCount = t.get(commentStat.dislikeCount);
@@ -61,6 +66,7 @@ public class CommentQueryRepositoryImpl implements CommentQueryRepository {
                                     c.getPostId(),
                                     c.getUserId(),
                                     nickname,
+                                    LevelInfo.calculateLevel(userPoint != null ? userPoint : 0).getLevel(),
                                     c.getParentId(),
                                     parentNickname,
                                     c.getContent(),

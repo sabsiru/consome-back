@@ -16,6 +16,8 @@ import consome.domain.post.PostSummary;
 import consome.domain.post.entity.QPost;
 import consome.domain.post.entity.QPostStat;
 import consome.domain.post.repository.PostQueryRepository;
+import consome.domain.level.LevelInfo;
+import consome.domain.point.QPoint;
 import consome.domain.user.QUser;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -44,16 +46,17 @@ public class PostQueryRepositoryImpl implements PostQueryRepository {
         QPostStat postStat = QPostStat.postStat;
         QUser user = QUser.user;
         QCategory category = QCategory.category;
+        QPoint point = QPoint.point;
 
-        List<PostSummary> contents = queryFactory
-                .select(Projections.constructor(
-                        PostSummary.class,
+        List<com.querydsl.core.Tuple> tuples = queryFactory
+                .select(
                         post.id,
                         post.title,
                         post.categoryId,
                         category.name,
                         post.userId,
                         user.nickname,
+                        point.userPoint,
                         postStat.viewCount,
                         postStat.likeCount,
                         postStat.dislikeCount,
@@ -61,17 +64,37 @@ public class PostQueryRepositoryImpl implements PostQueryRepository {
                         post.createdAt,
                         post.updatedAt,
                         post.deleted
-                ))
+                )
                 .from(post)
                 .leftJoin(user).on(post.userId.eq(user.id))
                 .leftJoin(category).on(post.categoryId.eq(category.id))
                 .leftJoin(postStat).on(post.id.eq(postStat.postId))
+                .leftJoin(point).on(post.userId.eq(point.userId))
                 .where(post.boardId.eq(boardId),
                         categoryEq(categoryId))
                 .orderBy(post.createdAt.desc())
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
                 .fetch();
+
+        List<PostSummary> contents = tuples.stream()
+                .map(t -> new PostSummary(
+                        t.get(post.id),
+                        t.get(post.title),
+                        t.get(post.categoryId),
+                        t.get(category.name),
+                        t.get(post.userId),
+                        t.get(user.nickname),
+                        LevelInfo.calculateLevel(t.get(point.userPoint) != null ? t.get(point.userPoint) : 0).getLevel(),
+                        t.get(postStat.viewCount) != null ? t.get(postStat.viewCount) : 0,
+                        t.get(postStat.likeCount) != null ? t.get(postStat.likeCount) : 0,
+                        t.get(postStat.dislikeCount) != null ? t.get(postStat.dislikeCount) : 0,
+                        t.get(postStat.commentCount) != null ? t.get(postStat.commentCount) : 0,
+                        t.get(post.createdAt),
+                        t.get(post.updatedAt),
+                        t.get(post.deleted)
+                ))
+                .toList();
 
         Long total = queryFactory
                 .select(post.count())
@@ -117,26 +140,42 @@ public class PostQueryRepositoryImpl implements PostQueryRepository {
         QPost post = QPost.post;
         QPostStat postStat = QPostStat.postStat;
         QUser user = QUser.user;
+        QPoint point = QPoint.point;
 
         // 각 게시판별 최신 게시글 조회 (ROW_NUMBER 대신 Java에서 그룹핑)
-        List<PostPreviewRow> allPosts = queryFactory
-                .select(Projections.constructor(
-                        PostPreviewRow.class,
+        List<com.querydsl.core.Tuple> tuples = queryFactory
+                .select(
                         post.id,
                         post.boardId,
                         post.title,
                         user.nickname,
+                        point.userPoint,
                         postStat.viewCount.coalesce(0),
                         postStat.likeCount.coalesce(0),
                         postStat.commentCount.coalesce(0),
                         post.createdAt
-                ))
+                )
                 .from(post)
                 .leftJoin(postStat).on(post.id.eq(postStat.postId))
                 .leftJoin(user).on(post.userId.eq(user.id))
+                .leftJoin(point).on(post.userId.eq(point.userId))
                 .where(post.boardId.in(boardIds))
                 .orderBy(post.boardId.asc(), post.createdAt.desc())
                 .fetch();
+
+        List<PostPreviewRow> allPosts = tuples.stream()
+                .map(t -> new PostPreviewRow(
+                        t.get(post.id),
+                        t.get(post.boardId),
+                        t.get(post.title),
+                        t.get(user.nickname),
+                        LevelInfo.calculateLevel(t.get(point.userPoint) != null ? t.get(point.userPoint) : 0).getLevel(),
+                        t.get(postStat.viewCount.coalesce(0)),
+                        t.get(postStat.likeCount.coalesce(0)),
+                        t.get(postStat.commentCount.coalesce(0)),
+                        t.get(post.createdAt)
+                ))
+                .toList();
 
         // 게시판별로 그룹핑하여 previewLimit만큼 제한
         Map<Long, List<PostPreviewRow>> grouped = allPosts.stream()
@@ -154,30 +193,47 @@ public class PostQueryRepositoryImpl implements PostQueryRepository {
         QPostStat postStat = QPostStat.postStat;
         QBoard board = QBoard.board;
         QUser user = QUser.user;
+        QPoint point = QPoint.point;
 
-        return queryFactory
-                .select(Projections.constructor(
-                        PopularPostRow.class,
+        List<com.querydsl.core.Tuple> tuples = queryFactory
+                .select(
                         post.id,
                         post.boardId,
                         board.name,
                         post.title,
                         user.nickname,
+                        point.userPoint,
                         postStat.viewCount.coalesce(0),
                         postStat.likeCount.coalesce(0),
                         postStat.commentCount.coalesce(0),
                         post.createdAt
-                ))
+                )
                 .from(post)
                 .leftJoin(postStat).on(post.id.eq(postStat.postId))
                 .leftJoin(board).on(post.boardId.eq(board.id))
                 .leftJoin(user).on(post.userId.eq(user.id))
+                .leftJoin(point).on(post.userId.eq(point.userId))
                 .where(
                         post.createdAt.goe(since),
                         postStat.viewCount.goe(minViews)
                 )
                 .orderBy(post.createdAt.desc())
                 .fetch();
+
+        return tuples.stream()
+                .map(t -> new PopularPostRow(
+                        t.get(post.id),
+                        t.get(post.boardId),
+                        t.get(board.name),
+                        t.get(post.title),
+                        t.get(user.nickname),
+                        LevelInfo.calculateLevel(t.get(point.userPoint) != null ? t.get(point.userPoint) : 0).getLevel(),
+                        t.get(postStat.viewCount.coalesce(0)),
+                        t.get(postStat.likeCount.coalesce(0)),
+                        t.get(postStat.commentCount.coalesce(0)),
+                        t.get(post.createdAt)
+                ))
+                .toList();
     }
 
     private NumberExpression<Double> buildScoreExpression(PopularityType sortBy, QPostStat postStat, QPost post) {
@@ -200,18 +256,19 @@ public class PostQueryRepositoryImpl implements PostQueryRepository {
         QUser user = QUser.user;
         QCategory category = QCategory.category;
         QComment comment = QComment.comment;
+        QPoint point = QPoint.point;
 
         BooleanExpression searchCondition = buildSearchCondition(post, user, comment, keyword, searchType);
 
-        List<PostSummary> contents = queryFactory
-                .select(Projections.constructor(
-                        PostSummary.class,
+        List<com.querydsl.core.Tuple> tuples = queryFactory
+                .select(
                         post.id,
                         post.title,
                         post.categoryId,
                         category.name,
                         post.userId,
                         user.nickname,
+                        point.userPoint,
                         postStat.viewCount,
                         postStat.likeCount,
                         postStat.dislikeCount,
@@ -219,11 +276,12 @@ public class PostQueryRepositoryImpl implements PostQueryRepository {
                         post.createdAt,
                         post.updatedAt,
                         post.deleted
-                ))
+                )
                 .from(post)
                 .leftJoin(user).on(post.userId.eq(user.id))
                 .leftJoin(category).on(post.categoryId.eq(category.id))
                 .leftJoin(postStat).on(post.id.eq(postStat.postId))
+                .leftJoin(point).on(post.userId.eq(point.userId))
                 .where(
                         post.boardId.eq(boardId),
                         searchCondition
@@ -232,6 +290,25 @@ public class PostQueryRepositoryImpl implements PostQueryRepository {
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
                 .fetch();
+
+        List<PostSummary> contents = tuples.stream()
+                .map(t -> new PostSummary(
+                        t.get(post.id),
+                        t.get(post.title),
+                        t.get(post.categoryId),
+                        t.get(category.name),
+                        t.get(post.userId),
+                        t.get(user.nickname),
+                        LevelInfo.calculateLevel(t.get(point.userPoint) != null ? t.get(point.userPoint) : 0).getLevel(),
+                        t.get(postStat.viewCount) != null ? t.get(postStat.viewCount) : 0,
+                        t.get(postStat.likeCount) != null ? t.get(postStat.likeCount) : 0,
+                        t.get(postStat.dislikeCount) != null ? t.get(postStat.dislikeCount) : 0,
+                        t.get(postStat.commentCount) != null ? t.get(postStat.commentCount) : 0,
+                        t.get(post.createdAt),
+                        t.get(post.updatedAt),
+                        t.get(post.deleted)
+                ))
+                .toList();
 
         Long total = queryFactory
                 .select(post.count())

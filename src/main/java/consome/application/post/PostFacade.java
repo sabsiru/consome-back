@@ -1,5 +1,6 @@
 package consome.application.post;
 
+import consome.domain.level.LevelInfo;
 import consome.domain.point.PointHistoryType;
 import consome.domain.point.PointService;
 import consome.domain.post.PopularPostService;
@@ -169,6 +170,11 @@ public class PostFacade {
 
     public Post getPost(Long postId) {
         return postService.getPost(postId);
+    }
+
+    public int getAuthorLevel(Long userId) {
+        int point = pointService.getCurrentPoint(userId);
+        return LevelInfo.calculateLevel(point).getLevel();
     }
 
     private String replaceImageIndexes(String content, List<String> urls) {

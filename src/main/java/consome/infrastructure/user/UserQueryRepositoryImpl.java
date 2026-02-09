@@ -2,10 +2,12 @@ package consome.infrastructure.user;
 
 
 import com.querydsl.core.BooleanBuilder;
+import com.querydsl.core.Tuple;
 import com.querydsl.core.types.Projections;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import consome.application.user.UserSearchCommand;
 import consome.application.user.UserSearchResult;
+import consome.domain.level.LevelInfo;
 import consome.domain.point.QPoint;
 import consome.domain.user.QUser;
 import consome.domain.user.QUserInfo;
@@ -29,24 +31,35 @@ public class UserQueryRepositoryImpl implements UserQueryRepository {
 
     @Override
     public Page<UserInfo> findUsers(Pageable pageable) {
-
-
         // content 조회
-        List<UserInfo> content = queryFactory
+        List<Tuple> tuples = queryFactory
                 .select(
-                        new QUserInfo(
-                                user.id,
-                                user.loginId,
-                                user.nickname,
-                                user.role,
-                                point.userPoint
-                        )
+                        user.id,
+                        user.loginId,
+                        user.nickname,
+                        user.role,
+                        point.userPoint
                 )
                 .from(user)
-                .leftJoin(point).on(point.userId.eq(user.id))   // FK 없으므로 명시적 join 조건 필요
+                .leftJoin(point).on(point.userId.eq(user.id))
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
                 .fetch();
+
+        List<UserInfo> content = tuples.stream()
+                .map(t -> {
+                    Integer userPoint = t.get(point.userPoint);
+                    int pointValue = userPoint != null ? userPoint : 0;
+                    return new UserInfo(
+                            t.get(user.id),
+                            t.get(user.loginId),
+                            t.get(user.nickname),
+                            t.get(user.role),
+                            pointValue,
+                            LevelInfo.calculateLevel(pointValue).getLevel()
+                    );
+                })
+                .toList();
 
         // countQuery
         long total = queryFactory
@@ -83,14 +96,14 @@ public class UserQueryRepositoryImpl implements UserQueryRepository {
             builder.and(user.nickname.containsIgnoreCase(command.nickname()));
         }
 
-        List<UserSearchResult> content = queryFactory
-                .select(Projections.constructor(UserSearchResult.class,
+        List<Tuple> tuples = queryFactory
+                .select(
                         user.id,
                         user.loginId,
                         user.nickname,
                         user.role,
                         point.userPoint
-                ))
+                )
                 .from(user)
                 .leftJoin(point).on(point.userId.eq(user.id))
                 .where(builder)
@@ -98,6 +111,21 @@ public class UserQueryRepositoryImpl implements UserQueryRepository {
                 .limit(pageable.getPageSize())
                 .orderBy(user.id.desc())
                 .fetch();
+
+        List<UserSearchResult> content = tuples.stream()
+                .map(t -> {
+                    Integer userPoint = t.get(point.userPoint);
+                    int pointValue = userPoint != null ? userPoint : 0;
+                    return new UserSearchResult(
+                            t.get(user.id),
+                            t.get(user.loginId),
+                            t.get(user.nickname),
+                            t.get(user.role),
+                            pointValue,
+                            LevelInfo.calculateLevel(pointValue).getLevel()
+                    );
+                })
+                .toList();
 
         Long total = queryFactory
                 .select(user.count())
