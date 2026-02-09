@@ -7,6 +7,7 @@ public record UserSearchResult(
         String loginId,
         String nickname,
         Role role,
-        int userPoint
+        int userPoint,
+        int level
 ) {
 }

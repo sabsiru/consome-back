@@ -7,6 +7,7 @@ public record PostPreviewRow(
         Long boardId,
         String title,
         String nickname,
+        int authorLevel,
         int viewCount,
         int likeCount,
         int commentCount,

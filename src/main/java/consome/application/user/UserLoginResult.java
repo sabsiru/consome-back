@@ -10,6 +10,7 @@ public record UserLoginResult(
         String nickname,
         Role role,
         int point,
+        int level,
         String accessToken,
         List<Long> managedBoardIds
 ){}

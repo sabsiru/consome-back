@@ -11,6 +11,7 @@ public record UserLoginResponse(
         String nickname,
         Role role,
         int point,
+        int level,
         String accessToken,
         List<Long> managedBoardIds
 ) {
@@ -21,6 +22,7 @@ public record UserLoginResponse(
                 result.nickname(),
                 result.role(),
                 result.point(),
+                result.level(),
                 result.accessToken(),
                 result.managedBoardIds()
         );

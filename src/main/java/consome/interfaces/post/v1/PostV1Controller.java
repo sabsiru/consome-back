@@ -71,11 +71,12 @@ public class PostV1Controller {
         String userIp = request.getRemoteAddr();
         PostStat stat = postFacade.increaseViewCount(postId, userIp, userId);
         Post post = postFacade.getPost(postId);
+        int authorLevel = postFacade.getAuthorLevel(post.getUserId());
 
         boolean hasLiked = userId != null && postFacade.hasLiked(postId, userId);
         boolean hasDisliked = userId != null && postFacade.hasDisliked(postId, userId);
 
-        return ResponseEntity.ok(PostDetailResponse.of(post, stat, hasLiked, hasDisliked));
+        return ResponseEntity.ok(PostDetailResponse.of(post, stat, authorLevel, hasLiked, hasDisliked));
     }
 
     @PutMapping("/{postId}")
