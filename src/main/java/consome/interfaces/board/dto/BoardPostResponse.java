@@ -1,6 +1,7 @@
 package consome.interfaces.board.dto;
 
 import consome.application.post.PostRowResult;
+import consome.domain.user.Role;
 
 public record BoardPostResponse(
         Long postId,
@@ -9,6 +10,8 @@ public record BoardPostResponse(
         String categoryName,
         Long authorId,
         String authorNickName,
+        int authorLevel,
+        Role authorRole,
         int viewCount,
         int likeCount,
         int dislikeCount,
@@ -26,6 +29,8 @@ public record BoardPostResponse(
                 row.categoryName(),
                 row.authorId(),
                 row.authorNickname(),
+                row.authorLevel(),
+                row.authorRole(),
                 row.viewCount(),
                 row.likeCount(),
                 row.dislikeCount(),
