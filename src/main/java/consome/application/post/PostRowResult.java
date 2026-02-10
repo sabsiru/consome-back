@@ -1,6 +1,6 @@
 package consome.application.post;
 
-import consome.domain.admin.Board;
+import consome.domain.user.Role;
 
 import java.time.LocalDateTime;
 
@@ -11,6 +11,8 @@ public record PostRowResult(
         String categoryName,
         Long authorId,
         String authorNickname,
+        int authorLevel,
+        Role authorRole,
         int viewCount,
         int likeCount,
         int dislikeCount,
