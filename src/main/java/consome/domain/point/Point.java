@@ -1,5 +1,6 @@
 package consome.domain.point;
 
+import consome.domain.common.exception.BusinessException;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -36,7 +37,7 @@ public class Point {
 
     public void earn(int amount) {
         if (amount < 0) {
-            throw new IllegalArgumentException("적립할 포인트는 0 이상이어야 합니다.");
+            throw new BusinessException.InvalidPointAmount("적립할 포인트는 0 이상이어야 합니다.");
         }
         this.userPoint += amount;
         this.updatedAt = LocalDateTime.now();
@@ -44,7 +45,7 @@ public class Point {
 
     public void penalize(int amount) {
         if (amount < 0) {
-            throw new IllegalArgumentException("차감할 포인트는 0 이상이어야 합니다.");
+            throw new BusinessException.InvalidPointAmount("차감할 포인트는 0 이상이어야 합니다.");
         }
         this.userPoint -= amount;
         this.updatedAt = LocalDateTime.now();

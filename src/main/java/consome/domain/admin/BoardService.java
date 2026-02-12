@@ -3,6 +3,7 @@ package consome.domain.admin;
 import consome.application.board.UserBoardSearchResult;
 import consome.domain.admin.repository.BoardQueryRepository;
 import consome.domain.admin.repository.BoardRepository;
+import consome.domain.common.exception.BusinessException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -52,7 +53,7 @@ public class BoardService {
         // 2️⃣ 실제 순서 반영
         for (BoardOrder order : orders) {
             Board board = boardRepository.findById(order.boardId())
-                    .orElseThrow(() -> new IllegalArgumentException("잘못된 접근입니다."));
+                    .orElseThrow(() -> new BusinessException.BoardNotFound(order.boardId()));
             board.changeOrder(order.displayOrder());
         }
         boardRepository.flush();
@@ -66,17 +67,17 @@ public class BoardService {
 
     public boolean isNameDuplicate(String name) {
         if (boardRepository.existsByName(name)) {
-            throw new IllegalArgumentException("이미 존재하는 게시판 이름입니다.");
+            throw new BusinessException("BOARD_DUPLICATE_NAME", "이미 존재하는 게시판 이름입니다.");
         }
         if (name == null || name.trim().isEmpty() || name.length() < 1 || name.length() > 10) {
-            throw new IllegalArgumentException("게시판 이름은 1자 이상 10자 이하로 입력해야 합니다.");
+            throw new BusinessException("BOARD_INVALID_NAME", "게시판 이름은 1자 이상 10자 이하로 입력해야 합니다.");
         }
         return boardRepository.existsByName(name);
     }
 
     public Board findById(Long boardId) {
         return boardRepository.findById(boardId)
-                .orElseThrow(() -> new IllegalArgumentException("잘못된 접근입니다."));
+                .orElseThrow(() -> new BusinessException.BoardNotFound(boardId));
     }
 
     public List<Board> findAllOrdered() {

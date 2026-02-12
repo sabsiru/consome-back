@@ -1,6 +1,7 @@
 package consome.domain.admin;
 
 import consome.domain.admin.repository.CategoryRepository;
+import consome.domain.common.exception.BusinessException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
@@ -60,7 +61,7 @@ public class CategoryService {
         // 2️⃣ 실제 순서 반영
         for (CategoryOrder order : boardOrders) {
             Category category = categoryRepository.findById(order.categoryId())
-                    .orElseThrow(() -> new IllegalArgumentException("잘못된 접근입니다."));
+                    .orElseThrow(() -> new BusinessException.CategoryNotFound(order.categoryId()));
             category.changeOrder(order.displayOrder());
         }
         categoryRepository.flush();
@@ -74,17 +75,17 @@ public class CategoryService {
 
     public boolean isNameDuplicate(String name, Long boardId) {
         if (categoryRepository.existsByNameAndBoardId(name, boardId)) {
-            throw new IllegalArgumentException("이미 존재하는 카테고리 이름입니다.");
+            throw new BusinessException("CATEGORY_DUPLICATE_NAME", "이미 존재하는 카테고리 이름입니다.");
         }
         if (name == null || name.trim().isEmpty() || name.length() < 1 || name.length() > 10) {
-            throw new IllegalArgumentException("카테고리 이름은 1자 이상 10자 이하로 입력해야 합니다.");
+            throw new BusinessException("CATEGORY_INVALID_NAME", "카테고리 이름은 1자 이상 10자 이하로 입력해야 합니다.");
         }
         return categoryRepository.existsByNameAndBoardId(name, boardId);
     }
 
     public Category findById(Long categoryId) {
         return categoryRepository.findById(categoryId)
-                .orElseThrow(() -> new IllegalArgumentException("categoryId에 해당하는 카테고리가 존재하지 않습니다."));
+                .orElseThrow(() -> new BusinessException.CategoryNotFound(categoryId));
     }
 
     public List<Category> findAllOrderedByBoard(Long boardId) {
