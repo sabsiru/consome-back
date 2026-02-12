@@ -1,10 +1,12 @@
 package consome.domain.comment;
 
+import consome.domain.comment.exception.CommentException;
 import consome.domain.comment.repository.CommentQueryRepository;
 import consome.domain.comment.repository.CommentReactionRepository;
 import consome.domain.comment.repository.CommentRepository;
 import consome.domain.comment.repository.CommentStatRepository;
 import consome.domain.post.ReactionType;
+import consome.domain.post.exception.PostException;
 import consome.domain.post.repository.PostRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -25,7 +27,7 @@ public class CommentService {
 
         if (parentId == null) {
             postRepository.findByIdForUpdate(postId)
-                    .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 게시글입니다."));
+                    .orElseThrow(() -> new PostException.NotFound(postId));
             int newRef = commentQueryRepository.nextRef(postId);
 
             Comment root = Comment.createRoot(postId, userId, content, newRef);
@@ -36,7 +38,7 @@ public class CommentService {
         }
 
         Comment parent = commentRepository.findById(parentId)
-                .orElseThrow(() -> new IllegalArgumentException("잘못된 댓글입니다."));
+                .orElseThrow(CommentException.NotFound::new);
 
         int ref = parent.getRef();
         int parentStep = parent.getStep();
@@ -66,12 +68,12 @@ public class CommentService {
     @Transactional
     public Comment edit(Long userId, Long commentId, String content) {
         Comment comment = commentRepository.findById(commentId)
-                .orElseThrow(() -> new IllegalArgumentException("잘못된 댓글입니다."));
+                .orElseThrow(CommentException.NotFound::new);
         if (comment.isDeleted()) {
-            throw new IllegalStateException("삭제된 댓글은 수정할 수 없습니다.");
+            throw new CommentException.AlreadyDeleted();
         }
         if (!comment.getUserId().equals(userId)) {
-            throw new IllegalStateException("작성자만 댓글을 수정할 수 있습니다.");
+            throw new CommentException.Unauthorized("수정");
         }
         comment.edit(content);
         return commentRepository.save(comment);
@@ -80,9 +82,9 @@ public class CommentService {
     @Transactional
     public Comment delete(Long userId, Long commentId) {
         Comment comment = commentRepository.findById(commentId)
-                .orElseThrow(() -> new IllegalArgumentException("잘못된 댓글입니다."));
+                .orElseThrow(CommentException.NotFound::new);
         if (!comment.getUserId().equals(userId)) {
-            throw new IllegalStateException("작성자만 댓글을 삭제할 수 있습니다.");
+            throw new CommentException.Unauthorized("삭제");
         }
         comment.delete();
         return commentRepository.save(comment);
@@ -93,7 +95,7 @@ public class CommentService {
         CommentStat stat = getCommentStatForUpdate(commentId);
 
         if (commentReactionRepository.findByIdForUpdate(commentId, userId, ReactionType.LIKE).isPresent()) {
-            throw new IllegalStateException("이미 추천했습니다.");
+            throw new CommentException.AlreadyLiked();
         }
 
         CommentReaction reaction = CommentReaction.like(commentId, userId);
@@ -108,7 +110,7 @@ public class CommentService {
         CommentStat stat = getCommentStatForUpdate(commentId);
 
         if (commentReactionRepository.findByIdForUpdate(commentId, userId, ReactionType.DISLIKE).isPresent()) {
-            throw new IllegalStateException("이미 비추천했습니다.");
+            throw new CommentException.AlreadyDisliked();
         }
 
         CommentReaction reaction = CommentReaction.dislike(commentId, userId);
@@ -121,11 +123,11 @@ public class CommentService {
     @Transactional(readOnly = true)
     public CommentStat getCommentStat(Long commentId) {
         return commentStatRepository.findById(commentId)
-                .orElseThrow(() -> new IllegalArgumentException("댓글 통계를 찾을 수 없습니다."));
+                .orElseThrow(() -> new CommentException.StatsNotFound(commentId));
     }
 
     public CommentStat getCommentStatForUpdate(Long commentId) {
         return commentStatRepository.findByCommentIdForUpdate(commentId)
-                .orElseThrow(() -> new IllegalArgumentException("댓글 통계를 찾을 수 없습니다."));
+                .orElseThrow(() -> new CommentException.StatsNotFound(commentId));
     }
 }

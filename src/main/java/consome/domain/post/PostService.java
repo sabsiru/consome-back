@@ -4,6 +4,7 @@ import consome.domain.post.entity.Post;
 import consome.domain.post.entity.PostReaction;
 import consome.domain.post.entity.PostStat;
 import consome.domain.post.entity.PostView;
+import consome.domain.post.exception.PostException;
 import consome.domain.post.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -35,9 +36,9 @@ public class PostService {
 
     public Post edit(String title, Long categoryId, String content, Long postId, Long userId) {
         Post post = postRepository.findById(postId)
-                .orElseThrow(() -> new IllegalArgumentException("게시글을 찾을 수 없습니다."));
+                .orElseThrow(() -> new PostException.NotFound(postId));
         if (!post.getUserId().equals(userId)) {
-            throw new IllegalStateException("작성자만 게시글을 수정할 수 있습니다.");
+            throw new PostException.Unauthorized("수정");
         }
 
         post.edit(title, categoryId, content);
@@ -47,9 +48,9 @@ public class PostService {
 
     public Post delete(Long postId, Long userId) {
         Post post = postRepository.findById(postId)
-                .orElseThrow(() -> new IllegalArgumentException("게시글을 찾을 수 없습니다."));
+                .orElseThrow(() -> new PostException.NotFound(postId));
         if (!post.getUserId().equals(userId)) {
-            throw new IllegalStateException("작성자만 게시글을 삭제할 수 있습니다.");
+            throw new PostException.Unauthorized("삭제");
         }
         post.delete();
 
@@ -62,7 +63,7 @@ public class PostService {
         PostStat postStat = getPostStatForUpdate(post.getId());
 
         if (postReactionRepository.findByIdForUpdate(post.getId(), userId, ReactionType.LIKE).isPresent()) {
-            throw new IllegalStateException("이미 좋아요를 누른 게시글입니다.");
+            throw new PostException.AlreadyLiked();
         }
         PostReaction postReaction = PostReaction.like(post.getId(), userId);
         postStat.increaseLikeCount();
@@ -77,7 +78,7 @@ public class PostService {
         PostStat postStat = getPostStatForUpdate(post.getId());
 
         if (postReactionRepository.findByIdForUpdate(post.getId(), userId, ReactionType.DISLIKE).isPresent()) {
-            throw new IllegalStateException("이미 싫어요를 누른 게시글입니다.");
+            throw new PostException.AlreadyDisliked();
         }
         PostReaction postReaction = PostReaction.disLike(post.getId(), userId);
         postStat.increaseDislikeCount();
@@ -91,7 +92,7 @@ public class PostService {
         PostStat postStat = getPostStatForUpdate(post.getId());
         Optional<PostReaction> existingLike = postReactionRepository.findByIdForUpdate(post.getId(), userId, ReactionType.LIKE);
         if (existingLike.isEmpty()) {
-            throw new IllegalStateException("좋아요를 누르지 않았습니다.");
+            throw new PostException.NotLiked();
         }
         PostReaction postReaction = existingLike.get();
         postReaction.cancel();
@@ -106,7 +107,7 @@ public class PostService {
         PostStat postStat = getPostStatForUpdate(post.getId());
         Optional<PostReaction> existingDislike = postReactionRepository.findByIdForUpdate(post.getId(), userId, ReactionType.DISLIKE);
         if (existingDislike.isEmpty()) {
-            throw new IllegalStateException("싫어요를 누르지 않았습니다.");
+            throw new PostException.NotDisliked();
         }
         PostReaction postReaction = existingDislike.get();
         postReaction.cancel();
@@ -139,12 +140,12 @@ public class PostService {
 
     public PostStat getPostStat(Long postId) {
         return statRepository.findById(postId)
-                .orElseThrow(() -> new IllegalStateException("게시글을 찾을 수 없습니다."));
+                .orElseThrow(() -> new PostException.NotFound(postId));
     }
 
     public PostStat getPostStatForUpdate(Long postId) {
         return statRepository.findByPostIdForUpdate(postId)
-                .orElseThrow(() -> new IllegalStateException("게시글을 찾을 수 없습니다."));
+                .orElseThrow(() -> new PostException.NotFound(postId));
     }
 
     public Page<PostSummary> findBoardPosts(Long boardId, Pageable pageable, Long categoryId) {
@@ -153,7 +154,7 @@ public class PostService {
 
     public Post getPost(Long postId) {
         return postRepository.findByPostIdAndDeletedFalse(postId)
-                .orElseThrow(() -> new IllegalArgumentException("게시글을 찾을 수 없습니다."));
+                .orElseThrow(() -> new PostException.NotFound(postId));
     }
 
     public Page<PostSummary> getPostByBoard(Long boardId, Pageable pageable, Long categoryId) {
@@ -162,7 +163,7 @@ public class PostService {
 
     public Post getPostForUpdate(Long postId) {
         return postRepository.findByIdForUpdate(postId)
-                .orElseThrow(() -> new IllegalArgumentException("게시글을 찾을 수 없습니다."));
+                .orElseThrow(() -> new PostException.NotFound(postId));
     }
 
     public Page<PostSummary> searchPosts(Long boardId, String keyword, String searchType, Pageable pageable) {
