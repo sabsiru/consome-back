@@ -82,4 +82,16 @@ public abstract class UserException extends RuntimeException {
         }
     }
 
+    public static class PasswordMismatch extends UserException {
+        public PasswordMismatch(String message) {
+            super("PASSWORD_MISMATCH", message);
+        }
+    }
+
+    public static class InsufficientPoint extends UserException {
+        public InsufficientPoint(String message) {
+            super("INSUFFICIENT_POINT", message);
+        }
+    }
+
 }
