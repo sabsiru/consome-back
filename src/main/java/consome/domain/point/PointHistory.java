@@ -23,7 +23,7 @@ public class PointHistory {
     private int amount;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    @Column(nullable = false, length = 50)
     private PointHistoryType type;
 
     @Column(nullable = false)

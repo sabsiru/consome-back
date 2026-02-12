@@ -20,7 +20,8 @@ public enum PointHistoryType {
     COMMENT_DISLIKE("댓글 비추천", PENALIZE, 1),
     POST_DEL("게시글 삭제", PENALIZE, 50),
     COMMENT_LIKE_CANCEL("댓글 추천 취소", PENALIZE, 1),
-    COMMENT_DEL("댓글 삭제", PENALIZE, 10);
+    COMMENT_DEL("댓글 삭제", PENALIZE, 10),
+    NICKNAME_CHANGE("닉네임 변경", PENALIZE, 100);
 
 
     private final String description;
