@@ -77,4 +77,29 @@ public class UserService {
                 .orElseThrow(() -> new UserException.NotFound("사용자를 찾을 수 없습니다."))
                 .getNickname();
     }
+
+    @Transactional
+    public void changePassword(Long userId, String currentPassword, String newPassword) {
+        User user = findById(userId);
+
+        if (!passwordEncryptor.matches(currentPassword, user.getPassword())) {
+            throw new UserException.PasswordMismatch("현재 비밀번호가 일치하지 않습니다.");
+        }
+
+        PasswordPolicy.validate(newPassword);
+        String encryptedPassword = passwordEncryptor.encrypt(newPassword);
+        user.changePassword(encryptedPassword);
+    }
+
+    @Transactional
+    public void changeNickname(Long userId, String newNickname) {
+        User user = findById(userId);
+
+        if (userRepository.existsByNickname(newNickname)) {
+            throw new UserException.DuplicateNickname(newNickname);
+        }
+
+        User.validateNickname(newNickname);
+        user.changeNickname(newNickname);
+    }
 }

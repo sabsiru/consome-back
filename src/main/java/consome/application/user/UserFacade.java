@@ -3,21 +3,17 @@ package consome.application.user;
 
 import consome.domain.admin.BoardManager;
 import consome.domain.admin.repository.BoardManagerRepository;
-import consome.domain.comment.Comment;
-import consome.domain.comment.CommentReaction;
-import consome.domain.comment.CommentService;
 import consome.domain.level.LevelInfo;
 import consome.domain.level.LevelService;
 import consome.domain.point.PointHistoryType;
 import consome.domain.point.PointService;
-import consome.domain.post.entity.Post;
-import consome.domain.post.PostService;
-import consome.domain.post.entity.PostStat;
-import consome.domain.post.ReactionType;
 import consome.domain.user.User;
 import consome.domain.user.UserService;
+import consome.domain.user.repository.UserQueryRepository;
 import consome.infrastructure.jwt.JwtProvider;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -32,6 +28,7 @@ public class UserFacade {
     private final LevelService levelService;
     private final JwtProvider jwtProvider;
     private final BoardManagerRepository boardManagerRepository;
+    private final UserQueryRepository userQueryRepository;
 
     @Transactional
     public Long register(UserRegisterCommand command) {
@@ -65,6 +62,58 @@ public class UserFacade {
                 .map(BoardManager::getBoardId)
                 .toList();
         return new UserMeResult(user.getId(), user.getLoginId(), user.getNickname(), currentPoint, level, user.getRole(), managedBoardIds);
+    }
+
+    @Transactional(readOnly = true)
+    public UserProfileResult getProfile(Long userId) {
+        User user = userService.findById(userId);
+        int currentPoint = pointService.getCurrentPoint(userId);
+        int level = LevelInfo.calculateLevel(currentPoint).getLevel();
+        int postCount = userQueryRepository.countPostsByUserId(userId);
+        int commentCount = userQueryRepository.countCommentsByUserId(userId);
+
+        return new UserProfileResult(
+                user.getId(),
+                user.getNickname(),
+                level,
+                user.getRole(),
+                currentPoint,
+                postCount,
+                commentCount,
+                user.getCreatedAt()
+        );
+    }
+
+    @Transactional(readOnly = true)
+    public Page<UserPostResult> getUserPosts(Long userId, Pageable pageable) {
+        userService.findById(userId); // 존재 검증
+        return userQueryRepository.findPostsByUserId(userId, pageable);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<UserCommentResult> getUserComments(Long userId, Pageable pageable) {
+        userService.findById(userId); // 존재 검증
+        return userQueryRepository.findCommentsByUserId(userId, pageable);
+    }
+
+    @Transactional
+    public void changePassword(Long userId, String currentPassword, String newPassword) {
+        userService.changePassword(userId, currentPassword, newPassword);
+    }
+
+    @Transactional
+    public UserNicknameChangeResult changeNickname(Long userId, String newNickname) {
+        int currentPoint = pointService.getCurrentPoint(userId);
+        int requiredPoint = PointHistoryType.NICKNAME_CHANGE.getPoint();
+
+        if (currentPoint < requiredPoint) {
+            throw new IllegalStateException("포인트가 부족합니다 (필요: " + requiredPoint + "P)");
+        }
+
+        userService.changeNickname(userId, newNickname);
+        int remainingPoint = pointService.penalize(userId, PointHistoryType.NICKNAME_CHANGE);
+
+        return new UserNicknameChangeResult(newNickname, remainingPoint);
     }
 
 }
