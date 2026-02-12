@@ -1,13 +1,13 @@
 package consome.interfaces.user.v1;
 
 
-import consome.application.user.UserFacade;
-import consome.application.user.UserLoginCommand;
-import consome.application.user.UserLoginResult;
-import consome.application.user.UserMeResult;
+import consome.application.user.*;
 import consome.infrastructure.security.CustomUserDetails;
 import consome.interfaces.user.dto.*;
 import consome.interfaces.user.mapper.*;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.HttpStatus;
 import jakarta.validation.Valid;
@@ -42,5 +42,47 @@ public class UserV1Controller {
         UserMeResult result = userFacade.getMyInfo(userDetails.getUserId());
         UserMeResponse response = UserMeResponseMapper.toResponse(result);
         return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/{userId}")
+    public ResponseEntity<UserProfileResponse> getProfile(@PathVariable Long userId) {
+        UserProfileResult result = userFacade.getProfile(userId);
+        return ResponseEntity.ok(UserProfileResponse.from(result));
+    }
+
+    @GetMapping("/{userId}/posts")
+    public ResponseEntity<UserPostListResponse> getUserPosts(
+            @PathVariable Long userId,
+            @PageableDefault(size = 20) Pageable pageable
+    ) {
+        Page<UserPostResult> result = userFacade.getUserPosts(userId, pageable);
+        return ResponseEntity.ok(UserPostListResponse.from(result));
+    }
+
+    @GetMapping("/{userId}/comments")
+    public ResponseEntity<UserCommentListResponse> getUserComments(
+            @PathVariable Long userId,
+            @PageableDefault(size = 20) Pageable pageable
+    ) {
+        Page<UserCommentResult> result = userFacade.getUserComments(userId, pageable);
+        return ResponseEntity.ok(UserCommentListResponse.from(result));
+    }
+
+    @PutMapping("/me/password")
+    public ResponseEntity<Void> changePassword(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @RequestBody @Valid PasswordChangeRequest request
+    ) {
+        userFacade.changePassword(userDetails.getUserId(), request.currentPassword(), request.newPassword());
+        return ResponseEntity.ok().build();
+    }
+
+    @PutMapping("/me/nickname")
+    public ResponseEntity<NicknameChangeResponse> changeNickname(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @RequestBody @Valid NicknameChangeRequest request
+    ) {
+        UserNicknameChangeResult result = userFacade.changeNickname(userDetails.getUserId(), request.nickname());
+        return ResponseEntity.ok(NicknameChangeResponse.from(result));
     }
 }
