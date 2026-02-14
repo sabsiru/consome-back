@@ -1,8 +1,10 @@
 package consome.domain.post;
 
+import org.testcontainers.utility.TestcontainersConfiguration;
 import consome.domain.post.entity.Post;
 import consome.domain.post.entity.PostReaction;
 import consome.domain.post.entity.PostStat;
+import consome.domain.post.exception.PostException;
 import consome.domain.post.repository.PostReactionRepository;
 import consome.domain.post.repository.PostRepository;
 import consome.domain.post.repository.PostStatRepository;
@@ -12,8 +14,10 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.domain.Page;
+import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
@@ -23,7 +27,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 
 @SpringBootTest
+@Import(TestcontainersConfiguration.class)
 @Transactional
+@ActiveProfiles("test")
 class PostServiceIntegrationTest {
 
     private static final Logger log = LoggerFactory.getLogger(PostServiceIntegrationTest.class);
@@ -132,8 +138,7 @@ class PostServiceIntegrationTest {
         assertThat(statRepository.findById(post.getId()).orElseThrow().getLikeCount()).isEqualTo(1);
 
         assertThatThrownBy(() -> postService.like(post, userId))
-                .isInstanceOf(IllegalStateException.class)
-                .hasMessage("이미 좋아요를 눌렀습니다.");
+                .isInstanceOf(PostException.AlreadyLiked.class);
 
         assertThat(statRepository.findById(post.getId()).orElseThrow().getLikeCount()).isEqualTo(1);
     }
@@ -155,8 +160,7 @@ class PostServiceIntegrationTest {
         assertThat(statRepository.findById(post.getId()).orElseThrow().getDislikeCount()).isEqualTo(1);
 
         assertThatThrownBy(() -> postService.dislike(post, userId))
-                .isInstanceOf(IllegalStateException.class)
-                .hasMessage("이미 싫어요를 눌렀습니다.");
+                .isInstanceOf(PostException.AlreadyDisliked.class);
 
         assertThat(statRepository.findById(post.getId()).orElseThrow().getDislikeCount()).isEqualTo(1);
     }
@@ -231,8 +235,7 @@ class PostServiceIntegrationTest {
 
         // when/then
         assertThatThrownBy(() -> postService.cancelLike(post, userId))
-                .isInstanceOf(IllegalStateException.class)
-                .hasMessage("좋아요를 누르지 않았습니다.");
+                .isInstanceOf(PostException.NotLiked.class);
     }
 
     @Test
@@ -249,8 +252,7 @@ class PostServiceIntegrationTest {
 
         // when/then
         assertThatThrownBy(() -> postService.cancelDislike(post, userId))
-                .isInstanceOf(IllegalStateException.class)
-                .hasMessage("싫어요를 누르지 않았습니다.");
+                .isInstanceOf(PostException.NotDisliked.class);
     }
 
     @Test
@@ -321,8 +323,7 @@ class PostServiceIntegrationTest {
 
         // when/then
         assertThatThrownBy(() -> postService.edit(title,categoryId, newContent, post.getId(), 101L))
-                .isInstanceOf(IllegalStateException.class)
-                .hasMessage("작성자만 게시글을 수정할 수 있습니다.");
+                .isInstanceOf(PostException.Unauthorized.class);
     }
 
     // delete
@@ -359,8 +360,7 @@ class PostServiceIntegrationTest {
 
         // when/then
         assertThatThrownBy(() -> postService.delete(post.getId(), 101L))
-                .isInstanceOf(IllegalStateException.class)
-                .hasMessage("작성자만 게시글을 삭제할 수 있습니다.");
+                .isInstanceOf(PostException.Unauthorized.class);
     }
 
     // increase view count test
@@ -410,9 +410,8 @@ class PostServiceIntegrationTest {
     void 게시글_페이징_정렬_조회() {
         //given
         Long boardId = 1L;
-        Long categoryId = 1L;
+        Long categoryId = 9999L; // 다른 테스트와 격리를 위해 고유한 categoryId 사용
         Long authorId = 1L;
-        Long userId = 100L;
         Pageable pageable = PageRequest.of(0, 15);
 
         String title = "테스트 제목";

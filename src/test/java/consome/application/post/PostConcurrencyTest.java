@@ -1,11 +1,13 @@
 package consome.application.post;
 
+import org.testcontainers.utility.TestcontainersConfiguration;
 import consome.application.comment.CommentFacade;
 import consome.application.user.UserFacade;
 import consome.application.user.UserRegisterCommand;
 import consome.domain.post.PostService;
 import consome.domain.post.entity.Post;
 import consome.domain.post.entity.PostStat;
+import consome.domain.post.exception.PostException;
 import consome.domain.post.repository.PostStatRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -22,12 +24,13 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.springframework.context.annotation.Import;
-import org.testcontainers.utility.TestcontainersConfiguration;
+import org.springframework.test.context.ActiveProfiles;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest
 @Import(TestcontainersConfiguration.class)
+@ActiveProfiles("test")
 class PostConcurrencyTest {
 
     @Autowired UserFacade userFacade;
@@ -142,7 +145,7 @@ class PostConcurrencyTest {
             executor.submit(() -> {
                 try {
                     postService.like(post, singleUserId);
-                } catch (IllegalStateException e) {
+                } catch (PostException e) {
                     exceptionCount.incrementAndGet();
                 } finally {
                     latch.countDown();
@@ -170,7 +173,7 @@ class PostConcurrencyTest {
             executor.submit(() -> {
                 try {
                     postService.dislike(post, singleUserId);
-                } catch (IllegalStateException e) {
+                } catch (PostException e) {
                     exceptionCount.incrementAndGet();
                 } finally {
                     latch.countDown();

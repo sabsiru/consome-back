@@ -1,5 +1,6 @@
 package consome.interfaces.user.v1;
 
+import org.testcontainers.utility.TestcontainersConfiguration;
 import consome.interfaces.error.ErrorResponse;
 import consome.interfaces.user.dto.UserLoginRequest;
 import consome.interfaces.user.dto.UserLoginResponse;
@@ -11,6 +12,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.ActiveProfiles;
@@ -22,6 +24,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 @SpringBootTest(
         webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT
 )
+@Import(TestcontainersConfiguration.class)
 @ActiveProfiles("test")
 class UserV1ControllerE2eTest {
 

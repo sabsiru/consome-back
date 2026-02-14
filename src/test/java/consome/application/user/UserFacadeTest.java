@@ -3,6 +3,7 @@ package consome.application.user;
 import consome.domain.point.PointService;
 import consome.domain.user.User;
 import consome.domain.user.UserService;
+import consome.domain.level.LevelService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -23,6 +24,9 @@ class UserFacadeTest {
 
     @Mock
     private PointService pointService;
+
+    @Mock
+    private LevelService levelService;
 
     @InjectMocks
     private UserFacade userFacade;

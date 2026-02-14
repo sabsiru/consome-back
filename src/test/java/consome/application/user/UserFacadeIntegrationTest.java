@@ -1,5 +1,6 @@
 package consome.application.user;
 
+import org.testcontainers.utility.TestcontainersConfiguration;
 import consome.domain.comment.repository.CommentReactionRepository;
 import consome.domain.comment.repository.CommentRepository;
 import consome.domain.comment.CommentService;
@@ -8,11 +9,13 @@ import consome.domain.point.repository.PointHistoryRepository;
 import consome.domain.point.repository.PointRepository;
 import consome.domain.post.PostService;
 import consome.domain.user.User;
+import consome.domain.user.exception.UserException;
 import consome.domain.user.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,8 +25,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @SpringBootTest
-@ActiveProfiles("test")
+@Import(TestcontainersConfiguration.class)
 @Transactional
+@ActiveProfiles("test")
 class UserFacadeIntegrationTest {
 
     @Autowired
@@ -57,7 +61,7 @@ class UserFacadeIntegrationTest {
 
     @BeforeEach
     void setUp() {
-        userRegisterCommand = UserRegisterCommand.of("testid", "테스트닉네임", "password123");
+        userRegisterCommand = UserRegisterCommand.of("testid", "테스트닉네임", "Password123");
         userRepository.deleteAll();
     }
 
@@ -95,7 +99,7 @@ class UserFacadeIntegrationTest {
 
             //then
             assertThatThrownBy(() -> userFacade.register(duplicateUserRegisterCommand))
-                    .isInstanceOf(IllegalStateException.class)
+                    .isInstanceOf(UserException.DuplicateLoginId.class)
                     .hasMessage("이미 사용 중인 아이디입니다.");
         }
 
@@ -107,7 +111,7 @@ class UserFacadeIntegrationTest {
 
             //then
             assertThatThrownBy(() -> userFacade.register(duplicateUserRegisterCommand))
-                    .isInstanceOf(IllegalStateException.class)
+                    .isInstanceOf(UserException.DuplicateNickname.class)
                     .hasMessage("이미 사용 중인 닉네임입니다.");
 
         }
