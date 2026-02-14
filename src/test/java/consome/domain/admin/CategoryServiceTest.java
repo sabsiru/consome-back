@@ -1,6 +1,7 @@
 package consome.domain.admin;
 
 import consome.domain.admin.repository.CategoryRepository;
+import consome.domain.common.exception.BusinessException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -117,8 +118,7 @@ class CategoryServiceTest {
 
         // when / then
         assertThatThrownBy(() -> categoryService.findById(id))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("잘못된 접근입니다.");
+                .isInstanceOf(BusinessException.CategoryNotFound.class);
         verify(categoryRepository).findById(id);
     }
 }

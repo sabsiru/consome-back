@@ -1,6 +1,7 @@
 package consome.domain.admin;
 
 import consome.domain.admin.repository.BoardRepository;
+import consome.domain.common.exception.BusinessException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -100,8 +101,8 @@ class BoardServiceTest {
 
         // when / then
         assertThatThrownBy(() -> boardService.findById(id))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("잘못된 접근입니다.");
+                .isInstanceOf(BusinessException.class)
+                .hasMessageContaining("찾을 수 없습니다");
         verify(boardRepository).findById(id);
     }
 
@@ -149,7 +150,7 @@ class BoardServiceTest {
 
         // when / then
         assertThatThrownBy(() -> boardService.update(id, duplicateName, null))
-                .isInstanceOf(IllegalArgumentException.class)
+                .isInstanceOf(BusinessException.class)
                 .hasMessage("이미 존재하는 게시판 이름입니다.");
     }
 

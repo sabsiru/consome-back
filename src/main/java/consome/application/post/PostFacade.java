@@ -10,6 +10,7 @@ import consome.domain.post.PostService;
 import consome.domain.post.entity.PostImage;
 import consome.domain.post.entity.PostStat;
 import consome.domain.post.entity.TempPostImage;
+import consome.domain.post.exception.PostException;
 import consome.domain.post.repository.PostImageRepository;
 import consome.domain.post.repository.PostReactionRepository;
 import consome.domain.post.repository.TempPostImageRepository;
@@ -84,7 +85,7 @@ public class PostFacade {
         Post post = postService.getPostForUpdate(postId);
 
         if (!post.getUserId().equals(userId)) {
-            throw new IllegalStateException("작성자만 게시글을 수정할 수 있습니다.");
+            throw new PostException.Unauthorized("수정");
         }
 
         // 새 이미지 저장 + URL 치환

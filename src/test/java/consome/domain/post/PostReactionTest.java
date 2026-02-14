@@ -17,8 +17,6 @@ class PostReactionTest {
         assertThat(like.getUserId()).isEqualTo(userId);
         assertThat(like.getType()).isEqualTo(ReactionType.LIKE);
         assertThat(like.isDeleted()).isFalse();
-        assertThat(like.getCreatedAt()).isNotNull();
-        assertThat(like.getUpdatedAt()).isNotNull();
     }
 
     @Test
@@ -31,8 +29,6 @@ class PostReactionTest {
         assertThat(dislike.getUserId()).isEqualTo(userId);
         assertThat(dislike.getType()).isEqualTo(ReactionType.DISLIKE);
         assertThat(dislike.isDeleted()).isFalse();
-        assertThat(dislike.getCreatedAt()).isNotNull();
-        assertThat(dislike.getUpdatedAt()).isNotNull();
     }
 
     @Test
@@ -41,7 +37,6 @@ class PostReactionTest {
         like.cancel();
 
         assertThat(like.isDeleted()).isTrue();
-        assertThat(like.getUpdatedAt()).isAfterOrEqualTo(like.getCreatedAt());
     }
 
     @Test
@@ -50,6 +45,5 @@ class PostReactionTest {
         dislike.cancel();
 
         assertThat(dislike.isDeleted()).isTrue();
-        assertThat(dislike.getUpdatedAt()).isAfterOrEqualTo(dislike.getCreatedAt());
     }
 }

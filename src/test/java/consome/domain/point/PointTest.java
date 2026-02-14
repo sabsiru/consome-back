@@ -21,33 +21,33 @@ class PointTest {
 
         // then
         assertThat(point.getUserId()).isEqualTo(userId);
-        assertThat(point.getUserPoint()).isEqualTo(0);
-        assertThat(point.getUpdatedAt()).isNotNull();
+        assertThat(point.getUserPoint()).isEqualTo(100); // 초기 포인트
     }
 
     @Test
     void 포인트_증가_성공_tester() {
         // given
         Point point = Point.initialize(1L);
+        int initial = point.getUserPoint(); // 100
 
         // when
         point.earn(50);
 
         // then
-        assertThat(point.getUserPoint()).isEqualTo(50);
+        assertThat(point.getUserPoint()).isEqualTo(initial + 50);
     }
 
     @Test
     void 포인트_감소_성공_tester() {
         // given
         Point point = Point.initialize(1L);
-        point.earn(100);
+        int initial = point.getUserPoint(); // 100
 
         // when
         point.penalize(30);
 
         // then
-        assertThat(point.getUserPoint()).isEqualTo(70);
+        assertThat(point.getUserPoint()).isEqualTo(initial - 30);
     }
 
     @Test

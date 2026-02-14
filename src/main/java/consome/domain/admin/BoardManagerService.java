@@ -2,6 +2,7 @@ package consome.domain.admin;
 
 import consome.domain.admin.repository.BoardManagerRepository;
 import consome.domain.admin.repository.BoardRepository;
+import consome.domain.common.exception.BusinessException;
 import consome.domain.user.Role;
 import consome.domain.user.User;
 import consome.domain.user.repository.UserRepository;
@@ -23,10 +24,10 @@ public class BoardManagerService {
     @Transactional
     public BoardManager assignManager(Long boardId, Long userId) {
         Board board = boardRepository.findById(boardId)
-                .orElseThrow(() -> new IllegalArgumentException("게시판을 찾을 수 없습니다."));
+                .orElseThrow(() -> new BusinessException.BoardNotFound(boardId));
 
         if (boardManagerRepository.existsByBoardIdAndUserId(boardId, userId)) {
-            throw new IllegalStateException("이미 해당 게시판의 관리자입니다.");
+            throw new BusinessException("ALREADY_MANAGER", "이미 해당 게시판의 관리자입니다.");
         }
 
         User user = userRepository.findById(userId)
@@ -43,7 +44,7 @@ public class BoardManagerService {
     @Transactional
     public void removeManager(Long boardId, Long userId) {
         BoardManager manager = boardManagerRepository.findByBoardIdAndUserId(boardId, userId)
-                .orElseThrow(() -> new IllegalStateException("해당 게시판의 관리자가 아닙니다."));
+                .orElseThrow(() -> new BusinessException("NOT_MANAGER", "해당 게시판의 관리자가 아닙니다."));
 
         boardManagerRepository.delete(manager);
 
