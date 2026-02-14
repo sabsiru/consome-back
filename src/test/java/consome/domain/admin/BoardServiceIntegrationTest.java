@@ -1,16 +1,24 @@
 package consome.domain.admin;
 
 import consome.domain.admin.repository.BoardRepository;
+import consome.domain.common.exception.BusinessException;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.context.annotation.Import;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.transaction.annotation.Transactional;
+import org.testcontainers.utility.TestcontainersConfiguration;
+
+import java.util.UUID;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 
 @SpringBootTest
-@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
+@Import(TestcontainersConfiguration.class)
+@Transactional
+@ActiveProfiles("test")
 public class BoardServiceIntegrationTest {
 
     @Autowired
@@ -19,10 +27,14 @@ public class BoardServiceIntegrationTest {
     @Autowired
     BoardRepository boardRepository;
 
+    private String uniqueName() {
+        return "보드" + UUID.randomUUID().toString().substring(0, 4);
+    }
+
     @Test
     void 게시판_생성시_DB에_저장된다() {
         //given
-        String name = "자유게시판";
+        String name = uniqueName();
         String description = "자유롭게 글을 작성할 수 있는 게시판입니다.";
         int displayOrder = 1;
 
@@ -40,13 +52,13 @@ public class BoardServiceIntegrationTest {
     @Test
     void 게시판_이름_변경시_DB에_저장된다() {
         //given
-        String name = "자유게시판";
+        String name = uniqueName();
         String description = "자유롭게 글을 작성할 수 있는 게시판입니다.";
         int displayOrder = 1;
         Board board = boardService.create(name, description, displayOrder);
 
         //when
-        String newName = "새로운 자유게시판";
+        String newName = uniqueName();
         Board renamedBoard = boardService.update(board.getId(), newName, null);
 
         //then
@@ -56,7 +68,7 @@ public class BoardServiceIntegrationTest {
     @Test
     void 게시판_정렬순서_변경시_DB에_저장된다() {
         //given
-        String name = "자유게시판";
+        String name = uniqueName();
         String description = "자유롭게 글을 작성할 수 있는 게시판입니다.";
         int displayOrder = 1;
         Board board = boardService.create(name, description, displayOrder);
@@ -72,7 +84,7 @@ public class BoardServiceIntegrationTest {
     @Test
     void 게시판_삭제시_isDeleted가_true로_변경된다() {
         //given
-        String name = "자유게시판";
+        String name = uniqueName();
         String description = "자유롭게 글을 작성할 수 있는 게시판입니다.";
         int displayOrder = 1;
         Board board = boardService.create(name, description, displayOrder);
@@ -88,31 +100,31 @@ public class BoardServiceIntegrationTest {
     @Test
     void 중복된_게시판_이름은_예외발생() {
         //given
-        String name = "중복게시판";
+        String name = uniqueName();
         String description = "첫 번째 게시판";
         int displayOrder = 1;
         boardService.create(name, description, displayOrder);
 
         //when & then
         assertThatThrownBy(() -> boardService.create(name, "두 번째 게시판", 2))
-                .isInstanceOf(IllegalArgumentException.class)
+                .isInstanceOf(BusinessException.class)
                 .hasMessageContaining("이미 존재하는 게시판 이름입니다.");
     }
 
     @Test
     void 게시판_이름_수정시_중복되면_예외발생() {
         //given
-        String name = "게시판1";
+        String name = uniqueName();
         String description = "첫 번째 게시판";
         int displayOrder = 1;
         Board board1 = boardService.create(name, description, displayOrder);
 
-        String name2 = "게시판2";
+        String name2 = uniqueName();
         boardService.create(name2, "두 번째 게시판", 2);
 
         //when & then
         assertThatThrownBy(() -> boardService.update(board1.getId(), name2, null))
-                .isInstanceOf(IllegalArgumentException.class)
+                .isInstanceOf(BusinessException.class)
                 .hasMessageContaining("이미 존재하는 게시판 이름입니다.");
     }
 
@@ -125,7 +137,7 @@ public class BoardServiceIntegrationTest {
 
         //when & then
         assertThatThrownBy(() -> boardService.create(invalidName, description, displayOrder))
-                .isInstanceOf(IllegalArgumentException.class)
+                .isInstanceOf(BusinessException.class)
                 .hasMessageContaining("게시판 이름은 1자 이상 10자 이하로 입력해야 합니다.");
     }
 }

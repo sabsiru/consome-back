@@ -1,5 +1,11 @@
 package consome.domain.comment;
 
+import consome.application.user.UserFacade;
+import consome.application.user.UserRegisterCommand;
+import consome.domain.post.PostService;
+import consome.domain.post.entity.Post;
+import org.testcontainers.utility.TestcontainersConfiguration;
+import consome.domain.comment.exception.CommentException;
 import consome.domain.comment.repository.CommentReactionRepository;
 import consome.domain.comment.repository.CommentRepository;
 import consome.domain.post.ReactionType;
@@ -7,16 +13,21 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.context.annotation.Import;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 
 @SpringBootTest
-@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
+@Import(TestcontainersConfiguration.class)
+@ActiveProfiles("test")
+@Transactional
 class CommentServiceIntegrationTest {
 
     @Autowired
@@ -28,14 +39,28 @@ class CommentServiceIntegrationTest {
     @Autowired
     private CommentReactionRepository commentReactionRepository;
 
-    @BeforeEach
-    void resetDatabase() {
-        commentRepository.deleteAll();
-    }
+    @Autowired
+    private consome.domain.comment.repository.CommentStatRepository commentStatRepository;
 
-    private Long boardId = 1L;
-    private Long userId = 100L;
-    private Long postId = 1L;
+    @Autowired
+    private PostService postService;
+
+    @Autowired
+    private UserFacade userFacade;
+
+    private Long userId;
+    private Long postId;
+
+    @BeforeEach
+    void setUp() {
+        commentReactionRepository.deleteAll();
+        commentStatRepository.deleteAll();
+        commentRepository.deleteAll();
+        String suffix = UUID.randomUUID().toString().substring(0, 8);
+        userId = userFacade.register(UserRegisterCommand.of("user" + suffix, "닉네임" + suffix, "Password123"));
+        Post post = postService.post(1L, 1L, userId, "테스트 게시글", "내용");
+        postId = post.getId();
+    }
 
     @Test
     void 대댓글_작성시_step과depth_정상적용() {
@@ -43,7 +68,7 @@ class CommentServiceIntegrationTest {
         String content = "테스트 댓글";
 
         //when
-        Comment parentComment = commentService.comment(boardId, userId, null, content);
+        Comment parentComment = commentService.comment(postId, userId, null, content);
         //then
         assertThat(parentComment.getStep()).isEqualTo(0);
         assertThat(parentComment.getDepth()).isEqualTo(0);
@@ -54,12 +79,12 @@ class CommentServiceIntegrationTest {
         //given
         String content = "테스트 댓글";
 
-        Comment parentComment = commentService.comment(boardId, userId, null, content);
+        Comment parentComment = commentService.comment(postId, userId, null, content);
 
         System.out.println("parentComment.getRef() = " + parentComment.getRef());
 
         //when
-        Comment replyComment = commentService.comment(boardId, userId, parentComment.getId(), "답글 댓글");
+        Comment replyComment = commentService.comment(postId, userId, parentComment.getId(), "답글 댓글");
 
         System.out.println("get Ref: " + replyComment.getRef() +
                 ", get Step: " + replyComment.getStep() +
@@ -114,7 +139,7 @@ class CommentServiceIntegrationTest {
         Comment comment = commentService.comment(postId, userId, null, originalContent);
 
         //when
-        Comment edit = commentService.edit(comment.getId(), userId, updatedContent);
+        Comment edit = commentService.edit(userId, comment.getId(), updatedContent);
 
         //then
         assertThat(edit.getContent()).isEqualTo(updatedContent);
@@ -150,7 +175,7 @@ class CommentServiceIntegrationTest {
     }
 
     @Test
-    void 좋아요_중복시_IllegalStateException_발생() {
+    void 좋아요_중복시_CommentException_발생() {
         //given
         Comment comment = commentService.comment(postId, userId, null, "테스트 댓글");
 
@@ -159,8 +184,7 @@ class CommentServiceIntegrationTest {
 
         //then
         assertThatThrownBy(() -> commentService.like(comment.getId(), userId))
-                .isInstanceOf(IllegalStateException.class)
-                .hasMessageContaining("이미 좋아요를 눌렀습니다.");
+                .isInstanceOf(CommentException.AlreadyLiked.class);
 
     }
 
@@ -177,7 +201,7 @@ class CommentServiceIntegrationTest {
     }
 
     @Test
-    void 싫어요_중복시_IllegalStateException_발생() {
+    void 싫어요_중복시_CommentException_발생() {
         //given
         Comment comment = commentService.comment(postId, userId, null, "테스트 댓글");
 
@@ -186,8 +210,7 @@ class CommentServiceIntegrationTest {
 
         //then
         assertThatThrownBy(() -> commentService.dislike(comment.getId(), userId))
-                .isInstanceOf(IllegalStateException.class)
-                .hasMessageContaining("이미 싫어요를 눌렀습니다.");
+                .isInstanceOf(CommentException.AlreadyDisliked.class);
 
     }
 }

@@ -24,8 +24,6 @@ class BoardTest {
         assertThat(board.getDescription()).isEqualTo(description);
         assertThat(board.getDisplayOrder()).isEqualTo(order);
         assertThat(board.isDeleted()).isFalse();
-        assertThat(board.getCreatedAt()).isNotNull();
-        assertThat(board.getUpdatedAt()).isNotNull();
     }
 
     @Test

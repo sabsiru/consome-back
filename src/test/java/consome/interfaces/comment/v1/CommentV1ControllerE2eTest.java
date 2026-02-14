@@ -6,20 +6,26 @@ import consome.application.post.PostResult;
 import consome.application.user.UserFacade;
 import consome.application.user.UserRegisterCommand;
 import consome.domain.post.entity.Post;
-import consome.domain.user.User;
 import consome.interfaces.comment.dto.*;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.test.context.ActiveProfiles;
+import org.testcontainers.utility.TestcontainersConfiguration;
+
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@Import(TestcontainersConfiguration.class)
+@ActiveProfiles("test")
 public class CommentV1ControllerE2eTest {
 
     @Autowired
@@ -32,10 +38,9 @@ public class CommentV1ControllerE2eTest {
     UserFacade userFacade;
 
     Long 준비_유저_생성() {
-        User user = User.create("testuser", "nickname", "Password123");
-        UserRegisterCommand userRegisterCommand = UserRegisterCommand.of(user.getLoginId(), user.getNickname(), user.getPassword());
-        Long register = userFacade.register(userRegisterCommand);
-        return register;
+        String suffix = UUID.randomUUID().toString().substring(0, 8);
+        UserRegisterCommand userRegisterCommand = UserRegisterCommand.of("user" + suffix, "nick" + suffix, "Password123");
+        return userFacade.register(userRegisterCommand);
     }
 
     Long 준비_게시글_생성(Long userId) {
@@ -132,19 +137,22 @@ public class CommentV1ControllerE2eTest {
                 .postForEntity(url, request, CommentListResponse.class);
         Long commentId = response.getBody().commentId();
 
+        // 다른 유저로 좋아요 (자신의 댓글에 좋아요 불가능할 수 있음)
+        Long otherUserId = 준비_유저_생성();
+
         //when
-        String likeUrl = "/api/v1/posts/" + postId + "/comments/" + commentId + "/like?userId=" + userId;
-        ResponseEntity<Long> likeResponse = restTemplate.postForEntity(likeUrl, null, Long.class);
+        String likeUrl = "/api/v1/posts/" + postId + "/comments/" + commentId + "/like?userId=" + otherUserId;
+        ResponseEntity<CommentStatResponse> likeResponse = restTemplate.postForEntity(likeUrl, null, CommentStatResponse.class);
 
         //then
         assertThat(likeResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
-        Long likeCount = likeResponse.getBody();
-        assertThat(likeCount).isNotNull();
-        assertThat(likeCount).isEqualTo(1L);
+        CommentStatResponse stat = likeResponse.getBody();
+        assertThat(stat).isNotNull();
+        assertThat(stat.likeCount()).isEqualTo(1L);
     }
 
     @Test
-    void 댓글_리액션_토글() {
+    void 댓글_싫어요() {
         // given
         Long userId = 준비_유저_생성();
         Long postId = 준비_게시글_생성(userId);
@@ -154,20 +162,16 @@ public class CommentV1ControllerE2eTest {
                 .postForEntity(url, request, CommentListResponse.class);
         Long commentId = response.getBody().commentId();
 
+        Long otherUserId = 준비_유저_생성();
+
         // when
-        String toggleUrl = "/api/v1/posts/" + postId + "/comments/" + commentId + "/reaction?userId=" + userId + "&type=LIKE";
-        ResponseEntity<consome.domain.comment.CommentReaction> toggleResponse =
-                restTemplate.postForEntity(toggleUrl, null, consome.domain.comment.CommentReaction.class);
+        String dislikeUrl = "/api/v1/posts/" + postId + "/comments/" + commentId + "/dislike?userId=" + otherUserId;
+        ResponseEntity<CommentStatResponse> dislikeResponse = restTemplate.postForEntity(dislikeUrl, null, CommentStatResponse.class);
 
         // then
-        assertThat(toggleResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
-        consome.domain.comment.CommentReaction reaction = toggleResponse.getBody();
-        assertThat(reaction).isNotNull();
-
-        // toggle off
-        ResponseEntity<consome.domain.comment.CommentReaction> toggleOffResponse =
-                restTemplate.postForEntity(toggleUrl, null, consome.domain.comment.CommentReaction.class);
-        assertThat(toggleOffResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
-        assertThat(toggleOffResponse.getBody()).isNull();
+        assertThat(dislikeResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
+        CommentStatResponse stat = dislikeResponse.getBody();
+        assertThat(stat).isNotNull();
+        assertThat(stat.dislikeCount()).isEqualTo(1L);
     }
 }

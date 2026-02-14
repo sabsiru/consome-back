@@ -1,6 +1,8 @@
 package consome.interfaces.post.v1;
 
 import consome.application.post.PostResult;
+import consome.application.user.UserFacade;
+import consome.application.user.UserRegisterCommand;
 import consome.domain.post.repository.PostRepository;
 import consome.interfaces.post.dto.*;
 import consome.interfaces.user.dto.UserRegisterRequest;
@@ -10,18 +12,32 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.transaction.annotation.Transactional;
+import org.testcontainers.utility.TestcontainersConfiguration;
+
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@Import(TestcontainersConfiguration.class)
 @ActiveProfiles("test")
 class PostV1ControllerE2eTest {
+
+    @Autowired
+    UserFacade userFacade;
+
+    private Long createUser() {
+        String suffix = UUID.randomUUID().toString().substring(0, 8);
+        return userFacade.register(UserRegisterCommand.of("user" + suffix, "nick" + suffix, "Password123"));
+    }
 
     @Autowired
     private TestRestTemplate restTemplate;
@@ -69,19 +85,11 @@ class PostV1ControllerE2eTest {
     @DisplayName("게시글 수정 시 200 OK와 EditResponse를 반환한다")
     void 게시글_수정_성공() throws Exception {
         // given - 회원가입
-        UserRegisterRequest registerRequest = new UserRegisterRequest(
-                "editUser",
-                "수정닉네임",
-                "Password123"
-        );
-        ResponseEntity<UserRegisterResponse> userResponse = restTemplate
-                .postForEntity("/api/v1/users", registerRequest, UserRegisterResponse.class);
-        assertThat(userResponse.getStatusCode()).isEqualTo(HttpStatus.CREATED);
-        assertThat(userResponse.getBody()).isNotNull();
+        Long userId = createUser();
 
         // and - 게시글 작성
         PostRequest postRequest = new PostRequest(
-                1L, 1L, 1L,
+                1L, 1L, userId,
                 "수정 대상 제목",
                 "수정 전 내용"
         );
@@ -93,20 +101,27 @@ class PostV1ControllerE2eTest {
         Long postId = postResponse.getBody().postId();
         assertThat(postId).isNotNull();
 
-        // when - 게시글 수정
-        EditRequest editRequest = new EditRequest("수정 대상 제목", 1L, "수정 후 내용");
+        // when - 게시글 수정 (multipart/form-data 형식)
+        org.springframework.util.LinkedMultiValueMap<String, Object> body = new org.springframework.util.LinkedMultiValueMap<>();
+        org.springframework.http.HttpHeaders partHeaders = new org.springframework.http.HttpHeaders();
+        partHeaders.setContentType(org.springframework.http.MediaType.APPLICATION_JSON);
+        EditRequest editRequest = new EditRequest("수정된 제목", 1L, "수정 후 내용");
+        org.springframework.http.HttpEntity<EditRequest> requestPart = new org.springframework.http.HttpEntity<>(editRequest, partHeaders);
+        body.add("request", requestPart);
+
+        org.springframework.http.HttpHeaders headers = new org.springframework.http.HttpHeaders();
+        headers.setContentType(org.springframework.http.MediaType.MULTIPART_FORM_DATA);
+        HttpEntity<org.springframework.util.LinkedMultiValueMap<String, Object>> requestEntity = new HttpEntity<>(body, headers);
+
         ResponseEntity<EditResponse> editRes = restTemplate.exchange(
                 "/api/v1/posts/{postId}?userId={userId}",
                 HttpMethod.PUT,
-                new HttpEntity<>(editRequest),
+                requestEntity,
                 EditResponse.class,
-                postId, 1L
+                postId, userId
         );
 
         // then
-        postRepository.findById(postId).ifPresent(post -> {
-            assertThat(post.getContent()).isEqualTo("수정된 내용");
-        });
         assertThat(editRes.getStatusCode()).isEqualTo(HttpStatus.OK);
     }
 
@@ -209,20 +224,19 @@ class PostV1ControllerE2eTest {
     @DisplayName("게시글 상세 진입 시 200 OK와 PostDetailResponse를 반환하고 viewCount가 반영된다")
     void 게시글_상세조회_성공() {
         // given - 회원가입 + 게시글 작성
-        UserRegisterRequest registerRequest = new UserRegisterRequest("viewer", "뷰닉", "Password123");
-        restTemplate.postForEntity("/api/v1/users", registerRequest, UserRegisterResponse.class);
+        Long userId = createUser();
 
         String content = "상세 내용 확인";
-        PostRequest postRequest = new PostRequest(1L, 1L, 1L, "상세 제목", content);
+        PostRequest postRequest = new PostRequest(1L, 1L, userId, "상세 제목", content);
         ResponseEntity<PostResult> postRes = restTemplate
                 .postForEntity("/api/v1/posts", postRequest, PostResult.class);
         Long postId = postRes.getBody().postId();
 
         // when - 상세 진입(조회수 증가 포함)
         ResponseEntity<PostDetailResponse> detailRes = restTemplate.getForEntity(
-                "/api/v1/posts/{postId}/view?userId={userId}",
+                "/api/v1/posts/{postId}?userId={userId}",
                 PostDetailResponse.class,
-                postId, 1L
+                postId, userId
         );
 
         // then

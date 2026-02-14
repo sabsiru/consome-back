@@ -9,6 +9,7 @@ import consome.domain.point.PointHistoryType;
 import consome.domain.point.PointService;
 import consome.domain.user.User;
 import consome.domain.user.UserService;
+import consome.domain.user.exception.UserException;
 import consome.domain.user.repository.UserQueryRepository;
 import consome.infrastructure.jwt.JwtProvider;
 import lombok.RequiredArgsConstructor;
@@ -107,7 +108,7 @@ public class UserFacade {
         int requiredPoint = PointHistoryType.NICKNAME_CHANGE.getPoint();
 
         if (currentPoint < requiredPoint) {
-            throw new IllegalStateException("포인트가 부족합니다 (필요: " + requiredPoint + "P)");
+            throw new UserException.InsufficientPoint("포인트가 부족합니다 (필요: " + requiredPoint + "P)");
         }
 
         userService.changeNickname(userId, newNickname);

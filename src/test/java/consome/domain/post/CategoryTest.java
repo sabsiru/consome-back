@@ -22,8 +22,7 @@ class CategoryTest {
         assertThat(category.getName()).isEqualTo(name);
         assertThat(category.getDisplayOrder()).isEqualTo(order);
         assertThat(category.isDeleted()).isFalse();
-        assertThat(category.getCreatedAt()).isNotNull();
-        assertThat(category.getUpdatedAt()).isNotNull();
+        // createdAt, updatedAt은 @EntityListener로 영속화 시점에 설정됨
     }
 
     @Test

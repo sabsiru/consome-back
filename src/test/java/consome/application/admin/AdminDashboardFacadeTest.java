@@ -1,8 +1,10 @@
 package consome.application.admin;
 
+import org.testcontainers.utility.TestcontainersConfiguration;
 import consome.domain.admin.*;
 import consome.domain.admin.repository.BoardManagerRepository;
 import consome.domain.admin.repository.BoardRepository;
+import consome.domain.common.exception.BusinessException;
 import consome.domain.user.Role;
 import consome.domain.user.User;
 import consome.domain.user.repository.UserRepository;
@@ -16,8 +18,8 @@ import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
-import org.testcontainers.utility.TestcontainersConfiguration;
 
 import java.util.List;
 
@@ -28,6 +30,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 @SpringBootTest
 @Import(TestcontainersConfiguration.class)
 @Transactional
+@ActiveProfiles("test")
 class AdminDashboardFacadeTest {
 
     @Autowired
@@ -49,15 +52,13 @@ class AdminDashboardFacadeTest {
 
         private User testUser;
         private Board testBoard;
+        private String uniqueId;
 
         @BeforeEach
         void setUp() {
-            boardManagerRepository.deleteAll();
-            userRepository.deleteAll();
-            boardRepository.deleteAll();
-
-            testUser = userRepository.save(User.create("testuser", "테스트유저", "password123!"));
-            testBoard = boardRepository.save(Board.create("테스트게시판", "테스트 게시판입니다", 1));
+            uniqueId = String.valueOf(System.nanoTime() % 100000);
+            testUser = userRepository.save(User.create("user" + uniqueId, "테스트유저", "password123!"));
+            testBoard = boardRepository.save(Board.create("board" + uniqueId, "테스트 게시판입니다", 1));
         }
 
         @Test
@@ -95,7 +96,7 @@ class AdminDashboardFacadeTest {
 
             // when & then
             assertThatThrownBy(() -> adminDashboardFacade.assignManager(testBoard.getId(), testUser.getId()))
-                    .isInstanceOf(IllegalStateException.class)
+                    .isInstanceOf(BusinessException.class)
                     .hasMessageContaining("이미 해당 게시판의 관리자입니다");
         }
 
@@ -118,7 +119,7 @@ class AdminDashboardFacadeTest {
         @DisplayName("관리자 해제 시 다른 게시판이 있으면 User의 role이 MANAGER로 유지된다")
         void removeManager_keepsManagerRoleIfOtherBoardsExist() {
             // given
-            Board anotherBoard = boardRepository.save(Board.create("다른게시판", "다른 게시판입니다", 2));
+            Board anotherBoard = boardRepository.save(Board.create("other" + uniqueId, "다른 게시판입니다", 2));
             adminDashboardFacade.assignManager(testBoard.getId(), testUser.getId());
             adminDashboardFacade.assignManager(anotherBoard.getId(), testUser.getId());
 
@@ -150,7 +151,7 @@ class AdminDashboardFacadeTest {
         void removeManager_throwsExceptionIfNotManager() {
             // when & then
             assertThatThrownBy(() -> adminDashboardFacade.removeManager(testBoard.getId(), testUser.getId()))
-                    .isInstanceOf(IllegalStateException.class)
+                    .isInstanceOf(BusinessException.class)
                     .hasMessageContaining("해당 게시판의 관리자가 아닙니다");
         }
 
@@ -158,7 +159,7 @@ class AdminDashboardFacadeTest {
         @DisplayName("getManagersByBoard - 게시판 관리자 목록 조회")
         void getManagersByBoard_returnsManagerList() {
             // given
-            User anotherUser = userRepository.save(User.create("another", "다른유저", "password123!"));
+            User anotherUser = userRepository.save(User.create("oth" + uniqueId, "다른유저", "password123!"));
             adminDashboardFacade.assignManager(testBoard.getId(), testUser.getId());
             adminDashboardFacade.assignManager(testBoard.getId(), anotherUser.getId());
 
@@ -167,7 +168,7 @@ class AdminDashboardFacadeTest {
 
             // then
             assertThat(managers).hasSize(2);
-            assertThat(managers).extracting(ManagerResult::boardName).containsOnly("테스트게시판");
+            assertThat(managers).extracting(ManagerResult::boardName).containsOnly(testBoard.getName());
         }
     }
 
@@ -175,20 +176,20 @@ class AdminDashboardFacadeTest {
     @DisplayName("유저 목록 조회 테스트 - managedBoards 포함")
     class GetUsersWithManagedBoardsTests {
 
+        private String uniqueId;
+
         @BeforeEach
         void setUp() {
-            boardManagerRepository.deleteAll();
-            userRepository.deleteAll();
-            boardRepository.deleteAll();
+            uniqueId = String.valueOf(System.nanoTime() % 100000);
         }
 
         @Test
         @DisplayName("유저 목록 조회 시 managedBoards가 포함된다")
         void getUsers_includesManagedBoards() {
             // given
-            User user = userRepository.save(User.create("manager1", "매니저1", "password123!"));
-            Board board1 = boardRepository.save(Board.create("게시판1", "게시판1 설명", 1));
-            Board board2 = boardRepository.save(Board.create("게시판2", "게시판2 설명", 2));
+            User user = userRepository.save(User.create("mgr" + uniqueId, "매니저1", "password123!"));
+            Board board1 = boardRepository.save(Board.create("b1_" + uniqueId, "게시판1 설명", 1));
+            Board board2 = boardRepository.save(Board.create("b2_" + uniqueId, "게시판2 설명", 2));
 
             adminDashboardFacade.assignManager(board1.getId(), user.getId());
             adminDashboardFacade.assignManager(board2.getId(), user.getId());
@@ -208,14 +209,14 @@ class AdminDashboardFacadeTest {
             assertThat(managerUser.managedBoards()).hasSize(2);
             assertThat(managerUser.managedBoards())
                     .extracting(ManagedBoardInfo::boardName)
-                    .containsExactlyInAnyOrder("게시판1", "게시판2");
+                    .containsExactlyInAnyOrder(board1.getName(), board2.getName());
         }
 
         @Test
         @DisplayName("관리 게시판이 없는 유저는 빈 리스트를 반환한다")
         void getUsers_returnsEmptyManagedBoardsForRegularUser() {
             // given
-            User regularUser = userRepository.save(User.create("regular", "일반유저", "password123!"));
+            User regularUser = userRepository.save(User.create("reg" + uniqueId, "일반유저", "password123!"));
             Pageable pageable = PageRequest.of(0, 20, Sort.by("id").ascending());
 
             // when

@@ -7,12 +7,14 @@ import consome.application.user.UserFacade;
 import consome.application.user.UserRegisterCommand;
 import consome.domain.comment.CommentService;
 import consome.domain.comment.CommentStat;
+import consome.domain.comment.exception.CommentException;
 import consome.domain.comment.repository.CommentStatRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
+import org.springframework.test.context.ActiveProfiles;
 import org.testcontainers.utility.TestcontainersConfiguration;
 
 import java.util.ArrayList;
@@ -28,6 +30,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest
 @Import(TestcontainersConfiguration.class)
+@ActiveProfiles("test")
 class CommentConcurrencyTest {
 
     @Autowired UserFacade userFacade;
@@ -119,7 +122,7 @@ class CommentConcurrencyTest {
             executor.submit(() -> {
                 try {
                     commentService.like(commentId, singleUserId);
-                } catch (IllegalStateException e) {
+                } catch (CommentException e) {
                     exceptionCount.incrementAndGet();
                 } finally {
                     latch.countDown();
@@ -147,7 +150,7 @@ class CommentConcurrencyTest {
             executor.submit(() -> {
                 try {
                     commentService.dislike(commentId, singleUserId);
-                } catch (IllegalStateException e) {
+                } catch (CommentException e) {
                     exceptionCount.incrementAndGet();
                 } finally {
                     latch.countDown();

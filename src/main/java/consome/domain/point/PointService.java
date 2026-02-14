@@ -2,6 +2,7 @@ package consome.domain.point;
 
 import consome.domain.point.repository.PointHistoryRepository;
 import consome.domain.point.repository.PointRepository;
+import consome.domain.user.exception.UserException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -44,11 +45,11 @@ public class PointService {
 
     public Point findPointByUserId(Long userId) {
         return pointRepository.findByUserId(userId)
-                .orElseThrow(() -> new IllegalStateException("사용자를 찾을 수 없습니다."));
+                .orElseThrow(() -> new UserException.NotFound("사용자를 찾을 수 없습니다."));
     }
 
     public Point findPointByUserIdForUpdate(Long userId) {
         return pointRepository.findByUserIdForUpdate(userId)
-                .orElseThrow(() -> new IllegalStateException("사용자를 찾을 수 없습니다."));
+                .orElseThrow(() -> new UserException.NotFound("사용자를 찾을 수 없습니다."));
     }
 }
