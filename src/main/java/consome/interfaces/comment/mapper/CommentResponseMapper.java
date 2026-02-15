@@ -16,6 +16,7 @@ public class CommentResponseMapper {
                         comment.postId(),
                         comment.userId(),
                         comment.userNickname(),
+                        comment.userLevel(),
                         comment.parentId(),
                         comment.parentUserNickname(),
                         comment.isDeleted() ? "삭제된 댓글입니다." : comment.content(),
