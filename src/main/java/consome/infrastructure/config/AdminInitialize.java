@@ -58,7 +58,7 @@ public class AdminInitialize implements CommandLineRunner {
 
         System.out.println("[ADMIN INIT] 관리자 계정 생성 완료 : ID=admin / PW=Admin!23");
 
-            Board board = adminBoardFacade.create("배틀그라운드", "서바이벌 게임의 유행 선두자 PUBG게시판 입니다.", 1);
+            Board board = adminBoardFacade.create("배틀그라운드", "서바이벌 게임의 유행 선두자 PUBG게시판 입니다.");
         }
 }
 

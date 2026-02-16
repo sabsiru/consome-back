@@ -16,9 +16,9 @@ public class BoardService {
     private final BoardRepository boardRepository;
     private final BoardQueryRepository boardQueryRepository;
 
-    public Board create(String name, String description, int displayOrder) {
+    public Board create(String name, String description) {
         isNameDuplicate(name);
-        Board board = Board.create(name, description, displayOrder);
+        Board board = Board.create(name, description);
         return boardRepository.save(board);
     }
 
@@ -34,19 +34,13 @@ public class BoardService {
         return boardRepository.save(board);
     }
 
-    public Board changeOrder(Long boardId, int newOrder) {
-        Board board = findById(boardId);
-        board.changeOrder(newOrder);
-        return boardRepository.save(board);
-    }
-
+    
     @Transactional
-    public void reorder(List<BoardOrder> orders) {
-        List<Board> boards = boardRepository.findByDeletedFalseOrderByDisplayOrder();
-
+    public void reorderMainBoards(List<BoardOrder> orders) {
         // 1️⃣ 임시 음수화
-        for (Board board : boards) {
-            board.changeOrder(-board.getDisplayOrder());
+        List<Board> mainBoards = boardRepository.findByIsMainTrueAndDeletedFalseOrderByDisplayOrder();
+        for (Board board : mainBoards) {
+            board.changeMainOrder(-board.getDisplayOrder() - 1);
         }
         boardRepository.flush();
 
@@ -54,7 +48,7 @@ public class BoardService {
         for (BoardOrder order : orders) {
             Board board = boardRepository.findById(order.boardId())
                     .orElseThrow(() -> new BusinessException.BoardNotFound(order.boardId()));
-            board.changeOrder(order.displayOrder());
+            board.changeMainOrder(order.displayOrder());
         }
         boardRepository.flush();
     }
@@ -91,5 +85,26 @@ public class BoardService {
 
     public List<UserBoardSearchResult> searchByKeyword(String keyword, int limit) {
         return boardQueryRepository.searchByKeyword(keyword, limit);
+    }
+
+    public Board toggleMain(Long boardId) {
+        Board board = findById(boardId);
+        if (board.isMain()) {
+            // OFF: 순서 0으로 초기화
+            board.setMain(false, 0);
+        } else {
+            // ON: 현재 메인 게시판 중 최대 순서 + 1
+            int maxOrder = boardRepository.findByIsMainTrueAndDeletedFalseOrderByDisplayOrder()
+                    .stream()
+                    .mapToInt(Board::getDisplayOrder)
+                    .max()
+                    .orElse(0);
+            board.setMain(true, maxOrder + 1);
+        }
+        return boardRepository.save(board);
+    }
+
+    public List<Board> findMainBoards() {
+        return boardRepository.findByIsMainTrueAndDeletedFalseOrderByDisplayOrder();
     }
 }

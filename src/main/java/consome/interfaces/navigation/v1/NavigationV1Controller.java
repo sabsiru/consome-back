@@ -33,6 +33,11 @@ public class NavigationV1Controller {
         return ResponseEntity.ok(navigationFacade.getHeaderBoards());
     }
 
+    @GetMapping("/main-boards")
+    public ResponseEntity<List<BoardResult>> getMainBoards() {
+        return ResponseEntity.ok(navigationFacade.getMainBoards());
+    }
+
     @GetMapping("/popular-boards")
     public ResponseEntity<List<PopularBoardResponse>> getPopularBoards(
             @RequestParam(defaultValue = "6") int boardLimit,

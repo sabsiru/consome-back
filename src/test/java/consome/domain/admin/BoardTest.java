@@ -10,25 +10,25 @@ import static org.assertj.core.api.Assertions.assertThat;
 class BoardTest {
 
     @Test
-    void 게시판_생성_성공_tester() {
+    void 게시판_생성_성공() {
         // given
         String name = "LOL 자유 게시판";
         String description = "자유롭게 이야기하세요";
-        int order = 1;
 
         // when
-        Board board = Board.create( name, description, order);
+        Board board = Board.create(name, description);
 
         // then
         assertThat(board.getName()).isEqualTo(name);
         assertThat(board.getDescription()).isEqualTo(description);
-        assertThat(board.getDisplayOrder()).isEqualTo(order);
+        assertThat(board.getDisplayOrder()).isEqualTo(0);
         assertThat(board.isDeleted()).isFalse();
+        assertThat(board.isMain()).isFalse();
     }
 
     @Test
-    void 게시판_이름_변경_성공_tester() {
-        Board board = Board.create("옛 이름", "설명", 1);
+    void 게시판_이름_변경_성공() {
+        Board board = Board.create("옛 이름", "설명");
 
         board.rename("새 이름");
 
@@ -36,8 +36,8 @@ class BoardTest {
     }
 
     @Test
-    void 게시판_설명_변경_성공_tester() {
-        Board board = Board.create("이름", "이전 설명", 1);
+    void 게시판_설명_변경_성공() {
+        Board board = Board.create("이름", "이전 설명");
 
         board.changeDescription("새 설명");
 
@@ -45,20 +45,38 @@ class BoardTest {
     }
 
     @Test
-    void 게시판_정렬순서_변경_성공_tester() {
-        Board board = Board.create("이름", "설명", 1);
-
-        board.changeOrder(5);
-
-        assertThat(board.getDisplayOrder()).isEqualTo(5);
-    }
-
-    @Test
-    void 게시판_삭제_성공_tester() {
-        Board board = Board.create("이름", "설명", 1);
+    void 게시판_삭제_성공() {
+        Board board = Board.create("이름", "설명");
 
         board.delete();
 
         assertThat(board.isDeleted()).isTrue();
+    }
+
+    @Test
+    void 메인게시판_설정_성공() {
+        Board board = Board.create("이름", "설명");
+        assertThat(board.isMain()).isFalse();
+        assertThat(board.getDisplayOrder()).isEqualTo(0);
+
+        // 메인 ON
+        board.setMain(true, 1);
+        assertThat(board.isMain()).isTrue();
+        assertThat(board.getDisplayOrder()).isEqualTo(1);
+
+        // 메인 OFF
+        board.setMain(false, 0);
+        assertThat(board.isMain()).isFalse();
+        assertThat(board.getDisplayOrder()).isEqualTo(0);
+    }
+
+    @Test
+    void 메인게시판_순서_변경_성공() {
+        Board board = Board.create("이름", "설명");
+        board.setMain(true, 1);
+
+        board.changeMainOrder(3);
+
+        assertThat(board.getDisplayOrder()).isEqualTo(3);
     }
 }

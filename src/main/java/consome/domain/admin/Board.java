@@ -29,10 +29,13 @@ public class Board {
     private String description;
 
     @Column(nullable = false)
-    private int displayOrder;
+    private int displayOrder = 0;
 
     @Column(nullable = false)
     private boolean deleted = false;
+
+    @Column(nullable = false)
+    private boolean isMain = false;
 
     @CreatedDate
     @Column(nullable = false, updatable = false)
@@ -52,14 +55,13 @@ public class Board {
 
     private LocalDateTime statUpdatedAt;
 
-    private Board(String name, String description, int displayOrder) {
+    private Board(String name, String description) {
         this.name = name;
         this.description = description;
-        this.displayOrder = displayOrder;
     }
 
-    public static Board create(String name, String description, int displayOrder) {
-        return new Board(name, description, displayOrder);
+    public static Board create(String name, String description) {
+        return new Board(name, description);
     }
 
     public void rename(String newName) {
@@ -76,6 +78,15 @@ public class Board {
 
     public void delete() {
         this.deleted = true;
+    }
+
+    public void setMain(boolean isMain, int order) {
+        this.isMain = isMain;
+        this.displayOrder = order;
+    }
+
+    public void changeMainOrder(int order) {
+        this.displayOrder = order;
     }
 
     public void updateStats(double avgViewCount, double avgLikeCount, double avgCommentCount) {
