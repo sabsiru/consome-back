@@ -58,7 +58,7 @@ class AdminDashboardFacadeTest {
         void setUp() {
             uniqueId = String.valueOf(System.nanoTime() % 100000);
             testUser = userRepository.save(User.create("user" + uniqueId, "테스트유저", "password123!"));
-            testBoard = boardRepository.save(Board.create("board" + uniqueId, "테스트 게시판입니다", 1));
+            testBoard = boardRepository.save(Board.create("board" + uniqueId, "테스트 게시판입니다"));
         }
 
         @Test
@@ -119,7 +119,7 @@ class AdminDashboardFacadeTest {
         @DisplayName("관리자 해제 시 다른 게시판이 있으면 User의 role이 MANAGER로 유지된다")
         void removeManager_keepsManagerRoleIfOtherBoardsExist() {
             // given
-            Board anotherBoard = boardRepository.save(Board.create("other" + uniqueId, "다른 게시판입니다", 2));
+            Board anotherBoard = boardRepository.save(Board.create("other" + uniqueId, "다른 게시판입니다"));
             adminDashboardFacade.assignManager(testBoard.getId(), testUser.getId());
             adminDashboardFacade.assignManager(anotherBoard.getId(), testUser.getId());
 
@@ -188,8 +188,8 @@ class AdminDashboardFacadeTest {
         void getUsers_includesManagedBoards() {
             // given
             User user = userRepository.save(User.create("mgr" + uniqueId, "매니저1", "password123!"));
-            Board board1 = boardRepository.save(Board.create("b1_" + uniqueId, "게시판1 설명", 1));
-            Board board2 = boardRepository.save(Board.create("b2_" + uniqueId, "게시판2 설명", 2));
+            Board board1 = boardRepository.save(Board.create("b1_" + uniqueId, "게시판1 설명"));
+            Board board2 = boardRepository.save(Board.create("b2_" + uniqueId, "게시판2 설명"));
 
             adminDashboardFacade.assignManager(board1.getId(), user.getId());
             adminDashboardFacade.assignManager(board2.getId(), user.getId());

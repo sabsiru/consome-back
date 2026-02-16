@@ -24,49 +24,30 @@ class BoardServiceTest {
     private BoardService boardService;
 
     @Test
-    void 유효한_섹션ID와_이름과_설명과_순서로_생성할_때_저장된_보드를_반환한다() {
+    void 유효한_이름과_설명으로_생성할_때_저장된_보드를_반환한다() {
         // given
         String name = "자유게시판";
         String description = "자유로운 이야기를 나눠요";
-        int order = 1;
-        Board saved = Board.create(name, description, order);
+        Board saved = Board.create(name, description);
         when(boardRepository.save(any(Board.class))).thenReturn(saved);
 
         // when
-        Board result = boardService.create(name, description, order);
+        Board result = boardService.create(name, description);
 
         // then
         assertThat(result).isSameAs(saved);
         verify(boardRepository).save(argThat(b ->
                         b.getName().equals(name) &&
                         b.getDescription().equals(description) &&
-                        b.getDisplayOrder() == order
+                        b.getDisplayOrder() == 0
         ));
-    }
-
-
-    @Test
-    void 기존_보드ID와_새_순서로_변경할_때_displayOrder가_업데이트된다() {
-        // given
-        Long id = 2L;
-        Board existing = Board.create("자유게시판", "설명", 1);
-        when(boardRepository.findById(id)).thenReturn(Optional.of(existing));
-        when(boardRepository.save(existing)).thenReturn(existing);
-
-        // when
-        Board result = boardService.changeOrder(id, 3);
-
-        // then
-        assertThat(result.getDisplayOrder()).isEqualTo(3);
-        verify(boardRepository).findById(id);
-        verify(boardRepository).save(existing);
     }
 
     @Test
     void 기존_보드ID로_삭제할_때_deleted가_true가_된다() {
         // given
         Long id = 3L;
-        Board existing = Board.create( "자유게시판", "설명", 1);
+        Board existing = Board.create("자유게시판", "설명");
         when(boardRepository.findById(id)).thenReturn(Optional.of(existing));
 
         // when
@@ -82,7 +63,7 @@ class BoardServiceTest {
     void 유효한_보드ID로_조회할_때_보드를_반환한다() {
         // given
         Long id = 4L;
-        Board existing = Board.create("자유게시판", "설명", 1);
+        Board existing = Board.create("자유게시판", "설명");
         when(boardRepository.findById(id)).thenReturn(Optional.of(existing));
 
         // when
@@ -110,7 +91,7 @@ class BoardServiceTest {
     void update_이름만_수정할_때_name이_변경된다() {
         // given
         Long id = 1L;
-        Board existing = Board.create( "자유게시판", "설명", 1);
+        Board existing = Board.create("자유게시판", "설명");
         when(boardRepository.findById(id)).thenReturn(Optional.of(existing));
         when(boardRepository.save(existing)).thenReturn(existing);
 
@@ -126,7 +107,7 @@ class BoardServiceTest {
     void update_설명만_수정할_때_description이_변경된다() {
         // given
         Long id = 1L;
-        Board existing = Board.create("자유게시판", "설명", 1);
+        Board existing = Board.create("자유게시판", "설명");
         when(boardRepository.findById(id)).thenReturn(Optional.of(existing));
         when(boardRepository.save(existing)).thenReturn(existing);
 
@@ -143,7 +124,7 @@ class BoardServiceTest {
         // given
         Long id = 1L;
         String duplicateName = "중복된게시판";
-        Board existing = Board.create("자유게시판", "설명", 1);
+        Board existing = Board.create("자유게시판", "설명");
 
         when(boardRepository.findById(id)).thenReturn(Optional.of(existing));
         when(boardRepository.existsByName(duplicateName)).thenReturn(true);
@@ -153,5 +134,4 @@ class BoardServiceTest {
                 .isInstanceOf(BusinessException.class)
                 .hasMessage("이미 존재하는 게시판 이름입니다.");
     }
-
 }
