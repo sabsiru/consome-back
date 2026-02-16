@@ -21,7 +21,9 @@ public enum PointHistoryType {
     POST_DEL("게시글 삭제", PENALIZE, 50),
     COMMENT_LIKE_CANCEL("댓글 추천 취소", PENALIZE, 1),
     COMMENT_DEL("댓글 삭제", PENALIZE, 10),
-    NICKNAME_CHANGE("닉네임 변경", PENALIZE, 100);
+    NICKNAME_CHANGE("닉네임 변경", PENALIZE, 100),
+    GIFT_SEND("포인트 선물 발송", PENALIZE, 0),
+    GIFT_RECEIVE("포인트 선물 수신", EARN, 0);
 
 
     private final String description;
