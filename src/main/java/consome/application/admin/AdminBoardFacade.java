@@ -15,7 +15,8 @@ public class AdminBoardFacade {
 
     public Board create(String name, String description, int displayOrder) {
         Board board = boardService.create(name, description, displayOrder);
-        categoryService.create(board.getId(), "자유", 1);
+        categoryService.create(board.getId(), "공지사항", 1);
+        categoryService.create(board.getId(), "자유", 2);
         return board;
     }
 
