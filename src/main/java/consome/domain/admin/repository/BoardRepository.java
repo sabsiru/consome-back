@@ -10,4 +10,6 @@ public interface BoardRepository extends JpaRepository<Board, Long> {
     boolean existsByName(String name);
 
     List<Board> findByDeletedFalseOrderByDisplayOrder();
+
+    List<Board> findByIsMainTrueAndDeletedFalseOrderByDisplayOrder();
 }

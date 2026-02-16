@@ -13,8 +13,8 @@ public class AdminBoardFacade {
     private final BoardService boardService;
     private final CategoryService categoryService;
 
-    public Board create(String name, String description, int displayOrder) {
-        Board board = boardService.create(name, description, displayOrder);
+    public Board create(String name, String description) {
+        Board board = boardService.create(name, description);
         categoryService.create(board.getId(), "공지사항", 1);
         categoryService.create(board.getId(), "자유", 2);
         return board;
@@ -24,12 +24,8 @@ public class AdminBoardFacade {
         return boardService.update(boardId, name, description);
     }
 
-    public Board changeOrder(Long boardId, int newOrder) {
-        return boardService.changeOrder(boardId, newOrder);
-    }
-
-    public void reorder(List<BoardOrder> orders) {
-        boardService.reorder(orders);
+    public void reorderMainBoards(List<BoardOrder> orders) {
+        boardService.reorderMainBoards(orders);
     }
 
     public void delete(Long boardId) {
@@ -38,5 +34,9 @@ public class AdminBoardFacade {
 
     public List<Category> findAllOrderedByBoard(Long boardId) {
         return categoryService.findAllOrderedByBoard(boardId);
+    }
+
+    public Board toggleMain(Long boardId) {
+        return boardService.toggleMain(boardId);
     }
 }

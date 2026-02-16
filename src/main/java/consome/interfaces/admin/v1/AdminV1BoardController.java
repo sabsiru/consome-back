@@ -20,7 +20,7 @@ public class AdminV1BoardController {
 
     @PostMapping()
     public BoardResponse create(@RequestBody @Valid CreateBoardRequest request) {
-        Board board = adminBoardFacade.create(request.getName(), request.getDescription(), request.getDisplayOrder());
+        Board board = adminBoardFacade.create(request.getName(), request.getDescription());
         return BoardResponse.from(board);
     }
 
@@ -31,25 +31,25 @@ public class AdminV1BoardController {
         return BoardResponse.from(board);
     }
 
-    @PatchMapping("/{boardId}/order")
-    public BoardResponse changeOrder(@PathVariable Long boardId, @RequestBody ChangeOrderRequest request) {
-        Board board = adminBoardFacade.changeOrder(boardId, request.getNewOrder());
-        return BoardResponse.from(board);
-    }
-
-    @PutMapping("/reorder")
-    public ResponseEntity<Void> reorder(@RequestBody BoardReorderRequest request) {
+    @PutMapping("/main/reorder")
+    public ResponseEntity<Void> reorderMainBoards(@RequestBody BoardReorderRequest request) {
         List<BoardOrder> orders = request.orders().stream()
                 .map(o -> new BoardOrder(o.boardId(), o.displayOrder()))
                 .toList();
 
-        adminBoardFacade.reorder(orders);
+        adminBoardFacade.reorderMainBoards(orders);
         return ResponseEntity.ok().build();
     }
 
     @DeleteMapping("/{boardId}")
     public void delete(@PathVariable Long boardId) {
         adminBoardFacade.delete(boardId);
+    }
+
+    @PatchMapping("/{boardId}/main")
+    public BoardResponse toggleMain(@PathVariable Long boardId) {
+        Board board = adminBoardFacade.toggleMain(boardId);
+        return BoardResponse.from(board);
     }
 
     @GetMapping("/{boardId}/categories")

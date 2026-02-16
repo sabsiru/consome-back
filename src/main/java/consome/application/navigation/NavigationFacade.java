@@ -38,6 +38,16 @@ public class NavigationFacade {
         return boardService.findAllOrdered();
     }
 
+    public List<BoardResult> getMainBoards() {
+        return boardService.findMainBoards().stream()
+                .map(board -> new BoardResult(
+                        board.getId(),
+                        board.getName(),
+                        board.getDisplayOrder()
+                ))
+                .toList();
+    }
+
     @Cacheable(
             value = "popular-boards",
             key = "#criteria.sortBy + ':' + #criteria.days + ':' + #criteria.boardLimit + ':' + #criteria.previewLimit",

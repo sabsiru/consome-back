@@ -30,7 +30,8 @@ public class BoardQueryRepositoryImpl implements BoardQueryRepository {
                         board.id,
                         board.name,
                         board.description,
-                        board.displayOrder
+                        board.displayOrder,
+                        board.isMain
                 ))
                 .from(board)
                 .where(board.deleted.isFalse())
@@ -75,7 +76,8 @@ public class BoardQueryRepositoryImpl implements BoardQueryRepository {
                         board.id,
                         board.name,
                         board.description,
-                        board.displayOrder
+                        board.displayOrder,
+                        board.isMain
                 ))
                 .from(board)
                 .where(builder)
