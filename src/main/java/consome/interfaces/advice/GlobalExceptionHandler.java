@@ -2,6 +2,7 @@ package consome.interfaces.advice;
 
 import consome.domain.comment.exception.CommentException;
 import consome.domain.common.exception.BusinessException;
+import consome.domain.message.exception.MessageException;
 import consome.domain.post.exception.PostException;
 import consome.domain.user.exception.UserException;
 import consome.interfaces.error.ErrorResponse;
@@ -83,6 +84,28 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(CommentException.class)
     public ResponseEntity<ErrorResponse> handleCommentException(CommentException ex) {
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(new ErrorResponse(ex.getCode(), ex.getMessage()));
+    }
+
+    // ===== Message Exceptions =====
+    @ExceptionHandler(MessageException.NotFound.class)
+    public ResponseEntity<ErrorResponse> handleMessageNotFound(MessageException.NotFound ex) {
+        return ResponseEntity
+                .status(HttpStatus.NOT_FOUND)
+                .body(new ErrorResponse(ex.getCode(), ex.getMessage()));
+    }
+
+    @ExceptionHandler(MessageException.AccessDenied.class)
+    public ResponseEntity<ErrorResponse> handleMessageAccessDenied(MessageException.AccessDenied ex) {
+        return ResponseEntity
+                .status(HttpStatus.FORBIDDEN)
+                .body(new ErrorResponse(ex.getCode(), ex.getMessage()));
+    }
+
+    @ExceptionHandler(MessageException.class)
+    public ResponseEntity<ErrorResponse> handleMessageException(MessageException ex) {
         return ResponseEntity
                 .status(HttpStatus.BAD_REQUEST)
                 .body(new ErrorResponse(ex.getCode(), ex.getMessage()));
