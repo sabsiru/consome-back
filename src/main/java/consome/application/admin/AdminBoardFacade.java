@@ -13,8 +13,8 @@ public class AdminBoardFacade {
     private final BoardService boardService;
     private final CategoryService categoryService;
 
-    public Board create(String name, String description) {
-        Board board = boardService.create(name, description);
+    public Board create(String name, String description, Long sectionId) {
+        Board board = boardService.create(name, description, sectionId);
         categoryService.create(board.getId(), "공지사항", 1);
         categoryService.create(board.getId(), "자유", 2);
         return board;

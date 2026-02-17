@@ -12,4 +12,8 @@ public interface BoardRepository extends JpaRepository<Board, Long> {
     List<Board> findByDeletedFalseOrderByDisplayOrder();
 
     List<Board> findByIsMainTrueAndDeletedFalseOrderByDisplayOrder();
+
+    List<Board> findBySectionIdAndDeletedFalseOrderByCreatedAtAsc(Long sectionId);
+
+    boolean existsBySectionIdAndDeletedFalse(Long sectionId);
 }

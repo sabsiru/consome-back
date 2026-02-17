@@ -16,7 +16,7 @@ class BoardTest {
         String description = "자유롭게 이야기하세요";
 
         // when
-        Board board = Board.create(name, description);
+        Board board = Board.create(name, description, 1L);
 
         // then
         assertThat(board.getName()).isEqualTo(name);
@@ -28,7 +28,7 @@ class BoardTest {
 
     @Test
     void 게시판_이름_변경_성공() {
-        Board board = Board.create("옛 이름", "설명");
+        Board board = Board.create("옛 이름", "설명", 1L);
 
         board.rename("새 이름");
 
@@ -37,7 +37,7 @@ class BoardTest {
 
     @Test
     void 게시판_설명_변경_성공() {
-        Board board = Board.create("이름", "이전 설명");
+        Board board = Board.create("이름", "이전 설명", 1L);
 
         board.changeDescription("새 설명");
 
@@ -46,7 +46,7 @@ class BoardTest {
 
     @Test
     void 게시판_삭제_성공() {
-        Board board = Board.create("이름", "설명");
+        Board board = Board.create("이름", "설명", 1L);
 
         board.delete();
 
@@ -55,7 +55,7 @@ class BoardTest {
 
     @Test
     void 메인게시판_설정_성공() {
-        Board board = Board.create("이름", "설명");
+        Board board = Board.create("이름", "설명", 1L);
         assertThat(board.isMain()).isFalse();
         assertThat(board.getDisplayOrder()).isEqualTo(0);
 
@@ -72,7 +72,7 @@ class BoardTest {
 
     @Test
     void 메인게시판_순서_변경_성공() {
-        Board board = Board.create("이름", "설명");
+        Board board = Board.create("이름", "설명", 1L);
         board.setMain(true, 1);
 
         board.changeMainOrder(3);

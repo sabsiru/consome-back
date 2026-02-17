@@ -20,7 +20,7 @@ public class AdminV1BoardController {
 
     @PostMapping()
     public BoardResponse create(@RequestBody @Valid CreateBoardRequest request) {
-        Board board = adminBoardFacade.create(request.getName(), request.getDescription());
+        Board board = adminBoardFacade.create(request.getName(), request.getDescription(), request.getSectionId());
         return BoardResponse.from(board);
     }
 

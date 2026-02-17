@@ -3,6 +3,7 @@ package consome.domain.admin;
 import consome.application.board.UserBoardSearchResult;
 import consome.domain.admin.repository.BoardQueryRepository;
 import consome.domain.admin.repository.BoardRepository;
+import consome.domain.admin.repository.SectionRepository;
 import consome.domain.common.exception.BusinessException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -15,10 +16,14 @@ import java.util.List;
 public class BoardService {
     private final BoardRepository boardRepository;
     private final BoardQueryRepository boardQueryRepository;
+    private final SectionRepository sectionRepository;
 
-    public Board create(String name, String description) {
+    public Board create(String name, String description, Long sectionId) {
         isNameDuplicate(name);
-        Board board = Board.create(name, description);
+        if (!sectionRepository.existsById(sectionId)) {
+            throw new BusinessException("SECTION_NOT_FOUND", "섹션을 찾을 수 없습니다.");
+        }
+        Board board = Board.create(name, description, sectionId);
         return boardRepository.save(board);
     }
 

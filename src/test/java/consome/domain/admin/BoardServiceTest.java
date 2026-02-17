@@ -1,6 +1,7 @@
 package consome.domain.admin;
 
 import consome.domain.admin.repository.BoardRepository;
+import consome.domain.admin.repository.SectionRepository;
 import consome.domain.common.exception.BusinessException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -20,6 +21,9 @@ class BoardServiceTest {
     @Mock
     private BoardRepository boardRepository;
 
+    @Mock
+    private SectionRepository sectionRepository;
+
     @InjectMocks
     private BoardService boardService;
 
@@ -28,11 +32,13 @@ class BoardServiceTest {
         // given
         String name = "자유게시판";
         String description = "자유로운 이야기를 나눠요";
-        Board saved = Board.create(name, description);
+        Long sectionId = 1L;
+        Board saved = Board.create(name, description, sectionId);
+        when(sectionRepository.existsById(sectionId)).thenReturn(true);
         when(boardRepository.save(any(Board.class))).thenReturn(saved);
 
         // when
-        Board result = boardService.create(name, description);
+        Board result = boardService.create(name, description, sectionId);
 
         // then
         assertThat(result).isSameAs(saved);
@@ -47,7 +53,7 @@ class BoardServiceTest {
     void 기존_보드ID로_삭제할_때_deleted가_true가_된다() {
         // given
         Long id = 3L;
-        Board existing = Board.create("자유게시판", "설명");
+        Board existing = Board.create("자유게시판", "설명", 1L);
         when(boardRepository.findById(id)).thenReturn(Optional.of(existing));
 
         // when
@@ -63,7 +69,7 @@ class BoardServiceTest {
     void 유효한_보드ID로_조회할_때_보드를_반환한다() {
         // given
         Long id = 4L;
-        Board existing = Board.create("자유게시판", "설명");
+        Board existing = Board.create("자유게시판", "설명", 1L);
         when(boardRepository.findById(id)).thenReturn(Optional.of(existing));
 
         // when
@@ -91,7 +97,7 @@ class BoardServiceTest {
     void update_이름만_수정할_때_name이_변경된다() {
         // given
         Long id = 1L;
-        Board existing = Board.create("자유게시판", "설명");
+        Board existing = Board.create("자유게시판", "설명", 1L);
         when(boardRepository.findById(id)).thenReturn(Optional.of(existing));
         when(boardRepository.save(existing)).thenReturn(existing);
 
@@ -107,7 +113,7 @@ class BoardServiceTest {
     void update_설명만_수정할_때_description이_변경된다() {
         // given
         Long id = 1L;
-        Board existing = Board.create("자유게시판", "설명");
+        Board existing = Board.create("자유게시판", "설명", 1L);
         when(boardRepository.findById(id)).thenReturn(Optional.of(existing));
         when(boardRepository.save(existing)).thenReturn(existing);
 
@@ -124,7 +130,7 @@ class BoardServiceTest {
         // given
         Long id = 1L;
         String duplicateName = "중복된게시판";
-        Board existing = Board.create("자유게시판", "설명");
+        Board existing = Board.create("자유게시판", "설명", 1L);
 
         when(boardRepository.findById(id)).thenReturn(Optional.of(existing));
         when(boardRepository.existsByName(duplicateName)).thenReturn(true);
