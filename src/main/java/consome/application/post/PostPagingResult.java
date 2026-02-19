@@ -6,6 +6,7 @@ public record PostPagingResult(
         Long boardId,
         String boardName,
         String description,
+        boolean sectionAdminOnly,
         List<PostRowResult> posts,
         List<ManagerInfo> managers,
         int page,

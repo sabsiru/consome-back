@@ -20,10 +20,11 @@ public record PostDetailResponse(
         int dislikeCount,
         int commentCount,
         boolean hasLiked,
-        boolean hasDisliked
+        boolean hasDisliked,
+        boolean sectionAdminOnly
 ) {
     /** Post + PostStat 동시 제공 시 사용 */
-    public static PostDetailResponse of(Post post, PostStat stat, int authorLevel, boolean hasLiked, boolean hasDisliked) {
+    public static PostDetailResponse of(Post post, PostStat stat, int authorLevel, boolean hasLiked, boolean hasDisliked, boolean sectionAdminOnly) {
         return new PostDetailResponse(
                 post.getId(),
                 post.getTitle(),
@@ -39,12 +40,13 @@ public record PostDetailResponse(
                 stat != null ? stat.getDislikeCount() : 0,
                 stat != null ? stat.getCommentCount() : 0,
                 hasLiked,
-                hasDisliked
+                hasDisliked,
+                sectionAdminOnly
         );
     }
 
     /** 아직 PostStat이 생성되지 않았거나 별도 조회하지 않은 경우 사용(카운트 0 처리) */
-    public static PostDetailResponse from(Post post, int authorLevel) {
+    public static PostDetailResponse from(Post post, int authorLevel, boolean sectionAdminOnly) {
         return new PostDetailResponse(
                 post.getId(),
                 post.getTitle(),
@@ -57,7 +59,8 @@ public record PostDetailResponse(
                 post.getUpdatedAt(),
                 0, 0, 0, 0,
                 false,
-                false
+                false,
+                sectionAdminOnly
         );
     }
 }
