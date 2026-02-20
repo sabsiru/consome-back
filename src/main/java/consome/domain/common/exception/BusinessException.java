@@ -52,4 +52,11 @@ public class BusinessException extends RuntimeException {
             super("INVALID_PASSWORD", message);
         }
     }
+
+    // Section 관련
+    public static class AdminOnlySection extends BusinessException {
+        public AdminOnlySection() {
+            super("ADMIN_ONLY_SECTION", "관리자 전용 섹션입니다");
+        }
+    }
 }

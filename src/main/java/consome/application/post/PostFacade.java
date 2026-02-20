@@ -1,5 +1,10 @@
 package consome.application.post;
 
+import consome.domain.admin.Board;
+import consome.domain.admin.BoardService;
+import consome.domain.admin.Section;
+import consome.domain.admin.SectionService;
+import consome.domain.common.exception.BusinessException;
 import consome.domain.level.LevelInfo;
 import consome.domain.point.PointHistoryType;
 import consome.domain.point.PointService;
@@ -14,6 +19,9 @@ import consome.domain.post.exception.PostException;
 import consome.domain.post.repository.PostImageRepository;
 import consome.domain.post.repository.PostReactionRepository;
 import consome.domain.post.repository.TempPostImageRepository;
+import consome.domain.user.Role;
+import consome.domain.user.User;
+import consome.domain.user.UserService;
 import consome.infrastructure.storage.FileStorage;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -33,9 +41,14 @@ public class PostFacade {
     private final PostReactionRepository postReactionRepository;
     private final PostImageRepository postImageRepository;
     private final TempPostImageRepository tempPostImageRepository;
+    private final BoardService boardService;
+    private final SectionService sectionService;
+    private final UserService userService;
 
     @Transactional
     public PostResult post(PostCommand command) {
+        validateAdminOnlySection(command.boardId(), command.userId());
+
         String content = command.content();
         Post post = postService.post(command.boardId(), command.categoryId(),
                 command.userId(), command.title(), content);
@@ -53,6 +66,7 @@ public class PostFacade {
 
     @Transactional
     public PostResult postV1(PostCommand command, List<MultipartFile> images) {
+        validateAdminOnlySection(command.boardId(), command.userId());
 
         String content = command.content();
 
@@ -218,5 +232,16 @@ public class PostFacade {
                     return new VideoUploadResult(url, video.getOriginalFilename());
                 })
                 .toList();
+    }
+
+    private void validateAdminOnlySection(Long boardId, Long userId) {
+        Board board = boardService.findById(boardId);
+        Section section = sectionService.findById(board.getSectionId());
+        if (section.isAdminOnly()) {
+            User user = userService.findById(userId);
+            if (user.getRole() != Role.ADMIN) {
+                throw new BusinessException.AdminOnlySection();
+            }
+        }
     }
 }

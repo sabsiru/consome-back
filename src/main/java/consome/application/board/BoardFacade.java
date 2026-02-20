@@ -8,6 +8,8 @@ import consome.domain.admin.repository.BoardManagerRepository;
 import consome.domain.admin.BoardService;
 import consome.domain.admin.Category;
 import consome.domain.admin.CategoryService;
+import consome.domain.admin.Section;
+import consome.domain.admin.SectionService;
 import consome.domain.post.PostService;
 import consome.domain.post.PostSummary;
 import consome.domain.user.User;
@@ -28,9 +30,11 @@ public class BoardFacade {
     private final CategoryService categoryService;
     private final BoardManagerRepository boardManagerRepository;
     private final UserService userService;
+    private final SectionService sectionService;
 
     public PostPagingResult getPosts(Long boardId, Pageable pageable, Long categoryId) {
         Board board = boardService.findById(boardId);
+        Section section = sectionService.findById(board.getSectionId());
 
         Page<PostSummary> page = postService.findBoardPosts(boardId, pageable, categoryId);
 
@@ -65,6 +69,7 @@ public class BoardFacade {
                 board.getId(),
                 board.getName(),
                 board.getDescription(),
+                section.isAdminOnly(),
                 rows,
                 managers,
                 page.getNumber(),
@@ -89,6 +94,7 @@ public class BoardFacade {
 
     public PostPagingResult searchPosts(Long boardId, String keyword, String searchType, Pageable pageable) {
         Board board = boardService.findById(boardId);
+        Section section = sectionService.findById(board.getSectionId());
 
         Page<PostSummary> page = postService.searchPosts(boardId, keyword, searchType, pageable);
 
@@ -123,6 +129,7 @@ public class BoardFacade {
                 board.getId(),
                 board.getName(),
                 board.getDescription(),
+                section.isAdminOnly(),
                 rows,
                 managers,
                 page.getNumber(),

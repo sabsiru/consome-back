@@ -37,6 +37,9 @@ public class Board {
     @Column(nullable = false)
     private boolean isMain = false;
 
+    @Column(nullable = false)
+    private Long sectionId;
+
     @CreatedDate
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
@@ -55,13 +58,18 @@ public class Board {
 
     private LocalDateTime statUpdatedAt;
 
-    private Board(String name, String description) {
+    private Board(String name, String description, Long sectionId) {
         this.name = name;
         this.description = description;
+        this.sectionId = sectionId;
     }
 
-    public static Board create(String name, String description) {
-        return new Board(name, description);
+    public static Board create(String name, String description, Long sectionId) {
+        return new Board(name, description, sectionId);
+    }
+
+    public void changeSection(Long sectionId) {
+        this.sectionId = sectionId;
     }
 
     public void rename(String newName) {

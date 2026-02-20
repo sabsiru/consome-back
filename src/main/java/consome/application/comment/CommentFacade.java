@@ -1,13 +1,19 @@
 package consome.application.comment;
 
+import consome.domain.admin.Board;
+import consome.domain.admin.BoardService;
+import consome.domain.admin.Section;
+import consome.domain.admin.SectionService;
 import consome.domain.comment.*;
 import consome.domain.comment.repository.CommentQueryRepository;
 import consome.domain.comment.repository.CommentReactionRepository;
+import consome.domain.common.exception.BusinessException;
 import consome.domain.point.PointHistoryType;
 import consome.domain.point.PointService;
 import consome.domain.post.PopularPostService;
 import consome.domain.post.PostService;
 import consome.domain.post.ReactionType;
+import consome.domain.post.entity.Post;
 import consome.domain.user.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -26,10 +32,13 @@ public class CommentFacade {
     private final UserService userService;
     private final CommentQueryRepository commentQueryRepository;
     private final CommentReactionRepository commentReactionRepository;
+    private final BoardService boardService;
+    private final SectionService sectionService;
 
     @Transactional
     public CommentResult comment(Long postId, Long userId, Long parentId, String content) {
-        postService.getPost(postId);
+        Post post = postService.getPost(postId);
+        validateAdminOnlySection(post.getBoardId());
         postService.increaseCommentCount(postId);
         popularPostService.updateScore(postId);
         String nickname = userService.findById(userId).getNickname();
@@ -100,5 +109,13 @@ public class CommentFacade {
                 hasLiked(c.commentId(), userId),
                 hasDisliked(c.commentId(), userId)
         ));
+    }
+
+    private void validateAdminOnlySection(Long boardId) {
+        Board board = boardService.findById(boardId);
+        Section section = sectionService.findById(board.getSectionId());
+        if (section.isAdminOnly()) {
+            throw new BusinessException("ADMIN_ONLY_SECTION_COMMENT", "관리자 전용 섹션에는 댓글을 작성할 수 없습니다");
+        }
     }
 }

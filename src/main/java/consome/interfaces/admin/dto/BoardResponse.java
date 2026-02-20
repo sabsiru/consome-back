@@ -17,6 +17,7 @@ public class BoardResponse {
     private int displayOrder;
     @JsonProperty("isMain")
     private boolean isMain;
+    private Long sectionId;
 
     public static BoardResponse from(Board board) {
         return new BoardResponse(
@@ -24,7 +25,8 @@ public class BoardResponse {
                 board.getName(),
                 board.getDescription(),
                 board.getDisplayOrder(),
-                board.isMain()
+                board.isMain(),
+                board.getSectionId()
         );
     }
 

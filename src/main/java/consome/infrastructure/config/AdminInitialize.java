@@ -1,13 +1,14 @@
 package consome.infrastructure.config;
 
 import consome.application.admin.AdminBoardFacade;
-import consome.application.admin.AdminCategoryFacade;
+import consome.application.admin.AdminSectionFacade;
 import consome.application.user.UserFacade;
 import consome.application.user.UserRegisterCommand;
 import consome.domain.admin.Board;
 import consome.domain.user.Role;
 import consome.domain.user.User;
 import consome.domain.user.repository.UserRepository;
+import consome.interfaces.admin.dto.section.SectionResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
@@ -19,7 +20,7 @@ public class AdminInitialize implements CommandLineRunner {
     private final UserFacade userFacade;
     private final UserRepository userRepository;
     private final AdminBoardFacade adminBoardFacade;
-    private final AdminCategoryFacade adminCategoryFacade;
+    private final AdminSectionFacade adminSectionFacade;
 
     @Override
     public void run(String... args) {
@@ -58,7 +59,9 @@ public class AdminInitialize implements CommandLineRunner {
 
         System.out.println("[ADMIN INIT] 관리자 계정 생성 완료 : ID=admin / PW=Admin!23");
 
-            Board board = adminBoardFacade.create("배틀그라운드", "서바이벌 게임의 유행 선두자 PUBG게시판 입니다.");
-        }
+        // 기본 섹션 및 게시판 생성
+        SectionResponse gameSection = adminSectionFacade.create("게임", false);
+        Board board = adminBoardFacade.create("배틀그라운드", "서바이벌 게임의 유행 선두자 PUBG게시판 입니다.", gameSection.id());
+    }
 }
 

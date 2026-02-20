@@ -4,6 +4,7 @@ import org.testcontainers.utility.TestcontainersConfiguration;
 import consome.domain.admin.*;
 import consome.domain.admin.repository.BoardManagerRepository;
 import consome.domain.admin.repository.BoardRepository;
+import consome.domain.admin.repository.SectionRepository;
 import consome.domain.common.exception.BusinessException;
 import consome.domain.user.Role;
 import consome.domain.user.User;
@@ -45,6 +46,16 @@ class AdminDashboardFacadeTest {
     private BoardRepository boardRepository;
     @Autowired
     private BoardManagerRepository boardManagerRepository;
+    @Autowired
+    private SectionRepository sectionRepository;
+
+    private Long testSectionId;
+
+    @BeforeEach
+    void setUpSection() {
+        Section section = Section.create("테스트섹션" + System.nanoTime(), false);
+        testSectionId = sectionRepository.save(section).getId();
+    }
 
     @Nested
     @DisplayName("관리자 지정/해제 테스트")
@@ -58,7 +69,7 @@ class AdminDashboardFacadeTest {
         void setUp() {
             uniqueId = String.valueOf(System.nanoTime() % 100000);
             testUser = userRepository.save(User.create("user" + uniqueId, "테스트유저", "password123!"));
-            testBoard = boardRepository.save(Board.create("board" + uniqueId, "테스트 게시판입니다"));
+            testBoard = boardRepository.save(Board.create("board" + uniqueId, "테스트 게시판입니다", testSectionId));
         }
 
         @Test
@@ -119,7 +130,7 @@ class AdminDashboardFacadeTest {
         @DisplayName("관리자 해제 시 다른 게시판이 있으면 User의 role이 MANAGER로 유지된다")
         void removeManager_keepsManagerRoleIfOtherBoardsExist() {
             // given
-            Board anotherBoard = boardRepository.save(Board.create("other" + uniqueId, "다른 게시판입니다"));
+            Board anotherBoard = boardRepository.save(Board.create("other" + uniqueId, "다른 게시판입니다", testSectionId));
             adminDashboardFacade.assignManager(testBoard.getId(), testUser.getId());
             adminDashboardFacade.assignManager(anotherBoard.getId(), testUser.getId());
 
@@ -188,8 +199,8 @@ class AdminDashboardFacadeTest {
         void getUsers_includesManagedBoards() {
             // given
             User user = userRepository.save(User.create("mgr" + uniqueId, "매니저1", "password123!"));
-            Board board1 = boardRepository.save(Board.create("b1_" + uniqueId, "게시판1 설명"));
-            Board board2 = boardRepository.save(Board.create("b2_" + uniqueId, "게시판2 설명"));
+            Board board1 = boardRepository.save(Board.create("b1_" + uniqueId, "게시판1 설명", testSectionId));
+            Board board2 = boardRepository.save(Board.create("b2_" + uniqueId, "게시판2 설명", testSectionId));
 
             adminDashboardFacade.assignManager(board1.getId(), user.getId());
             adminDashboardFacade.assignManager(board2.getId(), user.getId());
