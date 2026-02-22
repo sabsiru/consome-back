@@ -2,6 +2,7 @@ package consome.interfaces.board.v1;
 
 import consome.application.board.BoardFacade;
 import consome.application.post.PostPagingResult;
+import consome.infrastructure.security.CustomUserDetails;
 import consome.interfaces.admin.dto.CategoryResponse;
 import consome.interfaces.board.dto.BoardPostListResponse;
 import consome.interfaces.board.dto.BoardSearchResponse;
@@ -9,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -24,9 +26,13 @@ public class BoardV1Controller {
     public ResponseEntity<BoardPostListResponse> getPosts(
             @PathVariable Long boardId,
             @PageableDefault(size = 20) Pageable pageable,
-            @RequestParam(required = false) Long categoryId
+            @RequestParam(required = false) Long categoryId,
+            @RequestParam(defaultValue = "false") boolean headerOnly,
+            @AuthenticationPrincipal CustomUserDetails userDetails
     ) {
-        PostPagingResult result = boardFacade.getPosts(boardId, pageable, categoryId);
+        // headerOnly=true면 방문 기록 안 함 (BoardLayout용)
+        Long userId = (!headerOnly && userDetails != null) ? userDetails.getUserId() : null;
+        PostPagingResult result = boardFacade.getPosts(boardId, pageable, categoryId, userId);
         return ResponseEntity.ok(BoardPostListResponse.from(result));
     }
 
