@@ -14,6 +14,7 @@ import consome.domain.post.PostService;
 import consome.domain.post.PostSummary;
 import consome.domain.user.User;
 import consome.domain.user.UserService;
+import consome.infrastructure.redis.VisitedBoardRedisRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -31,8 +32,13 @@ public class BoardFacade {
     private final BoardManagerRepository boardManagerRepository;
     private final UserService userService;
     private final SectionService sectionService;
+    private final VisitedBoardRedisRepository visitedBoardRedisRepository;
 
-    public PostPagingResult getPosts(Long boardId, Pageable pageable, Long categoryId) {
+    public PostPagingResult getPosts(Long boardId, Pageable pageable, Long categoryId, Long userId) {
+        if (userId != null) {
+            visitedBoardRedisRepository.recordVisit(userId, boardId);
+        }
+
         Board board = boardService.findById(boardId);
         Section section = sectionService.findById(board.getSectionId());
 
