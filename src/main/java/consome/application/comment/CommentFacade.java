@@ -38,7 +38,7 @@ public class CommentFacade {
     @Transactional
     public CommentResult comment(Long postId, Long userId, Long parentId, String content) {
         Post post = postService.getPost(postId);
-        validateAdminOnlySection(post.getBoardId());
+        validateCommentPermission(post.getBoardId(), userId);
         postService.increaseCommentCount(postId);
         popularPostService.updateScore(postId);
         String nickname = userService.findById(userId).getNickname();
@@ -111,11 +111,18 @@ public class CommentFacade {
         ));
     }
 
-    private void validateAdminOnlySection(Long boardId) {
+    private void validateCommentPermission(Long boardId, Long userId) {
         Board board = boardService.findById(boardId);
-        Section section = sectionService.findById(board.getSectionId());
-        if (section.isAdminOnly()) {
-            throw new BusinessException("ADMIN_ONLY_SECTION_COMMENT", "관리자 전용 섹션에는 댓글을 작성할 수 없습니다");
+
+        // commentEnabled=true면 누구나 댓글 가능
+        if (board.isCommentEnabled()) {
+            return;
+        }
+
+        // commentEnabled=false면 ADMIN만 가능
+        boolean isAdmin = userService.findById(userId).getRole() == consome.domain.user.Role.ADMIN;
+        if (!isAdmin) {
+            throw new BusinessException("COMMENT_DISABLED", "댓글이 제한된 게시판입니다.");
         }
     }
 }

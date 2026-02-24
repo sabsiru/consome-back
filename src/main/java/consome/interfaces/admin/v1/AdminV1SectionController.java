@@ -27,14 +27,14 @@ public class AdminV1SectionController {
 
     @PostMapping
     public ResponseEntity<SectionResponse> create(@RequestBody @Valid CreateSectionRequest request) {
-        return ResponseEntity.ok(adminSectionFacade.create(request.name(), request.adminOnly()));
+        return ResponseEntity.ok(adminSectionFacade.create(request.name()));
     }
 
     @PutMapping("/{sectionId}")
     public ResponseEntity<SectionResponse> update(
             @PathVariable Long sectionId,
             @RequestBody @Valid UpdateSectionRequest request) {
-        return ResponseEntity.ok(adminSectionFacade.update(sectionId, request.name(), request.adminOnly()));
+        return ResponseEntity.ok(adminSectionFacade.update(sectionId, request.name()));
     }
 
     @DeleteMapping("/{sectionId}")

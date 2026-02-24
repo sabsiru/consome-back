@@ -18,14 +18,14 @@ public class AdminSectionFacade {
     private final SectionService sectionService;
 
     @Transactional
-    public SectionResponse create(String name, boolean adminOnly) {
-        Section section = sectionService.create(name, adminOnly);
+    public SectionResponse create(String name) {
+        Section section = sectionService.create(name);
         return SectionResponse.from(section, List.of());
     }
 
     @Transactional
-    public SectionResponse update(Long sectionId, String name, boolean adminOnly) {
-        Section section = sectionService.update(sectionId, name, adminOnly);
+    public SectionResponse update(Long sectionId, String name) {
+        Section section = sectionService.update(sectionId, name);
         List<Board> boards = sectionService.findBoardsBySectionId(sectionId);
         return SectionResponse.from(section, boards);
     }

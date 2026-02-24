@@ -15,7 +15,7 @@ public class SectionService {
     private final SectionRepository sectionRepository;
     private final BoardRepository boardRepository;
 
-    public Section create(String name, boolean adminOnly) {
+    public Section create(String name) {
         validateName(name);
         if (sectionRepository.existsByName(name)) {
             throw new BusinessException("SECTION_DUPLICATE_NAME", "이미 존재하는 섹션 이름입니다.");
@@ -27,12 +27,12 @@ public class SectionService {
                 .max()
                 .orElse(0);
 
-        Section section = Section.create(name, adminOnly);
+        Section section = Section.create(name);
         section.changeOrder(maxOrder + 1);
         return sectionRepository.save(section);
     }
 
-    public Section update(Long sectionId, String name, boolean adminOnly) {
+    public Section update(Long sectionId, String name) {
         Section section = findById(sectionId);
         if (name != null && !name.equals(section.getName())) {
             validateName(name);
@@ -41,7 +41,6 @@ public class SectionService {
             }
             section.rename(name);
         }
-        section.setAdminOnly(adminOnly);
         return sectionRepository.save(section);
     }
 

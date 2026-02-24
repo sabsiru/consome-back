@@ -38,6 +38,12 @@ public class Board {
     private boolean isMain = false;
 
     @Column(nullable = false)
+    private boolean writeEnabled = true;
+
+    @Column(nullable = false)
+    private boolean commentEnabled = true;
+
+    @Column(nullable = false)
     private Long sectionId;
 
     @CreatedDate
@@ -102,5 +108,13 @@ public class Board {
         this.avgLikeCount = avgLikeCount;
         this.avgCommentCount = avgCommentCount;
         this.statUpdatedAt = LocalDateTime.now();
+    }
+
+    public void toggleWriteEnabled() {
+        this.writeEnabled = !this.writeEnabled;
+    }
+
+    public void toggleCommentEnabled() {
+        this.commentEnabled = !this.commentEnabled;
     }
 }

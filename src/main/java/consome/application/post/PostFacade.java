@@ -236,12 +236,16 @@ public class PostFacade {
 
     private void validateAdminOnlySection(Long boardId, Long userId) {
         Board board = boardService.findById(boardId);
-        Section section = sectionService.findById(board.getSectionId());
-        if (section.isAdminOnly()) {
-            User user = userService.findById(userId);
-            if (user.getRole() != Role.ADMIN) {
-                throw new BusinessException.AdminOnlySection();
-            }
+        User user = userService.findById(userId);
+
+        // writeEnabled=true면 누구나 글쓰기 가능
+        if (board.isWriteEnabled()) {
+            return;
+        }
+
+        // writeEnabled=false면 ADMIN만 가능
+        if (user.getRole() != Role.ADMIN) {
+            throw new BusinessException("WRITE_DISABLED", "글쓰기가 제한된 게시판입니다.");
         }
     }
 }

@@ -43,7 +43,9 @@ public class NavigationFacade {
                 .map(board -> new BoardResult(
                         board.getId(),
                         board.getName(),
-                        board.getDisplayOrder()
+                        board.getDisplayOrder(),
+                        board.isWriteEnabled(),
+                        board.isCommentEnabled()
                 ))
                 .toList();
     }
@@ -105,5 +107,28 @@ public class NavigationFacade {
     )
     public List<PopularPostResult> getPopularPosts(PopularPostCriteria criteria) {
         return popularPostQueryRepository.findPopularPosts(criteria.limit());
+    }
+
+    public FeaturedBoardsResult getFeaturedBoards() {
+        // 1. 관리자 지정 게시판 (displayOrder 순)
+        List<BoardResult> pinnedBoards = boardService.findMainBoards().stream()
+                .map(board -> new BoardResult(board.getId(), board.getName(), board.getDisplayOrder()))
+                .toList();
+
+        // 2. 인기 게시판 20개 (COMPOSITE 점수 순, 지정 게시판 제외)
+        LocalDateTime since = LocalDateTime.now().minusDays(7);
+        List<Long> pinnedBoardIds = pinnedBoards.stream().map(BoardResult::boardId).toList();
+
+        List<BoardPopularityRow> popularBoards = postQueryRepository.findPopularBoards(
+                since, consome.domain.post.PopularityType.COMPOSITE, 20 + pinnedBoardIds.size()
+        );
+
+        List<BoardResult> popularBoardResults = popularBoards.stream()
+                .filter(board -> !pinnedBoardIds.contains(board.boardId()))
+                .limit(20)
+                .map(board -> new BoardResult(board.boardId(), board.boardName(), 0))
+                .toList();
+
+        return new FeaturedBoardsResult(pinnedBoards, popularBoardResults);
     }
 }

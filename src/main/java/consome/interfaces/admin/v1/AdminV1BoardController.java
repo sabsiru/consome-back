@@ -59,4 +59,16 @@ public class AdminV1BoardController {
                 .toList();
         return ResponseEntity.ok(categories);
     }
+
+    @PatchMapping("/{boardId}/write-enabled")
+    public BoardResponse toggleWriteEnabled(@PathVariable Long boardId) {
+        Board board = adminBoardFacade.toggleWriteEnabled(boardId);
+        return BoardResponse.from(board);
+    }
+
+    @PatchMapping("/{boardId}/comment-enabled")
+    public BoardResponse toggleCommentEnabled(@PathVariable Long boardId) {
+        Board board = adminBoardFacade.toggleCommentEnabled(boardId);
+        return BoardResponse.from(board);
+    }
 }

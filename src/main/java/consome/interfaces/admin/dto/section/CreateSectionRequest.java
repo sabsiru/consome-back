@@ -6,7 +6,6 @@ import jakarta.validation.constraints.Size;
 public record CreateSectionRequest(
         @NotBlank(message = "섹션 이름은 필수입니다.")
         @Size(min = 1, max = 20, message = "섹션 이름은 1자 이상 20자 이하입니다.")
-        String name,
-        boolean adminOnly
+        String name
 ) {
 }

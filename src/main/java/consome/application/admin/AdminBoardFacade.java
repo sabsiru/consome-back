@@ -39,4 +39,12 @@ public class AdminBoardFacade {
     public Board toggleMain(Long boardId) {
         return boardService.toggleMain(boardId);
     }
+
+    public Board toggleWriteEnabled(Long boardId) {
+        return boardService.toggleWriteEnabled(boardId);
+    }
+
+    public Board toggleCommentEnabled(Long boardId) {
+        return boardService.toggleCommentEnabled(boardId);
+    }
 }
