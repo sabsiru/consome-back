@@ -7,8 +7,6 @@ import consome.application.post.PostResult;
 import consome.application.post.VideoUploadResult;
 import consome.domain.admin.Board;
 import consome.domain.admin.BoardService;
-import consome.domain.admin.Section;
-import consome.domain.admin.SectionService;
 import consome.domain.post.entity.Post;
 import consome.domain.post.entity.PostStat;
 import consome.interfaces.post.dto.*;
@@ -32,7 +30,6 @@ public class PostV1Controller {
 
     private final PostFacade postFacade;
     private final BoardService boardService;
-    private final SectionService sectionService;
 
     @PostMapping
     public ResponseEntity<PostResponse> post(
@@ -83,9 +80,8 @@ public class PostV1Controller {
         boolean hasDisliked = userId != null && postFacade.hasDisliked(postId, userId);
 
         Board board = boardService.findById(post.getBoardId());
-        Section section = sectionService.findById(board.getSectionId());
 
-        return ResponseEntity.ok(PostDetailResponse.of(post, stat, authorLevel, hasLiked, hasDisliked, section.isAdminOnly()));
+        return ResponseEntity.ok(PostDetailResponse.of(post, stat, authorLevel, hasLiked, hasDisliked, board.isCommentEnabled()));
     }
 
     @PutMapping("/{postId}")
