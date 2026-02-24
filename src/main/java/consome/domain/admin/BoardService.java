@@ -112,4 +112,16 @@ public class BoardService {
     public List<Board> findMainBoards() {
         return boardRepository.findByIsMainTrueAndDeletedFalseOrderByDisplayOrder();
     }
+
+    public Board toggleWriteEnabled(Long boardId) {
+        Board board = findById(boardId);
+        board.toggleWriteEnabled();
+        return boardRepository.save(board);
+    }
+
+    public Board toggleCommentEnabled(Long boardId) {
+        Board board = findById(boardId);
+        board.toggleCommentEnabled();
+        return boardRepository.save(board);
+    }
 }

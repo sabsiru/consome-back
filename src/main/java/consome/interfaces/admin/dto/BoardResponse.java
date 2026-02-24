@@ -17,6 +17,8 @@ public class BoardResponse {
     private int displayOrder;
     @JsonProperty("isMain")
     private boolean isMain;
+    private boolean writeEnabled;
+    private boolean commentEnabled;
     private Long sectionId;
 
     public static BoardResponse from(Board board) {
@@ -26,6 +28,8 @@ public class BoardResponse {
                 board.getDescription(),
                 board.getDisplayOrder(),
                 board.isMain(),
+                board.isWriteEnabled(),
+                board.isCommentEnabled(),
                 board.getSectionId()
         );
     }
