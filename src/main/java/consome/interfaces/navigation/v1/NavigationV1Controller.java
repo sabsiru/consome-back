@@ -6,6 +6,7 @@ import consome.application.navigation.PopularBoardCriteria;
 import consome.application.navigation.PopularPostCriteria;
 import consome.domain.post.PopularityType;
 import consome.interfaces.navigation.dto.BoardItemResponse;
+import consome.interfaces.navigation.dto.FeaturedBoardsResponse;
 import consome.interfaces.navigation.dto.PopularBoardResponse;
 import consome.interfaces.navigation.dto.PopularPostResponse;
 import lombok.RequiredArgsConstructor;
@@ -61,5 +62,10 @@ public class NavigationV1Controller {
                 navigationFacade.getPopularPosts(criteria)
         );
         return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/featured-boards")
+    public ResponseEntity<FeaturedBoardsResponse> getFeaturedBoards() {
+        return ResponseEntity.ok(FeaturedBoardsResponse.from(navigationFacade.getFeaturedBoards()));
     }
 }
