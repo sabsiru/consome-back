@@ -29,9 +29,6 @@ public class Section {
     @Column(nullable = false)
     private int displayOrder = 0;
 
-    @Column(nullable = false)
-    private boolean adminOnly = false;
-
     @CreatedDate
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
@@ -39,13 +36,12 @@ public class Section {
     @LastModifiedDate
     private LocalDateTime updatedAt;
 
-    private Section(String name, boolean adminOnly) {
+    private Section(String name) {
         this.name = name;
-        this.adminOnly = adminOnly;
     }
 
-    public static Section create(String name, boolean adminOnly) {
-        return new Section(name, adminOnly);
+    public static Section create(String name) {
+        return new Section(name);
     }
 
     public void rename(String newName) {
@@ -54,9 +50,5 @@ public class Section {
 
     public void changeOrder(int newOrder) {
         this.displayOrder = newOrder;
-    }
-
-    public void setAdminOnly(boolean adminOnly) {
-        this.adminOnly = adminOnly;
     }
 }

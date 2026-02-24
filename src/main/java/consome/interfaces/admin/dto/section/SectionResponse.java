@@ -9,7 +9,6 @@ public record SectionResponse(
         Long id,
         String name,
         int displayOrder,
-        boolean adminOnly,
         List<BoardSummary> boards
 ) {
     public static SectionResponse from(Section section, List<Board> boards) {
@@ -17,7 +16,6 @@ public record SectionResponse(
                 section.getId(),
                 section.getName(),
                 section.getDisplayOrder(),
-                section.isAdminOnly(),
                 boards.stream()
                         .map(BoardSummary::from)
                         .toList()
