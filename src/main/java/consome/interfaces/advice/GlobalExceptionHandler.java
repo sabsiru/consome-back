@@ -4,6 +4,7 @@ import consome.domain.comment.exception.CommentException;
 import consome.domain.common.exception.BusinessException;
 import consome.domain.message.exception.MessageException;
 import consome.domain.post.exception.PostException;
+import consome.domain.report.exception.ReportException;
 import consome.domain.user.exception.UserException;
 import consome.interfaces.error.ErrorResponse;
 import org.springframework.http.HttpStatus;
@@ -106,6 +107,21 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(MessageException.class)
     public ResponseEntity<ErrorResponse> handleMessageException(MessageException ex) {
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(new ErrorResponse(ex.getCode(), ex.getMessage()));
+    }
+
+    // ===== Report Exceptions =====
+    @ExceptionHandler(ReportException.NotFound.class)
+    public ResponseEntity<ErrorResponse> handleReportNotFound(ReportException.NotFound ex) {
+        return ResponseEntity
+                .status(HttpStatus.NOT_FOUND)
+                .body(new ErrorResponse(ex.getCode(), ex.getMessage()));
+    }
+
+    @ExceptionHandler(ReportException.class)
+    public ResponseEntity<ErrorResponse> handleReportException(ReportException ex) {
         return ResponseEntity
                 .status(HttpStatus.BAD_REQUEST)
                 .body(new ErrorResponse(ex.getCode(), ex.getMessage()));

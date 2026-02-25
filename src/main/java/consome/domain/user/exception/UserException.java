@@ -94,4 +94,16 @@ public abstract class UserException extends RuntimeException {
         }
     }
 
+    public static class Suspended extends UserException {
+        public Suspended(String reason, String until) {
+            super("USER_SUSPENDED", "계정이 정지되었습니다. 사유: " + reason + " (해제: " + until + ")");
+        }
+    }
+
+    public static class Banned extends UserException {
+        public Banned(String reason) {
+            super("USER_BANNED", "계정이 영구 정지되었습니다. 사유: " + reason);
+        }
+    }
+
 }

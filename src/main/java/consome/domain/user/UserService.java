@@ -3,6 +3,7 @@ package consome.domain.user;
 import consome.domain.auth.PasswordEncryptor;
 import consome.domain.auth.PasswordPolicy;
 import consome.domain.user.exception.UserException;
+import consome.domain.user.repository.SuspensionHistoryRepository;
 import consome.domain.user.repository.UserQueryRepository;
 import consome.domain.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -11,12 +12,15 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
+
 @Service
 @RequiredArgsConstructor
 public class UserService {
 
     private final UserRepository userRepository;
     private final UserQueryRepository userQueryRepository;
+    private final SuspensionHistoryRepository suspensionHistoryRepository;
     private final PasswordEncryptor passwordEncryptor;
 
     public User register(String loginId, String nickname, String password) {
@@ -35,6 +39,9 @@ public class UserService {
         if (!passwordEncryptor.matches(password, user.getPassword())) {
             throw new UserException.loginFailure(loginId, password);
         }
+
+        // 제재 상태 체크
+        checkSuspension(user);
 
         return user;
     }
@@ -101,5 +108,48 @@ public class UserService {
 
         User.validateNickname(newNickname);
         user.changeNickname(newNickname);
+    }
+
+    @Transactional
+    public User suspend(Long userId, SuspensionType type, String reason, Long reportId, Long adminId) {
+        User user = findById(userId);
+
+        // 정지 시작/종료 시점 계산
+        LocalDateTime startAt = LocalDateTime.now();
+        LocalDateTime endAt = null;
+        if (!type.isPermanent()) {
+            LocalDateTime baseTime = user.isSuspended() && user.getSuspendedUntil() != null
+                    ? user.getSuspendedUntil()
+                    : startAt;
+            endAt = baseTime.plusDays(type.getDays());
+        }
+
+        // 이력 저장
+        SuspensionHistory history = SuspensionHistory.create(
+                userId, reportId, adminId, type, reason, startAt, endAt);
+        suspensionHistoryRepository.save(history);
+
+        // 유저 상태 업데이트
+        user.suspend(type, reason);
+        return user;
+    }
+
+    @Transactional
+    public User unsuspend(Long userId) {
+        User user = findById(userId);
+        user.unsuspend();
+        return user;
+    }
+
+    // 로그인 시 제재 체크
+    public void checkSuspension(User user) {
+        if (!user.isSuspended()) return;
+
+        if (user.isPermanentlyBanned()) {
+            throw new UserException.Banned(user.getSuspendReason());
+        }
+
+        String until = user.getSuspendedUntil().toString().replace("T", " ").substring(0, 16);
+        throw new UserException.Suspended(user.getSuspendReason(), until);
     }
 }
