@@ -35,6 +35,12 @@ public class User {
     @Column(nullable = false)
     private LocalDateTime updatedAt;
 
+    // 제재 관련
+    @Enumerated(EnumType.STRING)
+    private SuspensionType suspensionType;  // null이면 정지 아님
+    private LocalDateTime suspendedUntil;
+    private String suspendReason;
+
     private User(String loginId, String nickname, String password) {
         this.loginId = loginId;
         this.nickname = nickname;
@@ -82,5 +88,41 @@ public class User {
     public void updateRole(Role newRole) {
         this.role = newRole;
         this.updatedAt = LocalDateTime.now();
+    }
+
+    // 정지 적용 (누적)
+    public void suspend(SuspensionType type, String reason) {
+        this.suspensionType = type;
+        this.suspendReason = reason;
+
+        if (type.isPermanent()) {
+            this.suspendedUntil = null;
+        } else {
+            // 이미 정지 중이면 기존 종료일 기준, 아니면 현재 시점 기준
+            LocalDateTime baseTime = isSuspended() && suspendedUntil != null
+                    ? suspendedUntil
+                    : LocalDateTime.now();
+            this.suspendedUntil = baseTime.plusDays(type.getDays());
+        }
+        this.updatedAt = LocalDateTime.now();
+    }
+
+    // 정지 해제
+    public void unsuspend() {
+        this.suspensionType = null;
+        this.suspendedUntil = null;
+        this.suspendReason = null;
+        this.updatedAt = LocalDateTime.now();
+    }
+
+    // 현재 제재 상태 확인
+    public boolean isSuspended() {
+        if (suspensionType == null) return false;
+        if (suspensionType.isPermanent()) return true;
+        return suspendedUntil != null && LocalDateTime.now().isBefore(suspendedUntil);
+    }
+
+    public boolean isPermanentlyBanned() {
+        return suspensionType == SuspensionType.PERMANENT;
     }
 }
