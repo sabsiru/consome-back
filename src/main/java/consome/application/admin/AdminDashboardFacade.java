@@ -11,6 +11,8 @@ import consome.domain.admin.repository.BoardQueryRepository;
 import consome.domain.admin.BoardService;
 import consome.domain.admin.Category;
 import consome.domain.admin.CategoryService;
+import consome.domain.user.SuspensionType;
+import consome.domain.user.User;
 import consome.domain.user.UserInfo;
 import consome.domain.user.repository.UserQueryRepository;
 import consome.domain.user.UserService;
@@ -143,5 +145,15 @@ public class AdminDashboardFacade {
                         board.getName()
                 ))
                 .toList();
+    }
+
+    @Transactional
+    public User suspendUser(Long userId, SuspensionType type, String reason, Long adminId) {
+        return userService.suspend(userId, type, reason, null, adminId);
+    }
+
+    @Transactional
+    public User unsuspendUser(Long userId) {
+        return userService.unsuspend(userId);
     }
 }

@@ -12,6 +12,8 @@ import consome.interfaces.admin.dto.manage.BoardSearchListResponse;
 import consome.interfaces.admin.dto.manage.ManageTreeResponse;
 import consome.interfaces.admin.dto.manage.ManageUserListResponse;
 import consome.interfaces.admin.dto.manage.UserSearchListResponse;
+import consome.interfaces.admin.dto.SuspendUserRequest;
+import consome.domain.user.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
@@ -85,6 +87,21 @@ public class AdminV1DashboardController {
             @PathVariable Long userId,
             @RequestParam Long boardId) {
         adminDashboardFacade.removeManager(boardId, userId);
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/users/{userId}/suspend")
+    public ResponseEntity<Void> suspendUser(
+            @PathVariable Long userId,
+            @RequestParam Long adminId,
+            @RequestBody SuspendUserRequest request) {
+        adminDashboardFacade.suspendUser(userId, request.type(), request.reason(), adminId);
+        return ResponseEntity.ok().build();
+    }
+
+    @DeleteMapping("/users/{userId}/suspend")
+    public ResponseEntity<Void> unsuspendUser(@PathVariable Long userId) {
+        adminDashboardFacade.unsuspendUser(userId);
         return ResponseEntity.ok().build();
     }
 }
