@@ -121,6 +121,12 @@ public class CommentService {
     }
 
     @Transactional(readOnly = true)
+    public Comment findById(Long commentId) {
+        return commentRepository.findById(commentId)
+                .orElseThrow(() -> new CommentException.NotFound(commentId));
+    }
+
+    @Transactional(readOnly = true)
     public CommentStat getCommentStat(Long commentId) {
         return commentStatRepository.findById(commentId)
                 .orElseThrow(() -> new CommentException.StatsNotFound(commentId));
