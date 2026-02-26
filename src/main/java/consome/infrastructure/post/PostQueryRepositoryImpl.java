@@ -2,6 +2,7 @@ package consome.infrastructure.post;
 
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
+import com.querydsl.core.types.dsl.CaseBuilder;
 import com.querydsl.core.types.dsl.NumberExpression;
 import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
@@ -28,6 +29,7 @@ import org.springframework.stereotype.Repository;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Repository
@@ -64,7 +66,9 @@ public class PostQueryRepositoryImpl implements PostQueryRepository {
                         postStat.commentCount,
                         post.createdAt,
                         post.updatedAt,
-                        post.deleted
+                        post.deleted,
+                        post.isPinned,
+                        post.pinnedOrder
                 )
                 .from(post)
                 .leftJoin(user).on(post.userId.eq(user.id))
@@ -73,7 +77,14 @@ public class PostQueryRepositoryImpl implements PostQueryRepository {
                 .leftJoin(point).on(post.userId.eq(point.userId))
                 .where(post.boardId.eq(boardId),
                         categoryEq(categoryId))
-                .orderBy(post.createdAt.desc())
+                .orderBy(
+                        post.isPinned.desc(),
+                        new CaseBuilder()
+                                .when(post.isPinned.isTrue()).then(post.pinnedOrder)
+                                .otherwise((Integer) null)
+                                .asc().nullsLast(),
+                        post.createdAt.desc()
+                )
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
                 .fetch();
@@ -94,7 +105,9 @@ public class PostQueryRepositoryImpl implements PostQueryRepository {
                         t.get(postStat.commentCount) != null ? t.get(postStat.commentCount) : 0,
                         t.get(post.createdAt),
                         t.get(post.updatedAt),
-                        t.get(post.deleted)
+                        t.get(post.deleted),
+                        t.get(post.isPinned),
+                        t.get(post.pinnedOrder)
                 ))
                 .toList();
 
@@ -278,7 +291,9 @@ public class PostQueryRepositoryImpl implements PostQueryRepository {
                         postStat.commentCount,
                         post.createdAt,
                         post.updatedAt,
-                        post.deleted
+                        post.deleted,
+                        post.isPinned,
+                        post.pinnedOrder
                 )
                 .from(post)
                 .leftJoin(user).on(post.userId.eq(user.id))
@@ -289,7 +304,14 @@ public class PostQueryRepositoryImpl implements PostQueryRepository {
                         post.boardId.eq(boardId),
                         searchCondition
                 )
-                .orderBy(post.createdAt.desc())
+                .orderBy(
+                        post.isPinned.desc(),
+                        new CaseBuilder()
+                                .when(post.isPinned.isTrue()).then(post.pinnedOrder)
+                                .otherwise((Integer) null)
+                                .asc().nullsLast(),
+                        post.createdAt.desc()
+                )
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
                 .fetch();
@@ -310,7 +332,9 @@ public class PostQueryRepositoryImpl implements PostQueryRepository {
                         t.get(postStat.commentCount) != null ? t.get(postStat.commentCount) : 0,
                         t.get(post.createdAt),
                         t.get(post.updatedAt),
-                        t.get(post.deleted)
+                        t.get(post.deleted),
+                        t.get(post.isPinned),
+                        t.get(post.pinnedOrder)
                 ))
                 .toList();
 
@@ -356,5 +380,21 @@ public class PostQueryRepositoryImpl implements PostQueryRepository {
                                     )
                     ));
         };
+    }
+
+    @Override
+    public Optional<Integer> findMaxPinnedOrderByBoardId(Long boardId) {
+        QPost post = QPost.post;
+
+        Integer max = queryFactory
+                .select(post.pinnedOrder.max())
+                .from(post)
+                .where(
+                        post.boardId.eq(boardId),
+                        post.isPinned.isTrue()
+                )
+                .fetchOne();
+
+        return Optional.ofNullable(max);
     }
 }

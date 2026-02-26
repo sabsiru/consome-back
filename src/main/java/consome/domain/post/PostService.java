@@ -13,7 +13,10 @@ import org.springframework.stereotype.Service;
 
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -169,4 +172,44 @@ public class PostService {
     public Page<PostSummary> searchPosts(Long boardId, String keyword, String searchType, Pageable pageable) {
         return postQueryRepository.searchPosts(boardId, keyword, searchType, pageable);
     }
+
+    public Optional<Integer> getMaxPinnedOrder(Long boardId) {
+        return postQueryRepository.findMaxPinnedOrderByBoardId(boardId);
+    }
+
+    public Post save(Post post) {
+        return postRepository.save(post);
+    }
+
+    public List<Post> findPinnedPosts(Long boardId) {
+        return postRepository.findByBoardIdAndIsPinnedTrue(boardId);
+    }
+
+    @Transactional
+    public void reorderPinnedPosts(Long boardId, List<PinnedPostOrder> orders) {
+        List<Post> pinnedPosts = postRepository.findByBoardIdAndIsPinnedTrue(boardId);
+
+        // 1️⃣ 임시 음수화 → flush
+        for (Post post : pinnedPosts) {
+            Integer currentOrder = post.getPinnedOrder();
+            if (currentOrder != null) {
+                post.updatePinnedOrder(-currentOrder);
+            }
+        }
+        postRepository.flush();
+
+        // 2️⃣ 실제 순서 반영 → flush
+        Map<Long, Post> postMap = pinnedPosts.stream()
+                .collect(Collectors.toMap(Post::getId, p -> p));
+
+        for (PinnedPostOrder order : orders) {
+            Post post = postMap.get(order.postId());
+            if (post != null) {
+                post.updatePinnedOrder(order.pinnedOrder());
+            }
+        }
+        postRepository.flush();
+    }
+
+    public record PinnedPostOrder(Long postId, Integer pinnedOrder) {}
 }

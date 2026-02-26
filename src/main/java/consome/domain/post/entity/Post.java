@@ -42,6 +42,15 @@ public class Post {
     @Column(nullable = false)
     private boolean deleted = false;
 
+    @Column(nullable = false)
+    private boolean isPinned = false;
+
+    @Column
+    private Integer pinnedOrder;
+
+    @Column
+    private Long originalCategoryId;
+
     private Post(Long boardId, Long categoryId, Long userId, String title, String content) {
         this.boardId = boardId;
         this.categoryId = categoryId;
@@ -75,5 +84,30 @@ public class Post {
 
     public boolean isAuthor(Long userId) {
         return this.userId.equals(userId);
+    }
+
+    public void pin(Integer order, Long noticeCategoryId) {
+        if (!this.isPinned) {
+            this.originalCategoryId = this.categoryId;
+        }
+        this.isPinned = true;
+        this.pinnedOrder = order;
+        this.categoryId = noticeCategoryId;
+        this.updatedAt = LocalDateTime.now();
+    }
+
+    public void unpin() {
+        this.isPinned = false;
+        this.pinnedOrder = null;
+        if (this.originalCategoryId != null) {
+            this.categoryId = this.originalCategoryId;
+            this.originalCategoryId = null;
+        }
+        this.updatedAt = LocalDateTime.now();
+    }
+
+    public void updatePinnedOrder(Integer order) {
+        this.pinnedOrder = order;
+        this.updatedAt = LocalDateTime.now();
     }
 }
