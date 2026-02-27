@@ -21,7 +21,7 @@ public class DummyController {
     }
 
     @PostMapping("/postInsert")
-    public ResponseEntity<String> insertPost(@RequestParam(defaultValue = "10000") int count) {
+    public ResponseEntity<String> insertPost(@RequestParam(defaultValue = "100") int count) {
         dummyService.bulkInsertPosts(count);
         return ResponseEntity.ok("Post insert dummy endpoint");
     }

@@ -129,6 +129,7 @@ public class DummyDataInsertService {
                     .supply(field("createdAt"), () -> LocalDateTime.now())
                     .supply(field("updatedAt"), () -> LocalDateTime.now())
                     .supply(field("deleted"), () -> false)
+                    .supply(field("isPinned"), () -> false)
                     .create();
 
             session.insert(post);
