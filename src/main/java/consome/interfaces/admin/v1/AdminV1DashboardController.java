@@ -34,7 +34,7 @@ public class AdminV1DashboardController {
     }
 
     @GetMapping("/users")
-    public ResponseEntity<ManageUserListResponse> getUsers(@PageableDefault(size= 20) Pageable pageable) {
+    public ResponseEntity<ManageUserListResponse> getUsers(@PageableDefault(size= 50) Pageable pageable) {
         UserPagingResult result = adminDashboardFacade.getUsers(pageable);
         return ResponseEntity.ok(ManageUserListResponse.from(result));
     }
@@ -45,7 +45,7 @@ public class AdminV1DashboardController {
             @RequestParam(required = false) Long id,
             @RequestParam(required = false) String loginId,
             @RequestParam(required = false) String nickname,
-            @PageableDefault(size = 20) Pageable pageable
+            @PageableDefault(size = 50) Pageable pageable
     ) {
         UserSearchCommand command = new UserSearchCommand(keyword, id, loginId, nickname);
         UserSearchPagingResult result = adminDashboardFacade.searchUsers(command, pageable);
@@ -53,7 +53,7 @@ public class AdminV1DashboardController {
     }
 
     @GetMapping("/boards")
-    public ResponseEntity<BoardSearchListResponse> getBoards(@PageableDefault(size = 20) Pageable pageable) {
+    public ResponseEntity<BoardSearchListResponse> getBoards(@PageableDefault(size = 50) Pageable pageable) {
         BoardPagingResult result = adminDashboardFacade.getBoards(pageable);
         return ResponseEntity.ok(BoardSearchListResponse.from(result));
     }
@@ -63,7 +63,7 @@ public class AdminV1DashboardController {
             @RequestParam(required = false) String keyword,
             @RequestParam(required = false) Long id,
             @RequestParam(required = false) String name,
-            @PageableDefault(size = 20) Pageable pageable
+            @PageableDefault(size = 50) Pageable pageable
     ) {
         BoardSearchCommand command = new BoardSearchCommand(keyword, id, name);
         BoardPagingResult result = adminDashboardFacade.searchBoards(command, pageable);
