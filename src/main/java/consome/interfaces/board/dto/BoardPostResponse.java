@@ -18,7 +18,9 @@ public record BoardPostResponse(
         int commentCount,
         String createdAt,
         String updatedAt,
-        Boolean deleted
+        Boolean deleted,
+        Boolean isPinned,
+        Integer pinnedOrder
 
 ) {
     public static BoardPostResponse from(PostRowResult row){
@@ -37,7 +39,9 @@ public record BoardPostResponse(
                 row.commentCount(),
                 row.createdAt().toString(),
                 row.updatedAt().toString(),
-                row.deleted()
+                row.deleted(),
+                row.isPinned(),
+                row.pinnedOrder()
         );
     }
 }
