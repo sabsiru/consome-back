@@ -19,6 +19,8 @@ public record PostSummary(
         int commentCount,
         LocalDateTime createdAt,
         LocalDateTime updatedAt,
-        Boolean deleted
+        Boolean deleted,
+        Boolean isPinned,
+        Integer pinnedOrder
 ) {
 }

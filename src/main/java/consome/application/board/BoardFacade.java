@@ -56,7 +56,9 @@ public class BoardFacade {
                         summary.commentCount(),
                         summary.createdAt(),
                         summary.updatedAt(),
-                        summary.deleted()
+                        summary.deleted(),
+                        summary.isPinned(),
+                        summary.pinnedOrder()
                 ))
                 .toList();
 
@@ -116,7 +118,9 @@ public class BoardFacade {
                         summary.commentCount(),
                         summary.createdAt(),
                         summary.updatedAt(),
-                        summary.deleted()
+                        summary.deleted(),
+                        summary.isPinned(),
+                        summary.pinnedOrder()
                 ))
                 .toList();
 
