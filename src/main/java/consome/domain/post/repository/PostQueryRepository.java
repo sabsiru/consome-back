@@ -10,6 +10,7 @@ import org.springframework.data.domain.Pageable;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 public interface PostQueryRepository {
 
@@ -22,4 +23,6 @@ public interface PostQueryRepository {
     List<PopularPostRow> findPopularPosts(LocalDateTime since, int minViews);
 
     Page<PostSummary> searchPosts(Long boardId, String keyword, String searchType, Pageable pageable);
+
+    Optional<Integer> findMaxPinnedOrderByBoardId(Long boardId);
 }
