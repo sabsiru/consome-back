@@ -3,10 +3,12 @@ package consome.interfaces.admin.v1;
 import consome.application.admin.AdminBoardFacade;
 import consome.domain.admin.Board;
 import consome.domain.admin.BoardOrder;
+import consome.infrastructure.security.CustomUserDetails;
 import consome.interfaces.admin.dto.*;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -19,36 +21,41 @@ public class AdminV1BoardController {
     private final AdminBoardFacade adminBoardFacade;
 
     @PostMapping()
-    public BoardResponse create(@RequestBody @Valid CreateBoardRequest request) {
-        Board board = adminBoardFacade.create(request.getName(), request.getDescription(), request.getSectionId());
+    public BoardResponse create(@RequestBody @Valid CreateBoardRequest request,
+                                @AuthenticationPrincipal CustomUserDetails userDetails) {
+        Board board = adminBoardFacade.create(request.getName(), request.getDescription(), request.getSectionId(), userDetails.getRole());
         return BoardResponse.from(board);
     }
 
     @PatchMapping("/{boardId}")
     public BoardResponse update(@PathVariable Long boardId,
-                                @RequestBody @Valid UpdateBoardRequest request) {
-        Board board = adminBoardFacade.update(boardId, request.name(), request.description());
+                                @RequestBody @Valid UpdateBoardRequest request,
+                                @AuthenticationPrincipal CustomUserDetails userDetails) {
+        Board board = adminBoardFacade.update(boardId, request.name(), request.description(), userDetails.getUserId(), userDetails.getRole());
         return BoardResponse.from(board);
     }
 
     @PutMapping("/main/reorder")
-    public ResponseEntity<Void> reorderMainBoards(@RequestBody BoardReorderRequest request) {
+    public ResponseEntity<Void> reorderMainBoards(@RequestBody BoardReorderRequest request,
+                                                  @AuthenticationPrincipal CustomUserDetails userDetails) {
         List<BoardOrder> orders = request.orders().stream()
                 .map(o -> new BoardOrder(o.boardId(), o.displayOrder()))
                 .toList();
 
-        adminBoardFacade.reorderMainBoards(orders);
+        adminBoardFacade.reorderMainBoards(orders, userDetails.getRole());
         return ResponseEntity.ok().build();
     }
 
     @DeleteMapping("/{boardId}")
-    public void delete(@PathVariable Long boardId) {
-        adminBoardFacade.delete(boardId);
+    public void delete(@PathVariable Long boardId,
+                      @AuthenticationPrincipal CustomUserDetails userDetails) {
+        adminBoardFacade.delete(boardId, userDetails.getRole());
     }
 
     @PatchMapping("/{boardId}/main")
-    public BoardResponse toggleMain(@PathVariable Long boardId) {
-        Board board = adminBoardFacade.toggleMain(boardId);
+    public BoardResponse toggleMain(@PathVariable Long boardId,
+                                    @AuthenticationPrincipal CustomUserDetails userDetails) {
+        Board board = adminBoardFacade.toggleMain(boardId, userDetails.getRole());
         return BoardResponse.from(board);
     }
 
@@ -61,14 +68,16 @@ public class AdminV1BoardController {
     }
 
     @PatchMapping("/{boardId}/write-enabled")
-    public BoardResponse toggleWriteEnabled(@PathVariable Long boardId) {
-        Board board = adminBoardFacade.toggleWriteEnabled(boardId);
+    public BoardResponse toggleWriteEnabled(@PathVariable Long boardId,
+                                           @AuthenticationPrincipal CustomUserDetails userDetails) {
+        Board board = adminBoardFacade.toggleWriteEnabled(boardId, userDetails.getUserId(), userDetails.getRole());
         return BoardResponse.from(board);
     }
 
     @PatchMapping("/{boardId}/comment-enabled")
-    public BoardResponse toggleCommentEnabled(@PathVariable Long boardId) {
-        Board board = adminBoardFacade.toggleCommentEnabled(boardId);
+    public BoardResponse toggleCommentEnabled(@PathVariable Long boardId,
+                                              @AuthenticationPrincipal CustomUserDetails userDetails) {
+        Board board = adminBoardFacade.toggleCommentEnabled(boardId, userDetails.getUserId(), userDetails.getRole());
         return BoardResponse.from(board);
     }
 }

@@ -26,7 +26,7 @@ public class AdminV1ReportController {
     @GetMapping
     public ResponseEntity<Page<GroupedReportResponse>> findAllGrouped(
             @RequestParam(required = false) ReportStatus status,
-            @PageableDefault(size = 20) Pageable pageable) {
+            @PageableDefault(size = 50) Pageable pageable) {
         var result = adminReportFacade.findAllGrouped(status, pageable);
         return ResponseEntity.ok(result);
     }
@@ -44,7 +44,7 @@ public class AdminV1ReportController {
             @RequestParam(required = false) ReportStatus status,
             @RequestParam(required = false) ReportTargetType targetType,
             @RequestParam(required = false) Long targetUserId,
-            @PageableDefault(size = 20) Pageable pageable) {
+            @PageableDefault(size = 50) Pageable pageable) {
         var result = adminReportFacade.findAll(status, targetType, targetUserId, pageable);
         return ResponseEntity.ok(result.map(AdminReportResponse::from));
     }

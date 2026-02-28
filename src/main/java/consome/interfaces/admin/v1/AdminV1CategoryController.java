@@ -3,11 +3,13 @@ package consome.interfaces.admin.v1;
 import consome.application.admin.AdminCategoryFacade;
 import consome.domain.admin.Category;
 import consome.domain.admin.CategoryOrder;
+import consome.infrastructure.security.CustomUserDetails;
 import consome.interfaces.admin.dto.*;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -21,36 +23,43 @@ public class AdminV1CategoryController {
     private final AdminCategoryFacade adminCategoryFacade;
 
     @PostMapping()
-    public CategoryResponse create(@RequestBody @Valid CreateCategoryRequest request) {
-        Category category = adminCategoryFacade.create(request.getBoardId(), request.getName(), request.getDisplayOrder());
+    public CategoryResponse create(@RequestBody @Valid CreateCategoryRequest request,
+                                   @AuthenticationPrincipal CustomUserDetails userDetails) {
+        Category category = adminCategoryFacade.create(request.getBoardId(), request.getName(), request.getDisplayOrder(), userDetails.getUserId(), userDetails.getRole());
         return CategoryResponse.from(category);
     }
 
     @PatchMapping("/{categoryId}/name")
-    public CategoryResponse rename(@PathVariable Long categoryId, @RequestBody RenameRequest request) {
+    public CategoryResponse rename(@PathVariable Long categoryId,
+                                   @RequestBody RenameRequest request,
+                                   @AuthenticationPrincipal CustomUserDetails userDetails) {
         log.info("Renaming category with ID {} to new name '{}' boardId '{}'", categoryId, request.getName(), request.getBoardId());
-        Category category = adminCategoryFacade.rename(categoryId, request.getName(), request.getBoardId());
+        Category category = adminCategoryFacade.rename(categoryId, request.getName(), request.getBoardId(), userDetails.getUserId(), userDetails.getRole());
         return CategoryResponse.from(category);
     }
 
     @PatchMapping("/{categoryId}/order")
-    public CategoryResponse changeOrder(@PathVariable Long categoryId, @RequestBody ChangeOrderRequest request) {
-        Category category = adminCategoryFacade.changeOrder(categoryId, request.getNewOrder());
+    public CategoryResponse changeOrder(@PathVariable Long categoryId,
+                                       @RequestBody ChangeOrderRequest request,
+                                       @AuthenticationPrincipal CustomUserDetails userDetails) {
+        Category category = adminCategoryFacade.changeOrder(categoryId, request.getNewOrder(), userDetails.getUserId(), userDetails.getRole());
         return CategoryResponse.from(category);
     }
 
     @PutMapping("/reorder")
-    public ResponseEntity<Void> reorder(@RequestBody CategoryReorderRequest request) {
+    public ResponseEntity<Void> reorder(@RequestBody CategoryReorderRequest request,
+                                       @AuthenticationPrincipal CustomUserDetails userDetails) {
         List<CategoryOrder> orders = request.orders().stream()
                 .map(o -> new CategoryOrder(o.boardId(), o.categoryId(), o.displayOrder()))
                 .toList();
 
-        adminCategoryFacade.reorder(orders);
+        adminCategoryFacade.reorder(orders, userDetails.getUserId(), userDetails.getRole());
         return ResponseEntity.ok().build();
     }
 
     @DeleteMapping("/{categoryId}")
-    public void deleteCategory(@PathVariable Long categoryId) {
-        adminCategoryFacade.delete(categoryId);
+    public void deleteCategory(@PathVariable Long categoryId,
+                               @AuthenticationPrincipal CustomUserDetails userDetails) {
+        adminCategoryFacade.delete(categoryId, userDetails.getUserId(), userDetails.getRole());
     }
 }
