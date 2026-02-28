@@ -39,18 +39,32 @@ public class AdminInitialize implements CommandLineRunner {
 
         UserRegisterCommand testUser = UserRegisterCommand.of(
                 "test1",
-                "테스트",
+                "테스트유저",
                 "Test!234"
         );
         UserRegisterCommand testUser2 = UserRegisterCommand.of(
                 "test2",
-                "테스트2",
+                "테스트유저2",
+                "Test!234"
+        );
+
+        UserRegisterCommand testUser3 = UserRegisterCommand.of(
+                "test3",
+                "테스트유저3",
+                "Test!234"
+        );
+
+        UserRegisterCommand testUser4 = UserRegisterCommand.of(
+                "test4",
+                "테스트유저4",
                 "Test!234"
         );
 
         userFacade.register(command);
         userFacade.register(testUser);
         userFacade.register(testUser2);
+        userFacade.register(testUser3);
+        userFacade.register(testUser4);
 
         User admin = userRepository.findByLoginId(loginId)
                 .orElseThrow(() -> new IllegalStateException("Admin 생성 실패"));
@@ -60,8 +74,10 @@ public class AdminInitialize implements CommandLineRunner {
         System.out.println("[ADMIN INIT] 관리자 계정 생성 완료 : ID=admin / PW=Admin!23");
 
         // 기본 섹션 및 게시판 생성
-        SectionResponse gameSection = adminSectionFacade.create("게임");
-        Board board = adminBoardFacade.create("배틀그라운드", "서바이벌 게임의 유행 선두자 PUBG게시판 입니다.", gameSection.id());
+        SectionResponse gameSection = adminSectionFacade.create("게임", Role.ADMIN);
+        adminBoardFacade.create("배틀그라운드", "서바이벌 게임의 유행 선두자 PUBG게시판 입니다.", gameSection.id(), Role.ADMIN);
+        adminBoardFacade.create("랑그릿사 모바일", "페어리테일 시작", gameSection.id(), Role.ADMIN);
+        adminBoardFacade.create("연운", "무협풍 오픈월드", gameSection.id(), Role.ADMIN);
     }
 }
 

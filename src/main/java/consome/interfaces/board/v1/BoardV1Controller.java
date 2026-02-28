@@ -25,7 +25,7 @@ public class BoardV1Controller {
     @GetMapping("/{boardId}/posts")
     public ResponseEntity<BoardPostListResponse> getPosts(
             @PathVariable Long boardId,
-            @PageableDefault(size = 20) Pageable pageable,
+            @PageableDefault(size = 50) Pageable pageable,
             @RequestParam(required = false) Long categoryId,
             @RequestParam(defaultValue = "false") boolean headerOnly,
             @AuthenticationPrincipal CustomUserDetails userDetails

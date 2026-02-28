@@ -29,7 +29,7 @@ public class MessageV1Controller {
     @GetMapping("/received")
     public ResponseEntity<Page<MessageListResponse>> getReceivedMessages(
             @RequestParam Long userId,
-            @PageableDefault(size = 20) Pageable pageable) {
+            @PageableDefault(size = 50) Pageable pageable) {
         var result = messageFacade.getReceivedMessages(userId, pageable);
         return ResponseEntity.ok(result.map(MessageListResponse::from));
     }
@@ -37,7 +37,7 @@ public class MessageV1Controller {
     @GetMapping("/sent")
     public ResponseEntity<Page<MessageListResponse>> getSentMessages(
             @RequestParam Long userId,
-            @PageableDefault(size = 20) Pageable pageable) {
+            @PageableDefault(size = 50) Pageable pageable) {
         var result = messageFacade.getSentMessages(userId, pageable);
         return ResponseEntity.ok(result.map(MessageListResponse::from));
     }
@@ -83,7 +83,7 @@ public class MessageV1Controller {
     @GetMapping("/blocks")
     public ResponseEntity<Page<BlockResponse>> getBlockList(
             @RequestParam Long userId,
-            @PageableDefault(size = 20) Pageable pageable) {
+            @PageableDefault(size = 50) Pageable pageable) {
         var result = messageFacade.getBlockList(userId, pageable);
         return ResponseEntity.ok(result.map(BlockResponse::from));
     }

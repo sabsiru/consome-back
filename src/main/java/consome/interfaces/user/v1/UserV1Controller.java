@@ -53,7 +53,7 @@ public class UserV1Controller {
     @GetMapping("/{userId}/posts")
     public ResponseEntity<UserPostListResponse> getUserPosts(
             @PathVariable Long userId,
-            @PageableDefault(size = 20) Pageable pageable
+            @PageableDefault(size = 50) Pageable pageable
     ) {
         Page<UserPostResult> result = userFacade.getUserPosts(userId, pageable);
         return ResponseEntity.ok(UserPostListResponse.from(result));
@@ -62,7 +62,7 @@ public class UserV1Controller {
     @GetMapping("/{userId}/comments")
     public ResponseEntity<UserCommentListResponse> getUserComments(
             @PathVariable Long userId,
-            @PageableDefault(size = 20) Pageable pageable
+            @PageableDefault(size = 50) Pageable pageable
     ) {
         Page<UserCommentResult> result = userFacade.getUserComments(userId, pageable);
         return ResponseEntity.ok(UserCommentListResponse.from(result));
