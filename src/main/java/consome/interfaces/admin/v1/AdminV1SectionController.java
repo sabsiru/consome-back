@@ -1,6 +1,7 @@
 package consome.interfaces.admin.v1;
 
 import consome.application.admin.AdminSectionFacade;
+import consome.application.admin.SectionBoardResult;
 import consome.domain.admin.SectionOrder;
 import consome.infrastructure.security.CustomUserDetails;
 import consome.interfaces.admin.dto.section.CreateSectionRequest;
@@ -9,6 +10,8 @@ import consome.interfaces.admin.dto.section.SectionResponse;
 import consome.interfaces.admin.dto.section.UpdateSectionRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -56,5 +59,16 @@ public class AdminV1SectionController {
                 .toList();
         adminSectionFacade.reorder(orders, userDetails.getRole());
         return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("/{sectionId}/boards")
+    public ResponseEntity<Page<SectionBoardResult>> findBoardsBySectionId(
+            @PathVariable Long sectionId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size,
+            @RequestParam(required = false) String keyword,
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
+        return ResponseEntity.ok(adminSectionFacade.findBoardsBySectionId(
+                sectionId, keyword, PageRequest.of(page, size), userDetails.getRole()));
     }
 }

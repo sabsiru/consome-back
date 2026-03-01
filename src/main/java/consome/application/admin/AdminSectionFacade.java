@@ -4,10 +4,13 @@ import consome.domain.admin.Board;
 import consome.domain.admin.Section;
 import consome.domain.admin.SectionOrder;
 import consome.domain.admin.SectionService;
+import consome.domain.admin.repository.BoardQueryRepository;
 import consome.domain.common.exception.BusinessException;
 import consome.domain.user.Role;
 import consome.interfaces.admin.dto.section.SectionResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -18,6 +21,7 @@ import java.util.List;
 @Transactional(readOnly = true)
 public class AdminSectionFacade {
     private final SectionService sectionService;
+    private final BoardQueryRepository boardQueryRepository;
 
     private void validateAdminOnly(Role userRole) {
         if (userRole != Role.ADMIN) {
@@ -60,5 +64,10 @@ public class AdminSectionFacade {
                     return SectionResponse.from(section, boards);
                 })
                 .toList();
+    }
+
+    public Page<SectionBoardResult> findBoardsBySectionId(Long sectionId, String keyword, Pageable pageable, Role userRole) {
+        validateAdminOnly(userRole);
+        return boardQueryRepository.findBoardsBySectionId(sectionId, keyword, pageable);
     }
 }

@@ -5,6 +5,7 @@ import com.querydsl.core.types.Projections;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import consome.application.admin.BoardSearchCommand;
 import consome.application.admin.BoardSearchResult;
+import consome.application.admin.SectionBoardResult;
 import consome.application.board.UserBoardSearchResult;
 import consome.domain.admin.repository.BoardQueryRepository;
 import consome.domain.admin.QBoard;
@@ -114,5 +115,40 @@ public class BoardQueryRepositoryImpl implements BoardQueryRepository {
                 .orderBy(board.name.asc())
                 .limit(limit)
                 .fetch();
+    }
+
+    @Override
+    public Page<SectionBoardResult> findBoardsBySectionId(Long sectionId, String keyword, Pageable pageable) {
+        BooleanBuilder builder = new BooleanBuilder();
+        builder.and(board.deleted.isFalse());
+        builder.and(board.sectionId.eq(sectionId));
+
+        if (StringUtils.hasText(keyword)) {
+            builder.and(
+                    board.name.containsIgnoreCase(keyword)
+                            .or(board.description.containsIgnoreCase(keyword))
+            );
+        }
+
+        List<SectionBoardResult> content = queryFactory
+                .select(Projections.constructor(SectionBoardResult.class,
+                        board.id,
+                        board.name,
+                        board.description
+                ))
+                .from(board)
+                .where(builder)
+                .offset(pageable.getOffset())
+                .limit(pageable.getPageSize())
+                .orderBy(board.displayOrder.asc())
+                .fetch();
+
+        Long total = queryFactory
+                .select(board.count())
+                .from(board)
+                .where(builder)
+                .fetchOne();
+
+        return new PageImpl<>(content, pageable, total != null ? total : 0);
     }
 }
