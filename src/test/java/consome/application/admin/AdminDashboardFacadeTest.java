@@ -53,7 +53,7 @@ class AdminDashboardFacadeTest {
 
     @BeforeEach
     void setUpSection() {
-        Section section = Section.create("테스트섹션" + System.nanoTime(), false);
+        Section section = Section.create("섹션" + (System.nanoTime() % 100000));
         testSectionId = sectionRepository.save(section).getId();
     }
 
@@ -68,7 +68,7 @@ class AdminDashboardFacadeTest {
         @BeforeEach
         void setUp() {
             uniqueId = String.valueOf(System.nanoTime() % 100000);
-            testUser = userRepository.save(User.create("user" + uniqueId, "테스트유저", "password123!"));
+            testUser = userRepository.save(User.create("user" + uniqueId, "유저" + uniqueId, "password123!"));
             testBoard = boardRepository.save(Board.create("board" + uniqueId, "테스트 게시판입니다", testSectionId));
         }
 

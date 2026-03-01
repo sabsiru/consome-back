@@ -37,7 +37,7 @@ public class BoardServiceIntegrationTest {
 
     @BeforeEach
     void setUp() {
-        Section section = Section.create("테스트섹션" + UUID.randomUUID().toString().substring(0, 4), false);
+        Section section = Section.create("테스트섹션" + UUID.randomUUID().toString().substring(0, 4));
         testSectionId = sectionRepository.save(section).getId();
     }
 
