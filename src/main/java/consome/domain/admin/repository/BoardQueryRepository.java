@@ -2,6 +2,7 @@ package consome.domain.admin.repository;
 
 import consome.application.admin.BoardSearchCommand;
 import consome.application.admin.BoardSearchResult;
+import consome.application.admin.SectionBoardResult;
 import consome.application.board.UserBoardSearchResult;
 
 import java.util.List;
@@ -15,4 +16,6 @@ public interface BoardQueryRepository {
     Page<BoardSearchResult> search(BoardSearchCommand command, Pageable pageable);
 
     List<UserBoardSearchResult> searchByKeyword(String keyword, int limit);
+
+    Page<SectionBoardResult> findBoardsBySectionId(Long sectionId, String keyword, Pageable pageable);
 }

@@ -31,4 +31,12 @@ public class DummyController {
         dummyService.bulkUpdatePostStats(maxViews, maxLikes);
         return ResponseEntity.ok("PostStat insert dummy endpoint");
     }
+
+    @PostMapping("/boardInsert")
+    public ResponseEntity<String> insertBoard(
+            @RequestParam Long sectionId,
+            @RequestParam(defaultValue = "10") int count) {
+        dummyService.bulkInsertBoards(sectionId, count);
+        return ResponseEntity.ok("Board insert complete: " + count + " boards");
+    }
 }

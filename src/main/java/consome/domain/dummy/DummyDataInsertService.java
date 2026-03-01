@@ -3,8 +3,10 @@ package consome.domain.dummy;
 
 import consome.domain.admin.Board;
 import consome.domain.admin.Category;
+import consome.domain.admin.Section;
 import consome.domain.admin.repository.BoardRepository;
 import consome.domain.admin.repository.CategoryRepository;
+import consome.domain.admin.repository.SectionRepository;
 import consome.domain.point.Point;
 import consome.domain.post.entity.Post;
 import consome.domain.post.entity.PostStat;
@@ -35,6 +37,7 @@ public class DummyDataInsertService {
     private final UserRepository userRepository;
     private final CategoryRepository categoryRepository;
     private final PostRepository postRepository;
+    private final SectionRepository sectionRepository;
 
     public void bulkInsertDummyData(int count) {
         SessionFactory sessionFactory = emf.unwrap(SessionFactory.class);
@@ -168,6 +171,54 @@ public class DummyDataInsertService {
                     .setParameter("likeCount", likeCount)
                     .setParameter("postId", postId)
                     .executeUpdate();
+        }
+
+        tx.commit();
+        session.close();
+    }
+
+    public void bulkInsertBoards(Long sectionId, int count) {
+        Section section = sectionRepository.findById(sectionId)
+                .orElseThrow(() -> new IllegalArgumentException("섹션이 존재하지 않습니다: " + sectionId));
+
+        int currentMaxOrder = boardRepository.findAll().stream()
+                .mapToInt(Board::getDisplayOrder)
+                .max()
+                .orElse(0);
+
+        SessionFactory sessionFactory = emf.unwrap(SessionFactory.class);
+        StatelessSession session = sessionFactory.openStatelessSession();
+        Transaction tx = session.beginTransaction();
+
+        LocalDateTime now = LocalDateTime.now();
+
+        for (int i = 0; i < count; i++) {
+            int idx = i;
+            int order = currentMaxOrder + i + 1;
+
+            Board board = Instancio.of(Board.class)
+                    .ignore(field("id"))
+                    .supply(field("name"), () -> "게시판" + System.currentTimeMillis() + "_" + idx)
+                    .supply(field("description"), () -> "더미 게시판 " + idx)
+                    .supply(field("sectionId"), () -> sectionId)
+                    .supply(field("displayOrder"), () -> order)
+                    .supply(field("deleted"), () -> false)
+                    .supply(field("isMain"), () -> false)
+                    .supply(field("writeEnabled"), () -> true)
+                    .supply(field("commentEnabled"), () -> true)
+                    .supply(field("createdAt"), () -> now)
+                    .supply(field("updatedAt"), () -> now)
+                    .supply(field("avgViewCount"), () -> 0.0)
+                    .supply(field("avgLikeCount"), () -> 0.0)
+                    .supply(field("avgCommentCount"), () -> 0.0)
+                    .supply(field("statUpdatedAt"), () -> null)
+                    .create();
+
+            session.insert(board);
+
+            if (i % 100 == 0) {
+                System.out.println("Inserted boards: " + i);
+            }
         }
 
         tx.commit();
