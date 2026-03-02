@@ -6,12 +6,12 @@ import java.util.List;
 
 public record ImageUploadResponse(List<ImageInfo> images) {
 
-    public record ImageInfo(String url, String originalName) {
+    public record ImageInfo(String url, String thumbnailUrl, String originalName) {
     }
 
     public static ImageUploadResponse from(List<ImageUploadResult> results) {
         List<ImageInfo> images = results.stream()
-                .map(r -> new ImageInfo(r.url(), r.originalName()))
+                .map(r -> new ImageInfo(r.url(), r.thumbnailUrl(), r.originalName()))
                 .toList();
         return new ImageUploadResponse(images);
     }

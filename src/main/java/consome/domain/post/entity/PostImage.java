@@ -21,6 +21,8 @@ public class PostImage {
     @Column(nullable = false)
     private String url;
 
+    private String thumbnailUrl;
+
     @Column(nullable = false)
     private String storedName;    // UUID 파일명
 
@@ -36,11 +38,12 @@ public class PostImage {
     @Column(nullable = false)
     private boolean deleted = false;
 
-    public static PostImage create(Long postId, String url, String storedName,
-                                   String originalName, Long fileSize) {
+    public static PostImage create(Long postId, String url, String thumbnailUrl,
+                                   String storedName, String originalName, Long fileSize) {
         PostImage postImage = new PostImage();
         postImage.postId = postId;
         postImage.url = url;
+        postImage.thumbnailUrl = thumbnailUrl;
         postImage.storedName = storedName;
         postImage.originalName = originalName;
         postImage.fileSize = fileSize;

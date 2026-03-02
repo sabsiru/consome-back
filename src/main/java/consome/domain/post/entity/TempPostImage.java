@@ -19,6 +19,8 @@ public class TempPostImage {
     @Column(nullable = false)
     private String url;
 
+    private String thumbnailUrl;
+
     @Column(nullable = false)
     private String storedName;
 
@@ -31,10 +33,11 @@ public class TempPostImage {
     @Column(nullable = false)
     private LocalDateTime createdAt;
 
-    public static TempPostImage create(String url, String storedName,
-                                       String originalName, Long fileSize) {
+    public static TempPostImage create(String url, String thumbnailUrl,
+                                       String storedName, String originalName, Long fileSize) {
         TempPostImage temp = new TempPostImage();
         temp.url = url;
+        temp.thumbnailUrl = thumbnailUrl;
         temp.storedName = storedName;
         temp.originalName = originalName;
         temp.fileSize = fileSize;
@@ -43,7 +46,7 @@ public class TempPostImage {
     }
 
     public PostImage toPostImage(Long postId) {
-        return PostImage.create(postId, this.url, this.storedName,
-                this.originalName, this.fileSize);
+        return PostImage.create(postId, this.url, this.thumbnailUrl,
+                this.storedName, this.originalName, this.fileSize);
     }
 }

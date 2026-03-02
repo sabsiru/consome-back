@@ -14,11 +14,15 @@ import consome.domain.post.entity.Post;
 import consome.domain.post.PostService;
 import consome.domain.post.entity.PostImage;
 import consome.domain.post.entity.PostStat;
+import consome.domain.post.entity.PostVideo;
 import consome.domain.post.entity.TempPostImage;
+import consome.domain.post.entity.TempPostVideo;
 import consome.domain.post.exception.PostException;
 import consome.domain.post.repository.PostImageRepository;
 import consome.domain.post.repository.PostReactionRepository;
+import consome.domain.post.repository.PostVideoRepository;
 import consome.domain.post.repository.TempPostImageRepository;
+import consome.domain.post.repository.TempPostVideoRepository;
 import consome.domain.user.Role;
 import consome.domain.user.User;
 import consome.domain.user.UserService;
@@ -41,6 +45,8 @@ public class PostFacade {
     private final PostReactionRepository postReactionRepository;
     private final PostImageRepository postImageRepository;
     private final TempPostImageRepository tempPostImageRepository;
+    private final PostVideoRepository postVideoRepository;
+    private final TempPostVideoRepository tempPostVideoRepository;
     private final BoardService boardService;
     private final SectionService sectionService;
     private final UserService userService;
@@ -53,11 +59,19 @@ public class PostFacade {
         Post post = postService.post(command.boardId(), command.categoryId(),
                 command.userId(), command.title(), content);
 
-        List<String> urls = fileStorage.extractImageUrls(content);
-        for (String url : urls) {
+        List<String> imageUrls = fileStorage.extractImageUrls(content);
+        for (String url : imageUrls) {
             tempPostImageRepository.findByUrl(url).ifPresent(temp -> {
                 postImageRepository.save(temp.toPostImage(post.getId()));
                 tempPostImageRepository.delete(temp);
+            });
+        }
+
+        List<String> videoUrls = fileStorage.extractVideoUrls(content);
+        for (String url : videoUrls) {
+            tempPostVideoRepository.findByUrl(url).ifPresent(temp -> {
+                postVideoRepository.save(temp.toPostVideo(post.getId()));
+                tempPostVideoRepository.delete(temp);
             });
         }
 
@@ -83,7 +97,8 @@ public class PostFacade {
             List<String> urls = fileStorage.extractImageUrls(content);
             for (int i = 0; i < urls.size(); i++) {
                 PostImage postImage = PostImage.create(
-                        post.getId(), urls.get(i), extractStoredName(urls.get(i)),
+                        post.getId(), urls.get(i), null,
+                        extractStoredName(urls.get(i)),
                         images.get(i).getOriginalFilename(),
                         images.get(i).getSize()
                 );
@@ -130,7 +145,8 @@ public class PostFacade {
         for (int i = 0; i < newUrls.size(); i++) {
             String url = newUrls.get(i);
             PostImage postImage = PostImage.create(
-                    postId, url, extractStoredName(url),
+                    postId, url, null,
+                    extractStoredName(url),
                     extractStoredName(url), 0L
             );
             postImageRepository.save(postImage);
@@ -211,15 +227,19 @@ public class PostFacade {
     public List<ImageUploadResult> uploadImages(List<MultipartFile> images) {
         return images.stream()
                 .map(image -> {
-                    String url = fileStorage.store(image, "posts");
+                    String[] urls = fileStorage.storeWithResize(image, "posts");
+                    String displayUrl = urls[0];
+                    String thumbnailUrl = urls[1];
+
                     TempPostImage temp = TempPostImage.create(
-                            url,
-                            extractStoredName(url),
+                            displayUrl,
+                            thumbnailUrl,
+                            extractStoredName(displayUrl),
                             image.getOriginalFilename(),
                             image.getSize()
                     );
                     tempPostImageRepository.save(temp);
-                    return new ImageUploadResult(url, image.getOriginalFilename());
+                    return new ImageUploadResult(displayUrl, thumbnailUrl, image.getOriginalFilename());
                 })
                 .toList();
     }
@@ -229,6 +249,13 @@ public class PostFacade {
         return videos.stream()
                 .map(video -> {
                     String url = fileStorage.storeAndConvertVideo(video, "videos");
+                    TempPostVideo temp = TempPostVideo.create(
+                            url,
+                            extractStoredName(url),
+                            video.getOriginalFilename(),
+                            video.getSize()
+                    );
+                    tempPostVideoRepository.save(temp);
                     return new VideoUploadResult(url, video.getOriginalFilename());
                 })
                 .toList();

@@ -1,9 +1,11 @@
 package consome.infrastructure.storage;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -17,7 +19,10 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 @Component
+@RequiredArgsConstructor
 public class LocalFileStorage implements FileStorage {
+
+    private final ImageResizer imageResizer;
 
     @Override
     public String store(MultipartFile file, String directory) {
@@ -122,8 +127,9 @@ public class LocalFileStorage implements FileStorage {
 
             ProcessBuilder pb = new ProcessBuilder(
                 "ffmpeg", "-i", tempPath.toString(),
-                "-c:v", "libx264", "-preset", "fast",
-                "-c:a", "aac", "-y",
+                "-vf", "scale='min(480,iw)':-2",  // 모바일 기준 480p, 비율 유지
+                "-c:v", "libx264", "-preset", "fast", "-crf", "28",
+                "-c:a", "aac", "-b:a", "96k", "-y",
                 outputPath.toString()
             );
             pb.redirectErrorStream(true);
@@ -159,5 +165,35 @@ public class LocalFileStorage implements FileStorage {
         }
 
         return files;
+    }
+
+    @Override
+    public String[] storeWithResize(MultipartFile file, String directory) {
+        String uuid = UUID.randomUUID().toString();
+        String datePath = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy/MM"));
+        Path uploadPath = Paths.get("uploads", directory, datePath);
+
+        try {
+            Files.createDirectories(uploadPath);
+
+            // DISPLAY 이미지 (본문용) - Thumbnailator가 .jpg 확장자 자동 추가
+            Path displayPath = uploadPath.resolve(uuid);
+            try (InputStream is = file.getInputStream()) {
+                imageResizer.resize(is, displayPath, ImageSize.DISPLAY);
+            }
+
+            // THUMBNAIL 이미지 (목록용)
+            Path thumbPath = uploadPath.resolve(uuid + "_thumb");
+            try (InputStream is = file.getInputStream()) {
+                imageResizer.resize(is, thumbPath, ImageSize.THUMBNAIL);
+            }
+
+            String displayUrl = "/uploads/" + directory + "/" + datePath + "/" + uuid + ".jpg";
+            String thumbUrl = "/uploads/" + directory + "/" + datePath + "/" + uuid + "_thumb.jpg";
+
+            return new String[]{displayUrl, thumbUrl};
+        } catch (IOException e) {
+            throw new RuntimeException("이미지 리사이징 저장 실패", e);
+        }
     }
 }
