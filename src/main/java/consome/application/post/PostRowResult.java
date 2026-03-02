@@ -21,6 +21,7 @@ public record PostRowResult(
         LocalDateTime updatedAt,
         Boolean deleted,
         Boolean isPinned,
-        Integer pinnedOrder
+        Integer pinnedOrder,
+        Boolean hasMedia
 ) {
 }

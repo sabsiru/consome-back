@@ -15,7 +15,9 @@ import consome.domain.post.PopularityType;
 import consome.domain.post.PostPreviewRow;
 import consome.domain.post.PostSummary;
 import consome.domain.post.entity.QPost;
+import consome.domain.post.entity.QPostImage;
 import consome.domain.post.entity.QPostStat;
+import consome.domain.post.entity.QPostVideo;
 import consome.domain.post.repository.PostQueryRepository;
 import consome.domain.level.LevelInfo;
 import consome.domain.point.QPoint;
@@ -49,6 +51,8 @@ public class PostQueryRepositoryImpl implements PostQueryRepository {
         QUser user = QUser.user;
         QCategory category = QCategory.category;
         QPoint point = QPoint.point;
+        QPostImage postImage = QPostImage.postImage;
+        QPostVideo postVideo = QPostVideo.postVideo;
 
         List<com.querydsl.core.Tuple> tuples = queryFactory
                 .select(
@@ -68,7 +72,15 @@ public class PostQueryRepositoryImpl implements PostQueryRepository {
                         post.updatedAt,
                         post.deleted,
                         post.isPinned,
-                        post.pinnedOrder
+                        post.pinnedOrder,
+                        JPAExpressions.selectOne()
+                                .from(postImage)
+                                .where(postImage.postId.eq(post.id), postImage.deleted.isFalse())
+                                .exists()
+                                .or(JPAExpressions.selectOne()
+                                        .from(postVideo)
+                                        .where(postVideo.postId.eq(post.id), postVideo.deleted.isFalse())
+                                        .exists())
                 )
                 .from(post)
                 .leftJoin(user).on(post.userId.eq(user.id))
@@ -107,7 +119,8 @@ public class PostQueryRepositoryImpl implements PostQueryRepository {
                         t.get(post.updatedAt),
                         t.get(post.deleted),
                         t.get(post.isPinned),
-                        t.get(post.pinnedOrder)
+                        t.get(post.pinnedOrder),
+                        t.get(17, Boolean.class)
                 ))
                 .toList();
 
@@ -272,6 +285,8 @@ public class PostQueryRepositoryImpl implements PostQueryRepository {
         QCategory category = QCategory.category;
         QComment comment = QComment.comment;
         QPoint point = QPoint.point;
+        QPostImage postImage = QPostImage.postImage;
+        QPostVideo postVideo = QPostVideo.postVideo;
 
         BooleanExpression searchCondition = buildSearchCondition(post, user, comment, keyword, searchType);
 
@@ -293,7 +308,15 @@ public class PostQueryRepositoryImpl implements PostQueryRepository {
                         post.updatedAt,
                         post.deleted,
                         post.isPinned,
-                        post.pinnedOrder
+                        post.pinnedOrder,
+                        JPAExpressions.selectOne()
+                                .from(postImage)
+                                .where(postImage.postId.eq(post.id), postImage.deleted.isFalse())
+                                .exists()
+                                .or(JPAExpressions.selectOne()
+                                        .from(postVideo)
+                                        .where(postVideo.postId.eq(post.id), postVideo.deleted.isFalse())
+                                        .exists())
                 )
                 .from(post)
                 .leftJoin(user).on(post.userId.eq(user.id))
@@ -334,7 +357,8 @@ public class PostQueryRepositoryImpl implements PostQueryRepository {
                         t.get(post.updatedAt),
                         t.get(post.deleted),
                         t.get(post.isPinned),
-                        t.get(post.pinnedOrder)
+                        t.get(post.pinnedOrder),
+                        t.get(17, Boolean.class)
                 ))
                 .toList();
 

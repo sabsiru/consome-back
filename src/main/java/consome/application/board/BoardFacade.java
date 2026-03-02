@@ -58,7 +58,8 @@ public class BoardFacade {
                         summary.updatedAt(),
                         summary.deleted(),
                         summary.isPinned(),
-                        summary.pinnedOrder()
+                        summary.pinnedOrder(),
+                        summary.hasMedia()
                 ))
                 .toList();
 
@@ -120,7 +121,8 @@ public class BoardFacade {
                         summary.updatedAt(),
                         summary.deleted(),
                         summary.isPinned(),
-                        summary.pinnedOrder()
+                        summary.pinnedOrder(),
+                        summary.hasMedia()
                 ))
                 .toList();
 
