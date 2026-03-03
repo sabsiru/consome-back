@@ -41,6 +41,10 @@ dependencies {
     // instancio
     implementation('org.instancio:instancio-core:2.0.0')
 
+    // Image Processing
+    implementation 'net.coobird:thumbnailator:0.4.20'
+    implementation 'com.twelvemonkeys.imageio:imageio-webp:3.10.1'
+
     // security
     implementation('org.springframework.boot:spring-boot-starter-security')
 

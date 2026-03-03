@@ -10,16 +10,13 @@ import java.time.LocalDateTime;
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class TempPostImage {
-
+public class TempPostVideo {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @Column(nullable = false)
     private String url;
-
-    private String thumbnailUrl;
 
     @Column(nullable = false)
     private String storedName;
@@ -33,11 +30,10 @@ public class TempPostImage {
     @Column(nullable = false)
     private LocalDateTime createdAt;
 
-    public static TempPostImage create(String url, String thumbnailUrl,
-                                       String storedName, String originalName, Long fileSize) {
-        TempPostImage temp = new TempPostImage();
+    public static TempPostVideo create(String url, String storedName,
+                                       String originalName, Long fileSize) {
+        TempPostVideo temp = new TempPostVideo();
         temp.url = url;
-        temp.thumbnailUrl = thumbnailUrl;
         temp.storedName = storedName;
         temp.originalName = originalName;
         temp.fileSize = fileSize;
@@ -45,8 +41,8 @@ public class TempPostImage {
         return temp;
     }
 
-    public PostImage toPostImage(Long postId) {
-        return PostImage.create(postId, this.url, this.thumbnailUrl,
-                this.storedName, this.originalName, this.fileSize);
+    public PostVideo toPostVideo(Long postId) {
+        return PostVideo.create(postId, this.url, this.storedName,
+                this.originalName, this.fileSize);
     }
 }

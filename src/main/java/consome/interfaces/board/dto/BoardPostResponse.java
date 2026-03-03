@@ -20,7 +20,8 @@ public record BoardPostResponse(
         String updatedAt,
         Boolean deleted,
         Boolean isPinned,
-        Integer pinnedOrder
+        Integer pinnedOrder,
+        Boolean hasMedia
 
 ) {
     public static BoardPostResponse from(PostRowResult row){
@@ -41,7 +42,8 @@ public record BoardPostResponse(
                 row.updatedAt().toString(),
                 row.deleted(),
                 row.isPinned(),
-                row.pinnedOrder()
+                row.pinnedOrder(),
+                row.hasMedia()
         );
     }
 }

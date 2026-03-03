@@ -10,7 +10,7 @@ import java.time.LocalDateTime;
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class PostImage {
+public class PostVideo {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -21,10 +21,8 @@ public class PostImage {
     @Column(nullable = false)
     private String url;
 
-    private String thumbnailUrl;
-
     @Column(nullable = false)
-    private String storedName;    // UUID 파일명
+    private String storedName;
 
     @Column(nullable = false)
     private String originalName;
@@ -38,17 +36,16 @@ public class PostImage {
     @Column(nullable = false)
     private boolean deleted = false;
 
-    public static PostImage create(Long postId, String url, String thumbnailUrl,
-                                   String storedName, String originalName, Long fileSize) {
-        PostImage postImage = new PostImage();
-        postImage.postId = postId;
-        postImage.url = url;
-        postImage.thumbnailUrl = thumbnailUrl;
-        postImage.storedName = storedName;
-        postImage.originalName = originalName;
-        postImage.fileSize = fileSize;
-        postImage.createdAt = LocalDateTime.now();
-        return postImage;
+    public static PostVideo create(Long postId, String url, String storedName,
+                                   String originalName, Long fileSize) {
+        PostVideo postVideo = new PostVideo();
+        postVideo.postId = postId;
+        postVideo.url = url;
+        postVideo.storedName = storedName;
+        postVideo.originalName = originalName;
+        postVideo.fileSize = fileSize;
+        postVideo.createdAt = LocalDateTime.now();
+        return postVideo;
     }
 
     public void delete() {

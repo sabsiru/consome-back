@@ -21,4 +21,10 @@ public interface FileStorage {
     String storeAndConvertVideo(MultipartFile file, String directory);
 
     List<String> getAllStoredFiles();
+
+    /**
+     * 이미지를 리사이징하여 저장
+     * @return [0]: display URL, [1]: thumbnail URL
+     */
+    String[] storeWithResize(MultipartFile file, String directory);
 }
