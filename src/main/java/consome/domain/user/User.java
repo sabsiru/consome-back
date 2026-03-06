@@ -25,6 +25,14 @@ public class User {
     @Column(nullable = false)
     private String password;
 
+    @Column(nullable = false, unique = true)
+    private String email;
+
+    @Column(nullable = false)
+    private boolean emailVerified = false;
+
+    private LocalDateTime emailVerifiedAt;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private Role role;
@@ -41,17 +49,39 @@ public class User {
     private LocalDateTime suspendedUntil;
     private String suspendReason;
 
-    private User(String loginId, String nickname, String password) {
+    private User(String loginId, String nickname, String password, String email) {
         this.loginId = loginId;
         this.nickname = nickname;
         this.password = password;
+        this.email = email;
+        this.emailVerified = false;
         this.role = Role.USER;
         this.createdAt = LocalDateTime.now();
         this.updatedAt = LocalDateTime.now();
     }
 
-    public static User create(String loginId, String nickname, String password) {
-        return new User(loginId, nickname, password);
+    public static User create(String loginId, String nickname, String password, String email) {
+        validateEmail(email);
+        return new User(loginId, nickname, password, email);
+    }
+
+    public static void validateEmail(String email) {
+        if (email == null || email.isBlank()) {
+            throw new UserException.InvalidEmail("이메일을 입력해주세요.");
+        }
+        String emailRegex = "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$";
+        if (!email.matches(emailRegex)) {
+            throw new UserException.InvalidEmail("올바른 이메일 형식이 아닙니다.");
+        }
+    }
+
+    public void verifyEmail() {
+        if (this.emailVerified) {
+            throw new UserException.AlreadyVerified("이미 인증된 이메일입니다.");
+        }
+        this.emailVerified = true;
+        this.emailVerifiedAt = LocalDateTime.now();
+        this.updatedAt = LocalDateTime.now();
     }
 
     public static void validateLoginId(String loginId) {

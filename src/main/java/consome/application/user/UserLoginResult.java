@@ -12,6 +12,7 @@ public record UserLoginResult(
         int point,
         int level,
         String accessToken,
-        List<Long> managedBoardIds
+        List<Long> managedBoardIds,
+        boolean emailVerified
 ){}
 

@@ -15,6 +15,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import consome.infrastructure.mail.EmailService;
+import consome.domain.email.EmailVerificationService;
+import consome.infrastructure.redis.EmailVerificationRedisRepository;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
@@ -57,7 +61,7 @@ class CommentServiceIntegrationTest {
         commentStatRepository.deleteAll();
         commentRepository.deleteAll();
         String suffix = UUID.randomUUID().toString().substring(0, 8);
-        userId = userFacade.register(UserRegisterCommand.of("user" + suffix, "닉네임" + suffix, "Password123"));
+        userId = userFacade.registerWithoutEmail(UserRegisterCommand.of("user" + suffix, "닉네임" + suffix, "Password123", "user" + suffix + "@test.com"));
         Post post = postService.post(1L, 1L, userId, "테스트 게시글", "내용");
         postId = post.getId();
     }

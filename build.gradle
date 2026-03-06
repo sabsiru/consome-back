@@ -45,6 +45,9 @@ dependencies {
     implementation 'net.coobird:thumbnailator:0.4.20'
     implementation 'com.twelvemonkeys.imageio:imageio-webp:3.10.1'
 
+    // Mail
+    implementation 'org.springframework.boot:spring-boot-starter-mail'
+
     // security
     implementation('org.springframework.boot:spring-boot-starter-security')
 

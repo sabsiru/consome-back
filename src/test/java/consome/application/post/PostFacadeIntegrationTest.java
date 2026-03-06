@@ -22,6 +22,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import consome.infrastructure.mail.EmailService;
+import consome.domain.email.EmailVerificationService;
+import consome.infrastructure.redis.EmailVerificationRedisRepository;
 import org.springframework.transaction.annotation.Transactional;
 import org.testcontainers.utility.TestcontainersConfiguration;
 
@@ -67,7 +71,7 @@ public class PostFacadeIntegrationTest {
 
     @BeforeEach
     void setUp() {
-        userRegisterCommand = UserRegisterCommand.of("testid", "테스트닉네임", "Password123");
+        userRegisterCommand = UserRegisterCommand.of("testid", "테스트닉네임", "Password123", "test@test.com");
         userRepository.deleteAll();
     }
 
@@ -75,7 +79,7 @@ public class PostFacadeIntegrationTest {
     @Test
     void createPost_V1_success() {
         // given
-        Long userId = userFacade.register(userRegisterCommand);
+        Long userId = userFacade.registerWithoutEmail(userRegisterCommand);
         PostCommand command = PostCommand.of(boardId, categoryId, userId, "제목입니다", "내용입니다");
 
         // when

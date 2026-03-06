@@ -1,6 +1,9 @@
 package consome.interfaces.user.v1;
 
 import org.testcontainers.utility.TestcontainersConfiguration;
+import consome.infrastructure.mail.EmailService;
+import consome.domain.email.EmailVerificationService;
+import consome.infrastructure.redis.EmailVerificationRedisRepository;
 import consome.interfaces.error.ErrorResponse;
 import consome.interfaces.user.dto.UserLoginRequest;
 import consome.interfaces.user.dto.UserLoginResponse;
@@ -11,6 +14,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpStatus;
@@ -31,6 +35,9 @@ class UserV1ControllerE2eTest {
     @Autowired
     private TestRestTemplate restTemplate;
 
+    @MockBean
+    private EmailService emailService;
+
     private UserRegisterRequest registerRequest;
 
     private UserLoginRequest loginRequest;
@@ -40,8 +47,9 @@ class UserV1ControllerE2eTest {
         String suffix = UUID.randomUUID().toString().replace("-", "").substring(0, 8);
         String uniqueLoginId = "tu" + suffix; // length 10, within 4~20
         String uniqueNickname = "테스트유저" + suffix; // 닉네임 중복 회피
+        String uniqueEmail = "test" + suffix + "@test.com";
         registerRequest = new UserRegisterRequest(
-                uniqueLoginId, uniqueNickname, "Password123"
+                uniqueLoginId, uniqueNickname, "Password123", uniqueEmail
         );
     }
 
@@ -68,7 +76,8 @@ class UserV1ControllerE2eTest {
         UserRegisterRequest duplicateLoginIdReq = new UserRegisterRequest(
                 registerRequest.loginId(), // 같은 로그인 아이디
                 "테스트유저" + suffix2,     // 다른 닉네임 → 닉네임 중복 회피
-                registerRequest.password()
+                registerRequest.password(),
+                "test" + suffix2 + "@test.com" // 다른 이메일
         );
 
         ResponseEntity<ErrorResponse> error = restTemplate

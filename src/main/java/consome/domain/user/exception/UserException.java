@@ -106,4 +106,40 @@ public abstract class UserException extends RuntimeException {
         }
     }
 
+    public static class InvalidEmail extends UserException {
+        public InvalidEmail(String message) {
+            super("INVALID_EMAIL", message);
+        }
+    }
+
+    public static class DuplicateEmail extends UserException {
+        public DuplicateEmail(String email) {
+            super("DUPLICATE_EMAIL", "이미 사용 중인 이메일입니다.");
+        }
+    }
+
+    public static class AlreadyVerified extends UserException {
+        public AlreadyVerified(String message) {
+            super("ALREADY_VERIFIED", message);
+        }
+    }
+
+    public static class EmailNotVerified extends UserException {
+        public EmailNotVerified() {
+            super("EMAIL_NOT_VERIFIED", "이메일 인증이 필요합니다.");
+        }
+    }
+
+    public static class InvalidVerificationToken extends UserException {
+        public InvalidVerificationToken() {
+            super("INVALID_VERIFICATION_TOKEN", "유효하지 않거나 만료된 인증 토큰입니다.");
+        }
+    }
+
+    public static class EmailCooldown extends UserException {
+        public EmailCooldown() {
+            super("EMAIL_COOLDOWN", "인증 메일은 1분에 한 번만 발송할 수 있습니다.");
+        }
+    }
+
 }

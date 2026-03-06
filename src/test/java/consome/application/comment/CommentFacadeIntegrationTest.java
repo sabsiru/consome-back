@@ -5,9 +5,13 @@ import consome.application.user.UserRegisterCommand;
 import consome.domain.comment.CommentService;
 import consome.domain.post.PostService;
 import consome.domain.post.entity.Post;
+import consome.infrastructure.mail.EmailService;
+import consome.domain.email.EmailVerificationService;
+import consome.infrastructure.redis.EmailVerificationRedisRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -35,6 +39,9 @@ class CommentFacadeIntegrationTest {
     @Autowired
     private UserFacade userFacade;
 
+    @MockBean
+    private EmailService emailService;
+
 
     @Test
     void 댓글_페이징_통합_테스트() {
@@ -42,9 +49,10 @@ class CommentFacadeIntegrationTest {
         UserRegisterCommand registerCommand = new UserRegisterCommand(
                 "testerID",
                 "테스터",
-                "Password123"
+                "Password123",
+                "tester@test.com"
         );
-        Long register = userFacade.register(registerCommand);
+        Long register = userFacade.registerWithoutEmail(registerCommand);
         Post post = postService.post(1L, 2L, register, "testTitle",
                 "testContent");
 
@@ -78,9 +86,10 @@ class CommentFacadeIntegrationTest {
         UserRegisterCommand registerCommand = new UserRegisterCommand(
                 "testerID",
                 "테스터",
-                "Password123"
+                "Password123",
+                "tester@test.com"
         );
-        Long register = userFacade.register(registerCommand);
+        Long register = userFacade.registerWithoutEmail(registerCommand);
         Post post = postService.post(1L, 2L, register, "testTitle",
                 "testContent");
         CommentResult comment = commentFacade.comment(post.getId(), register,

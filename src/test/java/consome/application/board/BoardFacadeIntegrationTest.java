@@ -19,6 +19,10 @@ import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import consome.infrastructure.mail.EmailService;
+import consome.domain.email.EmailVerificationService;
+import consome.infrastructure.redis.EmailVerificationRedisRepository;
 import org.springframework.transaction.annotation.Transactional;
 import org.testcontainers.utility.TestcontainersConfiguration;
 
@@ -56,8 +60,8 @@ class BoardFacadeIntegrationTest {
     @BeforeEach
     void setUp() {
         userRepository.deleteAll();
-        UserRegisterCommand command = UserRegisterCommand.of("testuser", "테스트유저", "Password123");
-        userId = userFacade.register(command);
+        UserRegisterCommand command = UserRegisterCommand.of("testuser", "테스트유저", "Password123", "testuser@test.com");
+        userId = userFacade.registerWithoutEmail(command);
     }
 
     @Nested

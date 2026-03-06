@@ -19,6 +19,10 @@ import java.util.concurrent.TimeUnit;
 
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import consome.infrastructure.mail.EmailService;
+import consome.domain.email.EmailVerificationService;
+import consome.infrastructure.redis.EmailVerificationRedisRepository;
 import org.testcontainers.utility.TestcontainersConfiguration;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -40,8 +44,8 @@ class PointConcurrencyTest {
     @BeforeEach
     void setUp() {
         String suffix = UUID.randomUUID().toString().substring(0, 8);
-        userId = userFacade.register(
-            UserRegisterCommand.of("user" + suffix, "닉" + suffix, "Password123!")
+        userId = userFacade.registerWithoutEmail(
+            UserRegisterCommand.of("user" + suffix, "닉" + suffix, "Password123!", "user" + suffix + "@test.com")
         );
         initialPoint = pointService.getCurrentPoint(userId);
     }

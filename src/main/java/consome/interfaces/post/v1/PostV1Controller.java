@@ -9,6 +9,7 @@ import consome.domain.admin.Board;
 import consome.domain.admin.BoardService;
 import consome.domain.post.entity.Post;
 import consome.domain.post.entity.PostStat;
+import consome.infrastructure.aop.RequireEmailVerified;
 import consome.interfaces.post.dto.*;
 import consome.interfaces.post.mapper.PostRequestMapper;
 import consome.interfaces.post.mapper.PostResponseMapper;
@@ -32,6 +33,7 @@ public class PostV1Controller {
     private final BoardService boardService;
 
     @PostMapping
+    @RequireEmailVerified
     public ResponseEntity<PostResponse> post(
             @RequestBody @Valid PostRequest request) {
         PostResult result = postFacade.post(PostRequestMapper.toPostCommand(request));

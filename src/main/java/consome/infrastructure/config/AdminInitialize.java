@@ -12,6 +12,7 @@ import consome.interfaces.admin.dto.section.SectionResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 @Component
 @RequiredArgsConstructor
@@ -23,6 +24,7 @@ public class AdminInitialize implements CommandLineRunner {
     private final AdminSectionFacade adminSectionFacade;
 
     @Override
+    @Transactional
     public void run(String... args) {
         String loginId = "admin";
 
@@ -34,42 +36,54 @@ public class AdminInitialize implements CommandLineRunner {
         UserRegisterCommand command = UserRegisterCommand.of(
                 loginId,
                 "관리자",
-                "Admin!23"
+                "Admin!23",
+                "admin@consome.site"
         );
 
         UserRegisterCommand testUser = UserRegisterCommand.of(
                 "test1",
                 "테스트유저",
-                "Test!234"
+                "Test!234",
+                "test1@test.com"
         );
         UserRegisterCommand testUser2 = UserRegisterCommand.of(
                 "test2",
                 "테스트유저2",
-                "Test!234"
+                "Test!234",
+                "test2@test.com"
         );
 
         UserRegisterCommand testUser3 = UserRegisterCommand.of(
                 "test3",
                 "테스트유저3",
-                "Test!234"
+                "Test!234",
+                "test3@test.com"
         );
 
         UserRegisterCommand testUser4 = UserRegisterCommand.of(
                 "test4",
                 "테스트유저4",
-                "Test!234"
+                "Test!234",
+                "test4@test.com"
         );
 
-        userFacade.register(command);
-        userFacade.register(testUser);
-        userFacade.register(testUser2);
-        userFacade.register(testUser3);
-        userFacade.register(testUser4);
+        userFacade.registerWithoutEmail(command);
+        userFacade.registerWithoutEmail(testUser);
+        userFacade.registerWithoutEmail(testUser2);
+        userFacade.registerWithoutEmail(testUser3);
+        userFacade.registerWithoutEmail(testUser4);
 
         User admin = userRepository.findByLoginId(loginId)
                 .orElseThrow(() -> new IllegalStateException("Admin 생성 실패"));
         admin.updateRole(Role.ADMIN);
+        admin.verifyEmail();  // 관리자는 이메일 인증 완료
         userRepository.save(admin);
+
+        // 테스트 유저들 이메일 인증 완료
+        userRepository.findByLoginId("test1").ifPresent(User::verifyEmail);
+        userRepository.findByLoginId("test2").ifPresent(User::verifyEmail);
+        userRepository.findByLoginId("test3").ifPresent(User::verifyEmail);
+        userRepository.findByLoginId("test4").ifPresent(User::verifyEmail);
 
         System.out.println("[ADMIN INIT] 관리자 계정 생성 완료 : ID=admin / PW=Admin!23");
 

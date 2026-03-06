@@ -3,6 +3,7 @@ package consome.application.user;
 
 import consome.domain.admin.BoardManager;
 import consome.domain.admin.repository.BoardManagerRepository;
+import consome.domain.email.EmailVerificationService;
 import consome.domain.level.LevelInfo;
 import consome.domain.level.LevelService;
 import consome.domain.point.PointHistoryType;
@@ -11,7 +12,9 @@ import consome.domain.user.User;
 import consome.domain.user.UserService;
 import consome.domain.user.exception.UserException;
 import consome.domain.user.repository.UserQueryRepository;
+import consome.domain.user.repository.UserRepository;
 import consome.infrastructure.jwt.JwtProvider;
+import consome.infrastructure.mail.EmailService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -30,13 +33,50 @@ public class UserFacade {
     private final JwtProvider jwtProvider;
     private final BoardManagerRepository boardManagerRepository;
     private final UserQueryRepository userQueryRepository;
+    private final EmailVerificationService emailVerificationService;
+    private final EmailService emailService;
+    private final UserRepository userRepository;
 
     @Transactional
-    public Long register(UserRegisterCommand command) {
-        User user = userService.register(command.getLoginId(), command.getNickname(), command.getPassword());
+    public String register(UserRegisterCommand command) {
+        User user = userService.register(command.getLoginId(), command.getNickname(), command.getPassword(), command.getEmail());
+        pointService.initialize(user.getId());
+        levelService.initialize(user.getId());
+
+        // 인증 메일 발송
+        String token = emailVerificationService.generateToken(user.getId());
+        emailService.sendVerificationEmail(user.getEmail(), token);
+        emailVerificationService.setCooldown(user.getEmail());
+
+        return token;
+    }
+
+    @Transactional
+    public Long registerWithoutEmail(UserRegisterCommand command) {
+        User user = userService.register(command.getLoginId(), command.getNickname(), command.getPassword(), command.getEmail());
         pointService.initialize(user.getId());
         levelService.initialize(user.getId());
         return user.getId();
+    }
+
+    @Transactional
+    public void verifyEmail(String token) {
+        emailVerificationService.verifyEmail(token);
+    }
+
+    @Transactional
+    public void resendVerificationEmail(Long userId) {
+        User user = userService.findById(userId);
+
+        if (user.isEmailVerified()) {
+            throw new UserException.AlreadyVerified("이미 인증된 이메일입니다.");
+        }
+
+        emailVerificationService.checkCooldown(user.getEmail());
+
+        String token = emailVerificationService.generateToken(userId);
+        emailService.sendVerificationEmail(user.getEmail(), token);
+        emailVerificationService.setCooldown(user.getEmail());
     }
 
     @Transactional
@@ -50,7 +90,7 @@ public class UserFacade {
                 .toList();
 
         String accessToken = jwtProvider.createAccessToken(user.getId(), user.getRole());
-        return new UserLoginResult(user.getId(), user.getLoginId(), user.getNickname(), user.getRole(), currentPoint, level, accessToken, managedBoardIds);
+        return new UserLoginResult(user.getId(), user.getLoginId(), user.getNickname(), user.getRole(), currentPoint, level, accessToken, managedBoardIds, user.isEmailVerified());
     }
 
     @Transactional(readOnly = true)

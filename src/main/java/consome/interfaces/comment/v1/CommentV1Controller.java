@@ -7,6 +7,7 @@ import consome.domain.comment.Comment;
 import consome.domain.comment.CommentReaction;
 import consome.domain.comment.CommentStat;
 import consome.domain.post.ReactionType;
+import consome.infrastructure.aop.RequireEmailVerified;
 import consome.interfaces.comment.dto.*;
 import consome.interfaces.comment.mapper.CommentResponseMapper;
 import jakarta.validation.Valid;
@@ -35,6 +36,7 @@ public class CommentV1Controller {
     }
 
     @PostMapping("/{postId}/comments")
+    @RequireEmailVerified
     public ResponseEntity<CommentResponse> comment(
             @PathVariable Long postId,
             @RequestBody @Valid CreateCommentRequest request) {

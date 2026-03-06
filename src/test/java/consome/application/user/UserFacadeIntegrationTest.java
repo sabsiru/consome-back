@@ -11,10 +11,14 @@ import consome.domain.post.PostService;
 import consome.domain.user.User;
 import consome.domain.user.exception.UserException;
 import consome.domain.user.repository.UserRepository;
+import consome.domain.email.EmailVerificationService;
+import consome.infrastructure.redis.EmailVerificationRedisRepository;
+import consome.infrastructure.mail.EmailService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
@@ -32,6 +36,12 @@ class UserFacadeIntegrationTest {
 
     @Autowired
     private UserFacade userFacade;
+
+    @MockBean
+    private EmailService emailService;
+
+    @MockBean
+    private EmailVerificationService emailVerificationService;
 
     @Autowired
     private PostService postService;
@@ -61,14 +71,14 @@ class UserFacadeIntegrationTest {
 
     @BeforeEach
     void setUp() {
-        userRegisterCommand = UserRegisterCommand.of("testid", "테스트닉네임", "Password123");
+        userRegisterCommand = UserRegisterCommand.of("testid", "테스트닉네임", "Password123", "test@test.com");
         userRepository.deleteAll();
     }
 
     @Test
     void 회원가입_요청시_사용자가_생성되고_포인트가_초기화되며_히스토리가_생성된다() {
         // when
-        Long userId = userFacade.register(userRegisterCommand);
+        Long userId = userFacade.registerWithoutEmail(userRegisterCommand);
         int initialPoint = PointHistoryType.REGISTER.getPoint();
         int beforePoint = 0;
         int afterPoint = beforePoint + initialPoint;
@@ -94,11 +104,11 @@ class UserFacadeIntegrationTest {
         @Test
         void 유저_loginId가_중복일시_예외발생 () {
             //given
-            userFacade.register(userRegisterCommand);
-            UserRegisterCommand duplicateUserRegisterCommand = UserRegisterCommand.of("testid", "다른닉네임", "다른비밀번호");
+            userFacade.registerWithoutEmail(userRegisterCommand);
+            UserRegisterCommand duplicateUserRegisterCommand = UserRegisterCommand.of("testid", "다른닉네임", "다른비밀번호", "other@test.com");
 
             //then
-            assertThatThrownBy(() -> userFacade.register(duplicateUserRegisterCommand))
+            assertThatThrownBy(() -> userFacade.registerWithoutEmail(duplicateUserRegisterCommand))
                     .isInstanceOf(UserException.DuplicateLoginId.class)
                     .hasMessage("이미 사용 중인 아이디입니다.");
         }
@@ -106,13 +116,25 @@ class UserFacadeIntegrationTest {
         @Test
         void 유저_닉네임이_중복일시_예외발생 () {
             //given
-            userFacade.register(userRegisterCommand);
-            UserRegisterCommand duplicateUserRegisterCommand = UserRegisterCommand.of("다른아이디", "테스트닉네임", "다른비밀번호");
+            userFacade.registerWithoutEmail(userRegisterCommand);
+            UserRegisterCommand duplicateUserRegisterCommand = UserRegisterCommand.of("다른아이디", "테스트닉네임", "다른비밀번호", "other2@test.com");
 
             //then
-            assertThatThrownBy(() -> userFacade.register(duplicateUserRegisterCommand))
+            assertThatThrownBy(() -> userFacade.registerWithoutEmail(duplicateUserRegisterCommand))
                     .isInstanceOf(UserException.DuplicateNickname.class)
                     .hasMessage("이미 사용 중인 닉네임입니다.");
 
+        }
+
+        @Test
+        void 유저_이메일이_중복일시_예외발생 () {
+            //given
+            userFacade.registerWithoutEmail(userRegisterCommand);
+            UserRegisterCommand duplicateUserRegisterCommand = UserRegisterCommand.of("다른아이디", "다른닉네임", "다른비밀번호", "test@test.com");
+
+            //then
+            assertThatThrownBy(() -> userFacade.registerWithoutEmail(duplicateUserRegisterCommand))
+                    .isInstanceOf(UserException.DuplicateEmail.class)
+                    .hasMessage("이미 사용 중인 이메일입니다.");
         }
     }

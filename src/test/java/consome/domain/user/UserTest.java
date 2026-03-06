@@ -19,21 +19,55 @@ class UserTest {
         String loginId = "testUser";
         String nickname = "tester";
         String password = "password123";
+        String email = "test@test.com";
 
         //when
-        User user = User.create(loginId, nickname, password);
+        User user = User.create(loginId, nickname, password, email);
 
         //then
         assertThat(user.getLoginId()).isEqualTo(loginId);
         assertThat(user.getNickname()).isEqualTo(nickname);
         assertThat(user.getPassword()).isEqualTo(password);
+        assertThat(user.getEmail()).isEqualTo(email);
+        assertThat(user.isEmailVerified()).isFalse();
         assertThat(user.getRole()).isEqualTo(Role.USER);
 
     }
+
+    @Test
+    void 이메일_인증_성공() {
+        // given
+        User user = User.create("id", "nick", "pw", "test@test.com");
+
+        // when
+        user.verifyEmail();
+
+        // then
+        assertThat(user.isEmailVerified()).isTrue();
+        assertThat(user.getEmailVerifiedAt()).isNotNull();
+    }
+
+    @Test
+    void 이미_인증된_이메일_재인증_시도시_예외발생() {
+        // given
+        User user = User.create("id", "nick", "pw", "test@test.com");
+        user.verifyEmail();
+
+        // then
+        assertThatThrownBy(user::verifyEmail)
+                .isInstanceOf(UserException.AlreadyVerified.class);
+    }
+
+    @Test
+    void 이메일_유효성검증_형식_실패() {
+        assertThatThrownBy(() -> User.validateEmail("invalid-email"))
+                .isInstanceOf(UserException.InvalidEmail.class);
+    }
+
     @Test
     void 닉네임_변경_성공_tester() {
         // given
-        User user = User.create("id", "old", "pw");
+        User user = User.create("id", "old", "pw", "test@test.com");
 
         // when
         user.changeNickname("new");
@@ -45,7 +79,7 @@ class UserTest {
     @Test
     void 비밀번호_변경_성공_tester() {
         // given
-        User user = User.create("id", "nick", "old");
+        User user = User.create("id", "nick", "old", "test@test.com");
 
         // when
         user.changePassword("new");

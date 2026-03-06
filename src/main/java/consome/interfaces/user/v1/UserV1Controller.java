@@ -24,8 +24,8 @@ public class UserV1Controller {
 
     @PostMapping
     public ResponseEntity<UserRegisterResponse> register(@RequestBody @Valid UserRegisterRequest request) {
-        userFacade.register(UserRegisterMapper.toRegisterCommand(request));
-        UserRegisterResponse response = UserRegisterResponseMapper.toRegisterResponse();
+        String verifyToken = userFacade.register(UserRegisterMapper.toRegisterCommand(request));
+        UserRegisterResponse response = UserRegisterResponseMapper.toRegisterResponse(verifyToken);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
@@ -84,5 +84,19 @@ public class UserV1Controller {
     ) {
         UserNicknameChangeResult result = userFacade.changeNickname(userDetails.getUserId(), request.nickname());
         return ResponseEntity.ok(NicknameChangeResponse.from(result));
+    }
+
+    @GetMapping("/email/verify")
+    public ResponseEntity<Void> verifyEmail(@RequestParam String token) {
+        userFacade.verifyEmail(token);
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/email/resend")
+    public ResponseEntity<Void> resendVerificationEmail(
+            @AuthenticationPrincipal CustomUserDetails userDetails
+    ) {
+        userFacade.resendVerificationEmail(userDetails.getUserId());
+        return ResponseEntity.ok().build();
     }
 }

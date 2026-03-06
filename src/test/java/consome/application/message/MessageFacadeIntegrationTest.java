@@ -15,6 +15,10 @@ import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import consome.infrastructure.mail.EmailService;
+import consome.domain.email.EmailVerificationService;
+import consome.infrastructure.redis.EmailVerificationRedisRepository;
 import org.springframework.transaction.annotation.Transactional;
 import org.testcontainers.utility.TestcontainersConfiguration;
 
@@ -55,8 +59,8 @@ class MessageFacadeIntegrationTest {
         messageBlockRepository.deleteAll();
         messageRepository.deleteAll();
         String suffix = UUID.randomUUID().toString().substring(0, 8);
-        senderId = userFacade.register(UserRegisterCommand.of("sender" + suffix, "발신자" + suffix, "Password123"));
-        receiverId = userFacade.register(UserRegisterCommand.of("receiver" + suffix, "수신자" + suffix, "Password123"));
+        senderId = userFacade.registerWithoutEmail(UserRegisterCommand.of("sender" + suffix, "발신자" + suffix, "Password123", "sender" + suffix + "@test.com"));
+        receiverId = userFacade.registerWithoutEmail(UserRegisterCommand.of("receiver" + suffix, "수신자" + suffix, "Password123", "receiver" + suffix + "@test.com"));
     }
 
     @Test

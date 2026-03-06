@@ -34,11 +34,33 @@ public class GlobalExceptionHandler {
                 .body(new ErrorResponse(ex.getCode(), ex.getMessage()));
     }
 
+    @ExceptionHandler(UserException.EmailNotVerified.class)
+    public ResponseEntity<ErrorResponse> handleEmailNotVerified(UserException.EmailNotVerified ex) {
+        return ResponseEntity
+                .status(HttpStatus.FORBIDDEN)
+                .body(new ErrorResponse(ex.getCode(), ex.getMessage()));
+    }
+
+    @ExceptionHandler(UserException.EmailCooldown.class)
+    public ResponseEntity<ErrorResponse> handleEmailCooldown(UserException.EmailCooldown ex) {
+        return ResponseEntity
+                .status(HttpStatus.TOO_MANY_REQUESTS)
+                .body(new ErrorResponse(ex.getCode(), ex.getMessage()));
+    }
+
+    @ExceptionHandler(UserException.DuplicateEmail.class)
+    public ResponseEntity<ErrorResponse> handleDuplicateEmail(UserException.DuplicateEmail ex) {
+        return ResponseEntity
+                .status(HttpStatus.CONFLICT)
+                .body(new ErrorResponse(ex.getCode(), ex.getMessage()));
+    }
+
     @ExceptionHandler(UserException.class)
     public ResponseEntity<ErrorResponse> handleUserException(UserException ex) {
         HttpStatus status = switch (ex.getCode()) {
             case "USER_NOT_FOUND" -> HttpStatus.NOT_FOUND;
             case "PASSWORD_MISMATCH", "INSUFFICIENT_POINT" -> HttpStatus.BAD_REQUEST;
+            case "INVALID_VERIFICATION_TOKEN", "ALREADY_VERIFIED", "INVALID_EMAIL" -> HttpStatus.BAD_REQUEST;
             default -> HttpStatus.BAD_REQUEST;
         };
         return ResponseEntity
