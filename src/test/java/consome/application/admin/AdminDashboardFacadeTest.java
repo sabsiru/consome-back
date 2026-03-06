@@ -68,7 +68,7 @@ class AdminDashboardFacadeTest {
         @BeforeEach
         void setUp() {
             uniqueId = String.valueOf(System.nanoTime() % 100000);
-            testUser = userRepository.save(User.create("user" + uniqueId, "유저" + uniqueId, "password123!"));
+            testUser = userRepository.save(User.create("user" + uniqueId, "유저" + uniqueId, "password123!", "user" + uniqueId + "@test.com"));
             testBoard = boardRepository.save(Board.create("board" + uniqueId, "테스트 게시판입니다", testSectionId));
         }
 
@@ -170,7 +170,7 @@ class AdminDashboardFacadeTest {
         @DisplayName("getManagersByBoard - 게시판 관리자 목록 조회")
         void getManagersByBoard_returnsManagerList() {
             // given
-            User anotherUser = userRepository.save(User.create("oth" + uniqueId, "다른유저", "password123!"));
+            User anotherUser = userRepository.save(User.create("oth" + uniqueId, "다른유저", "password123!", "oth" + uniqueId + "@test.com"));
             adminDashboardFacade.assignManager(testBoard.getId(), testUser.getId());
             adminDashboardFacade.assignManager(testBoard.getId(), anotherUser.getId());
 
@@ -198,7 +198,7 @@ class AdminDashboardFacadeTest {
         @DisplayName("유저 목록 조회 시 managedBoards가 포함된다")
         void getUsers_includesManagedBoards() {
             // given
-            User user = userRepository.save(User.create("mgr" + uniqueId, "매니저1", "password123!"));
+            User user = userRepository.save(User.create("mgr" + uniqueId, "매니저1", "password123!", "mgr" + uniqueId + "@test.com"));
             Board board1 = boardRepository.save(Board.create("b1_" + uniqueId, "게시판1 설명", testSectionId));
             Board board2 = boardRepository.save(Board.create("b2_" + uniqueId, "게시판2 설명", testSectionId));
 
@@ -227,7 +227,7 @@ class AdminDashboardFacadeTest {
         @DisplayName("관리 게시판이 없는 유저는 빈 리스트를 반환한다")
         void getUsers_returnsEmptyManagedBoardsForRegularUser() {
             // given
-            User regularUser = userRepository.save(User.create("reg" + uniqueId, "일반유저", "password123!"));
+            User regularUser = userRepository.save(User.create("reg" + uniqueId, "일반유저", "password123!", "reg" + uniqueId + "@test.com"));
             Pageable pageable = PageRequest.of(0, 20, Sort.by("id").ascending());
 
             // when

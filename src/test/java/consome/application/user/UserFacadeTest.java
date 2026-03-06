@@ -1,9 +1,11 @@
 package consome.application.user;
 
+import consome.domain.email.EmailVerificationService;
 import consome.domain.point.PointService;
 import consome.domain.user.User;
 import consome.domain.user.UserService;
 import consome.domain.level.LevelService;
+import consome.infrastructure.mail.EmailService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -28,6 +30,12 @@ class UserFacadeTest {
     @Mock
     private LevelService levelService;
 
+    @Mock
+    private EmailVerificationService emailVerificationService;
+
+    @Mock
+    private EmailService emailService;
+
     @InjectMocks
     private UserFacade userFacade;
 
@@ -37,7 +45,7 @@ class UserFacadeTest {
     @BeforeEach
     void setUp() {
         // 테스트용 UserRegisterCommand 생성
-        userRegisterCommand = UserRegisterCommand.of("testId", "testid", "password123");
+        userRegisterCommand = UserRegisterCommand.of("testId", "testid", "password123", "test@test.com");
 
         // 목 User 객체 생성
         mockUser = mock(User.class);
@@ -47,11 +55,9 @@ class UserFacadeTest {
     @Test
     void 회원가입시_userService_pointService_호출하고_userId를_반환한다() {
         // given
-        when(userService.register(anyString(), anyString(), anyString())).thenReturn(mockUser);
-        when(pointService.initialize(anyLong())).thenReturn(100);
-
+        when(userService.register(anyString(), anyString(), anyString(), anyString())).thenReturn(mockUser);
         // when
-        Long userId = userFacade.register(userRegisterCommand);
+        Long userId = userFacade.registerWithoutEmail(userRegisterCommand);
 
         // then
         assertThat(userId).isEqualTo(1L);
@@ -59,9 +65,11 @@ class UserFacadeTest {
         verify(userService).register(
                 userRegisterCommand.getLoginId(),
                 userRegisterCommand.getNickname(),
-                userRegisterCommand.getPassword()
+                userRegisterCommand.getPassword(),
+                userRegisterCommand.getEmail()
         );
 
         verify(pointService).initialize(1L);
+        verifyNoInteractions(emailVerificationService, emailService);
     }
 }

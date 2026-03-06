@@ -19,6 +19,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import consome.infrastructure.mail.EmailService;
+import consome.domain.email.EmailVerificationService;
+import consome.infrastructure.redis.EmailVerificationRedisRepository;
 import org.springframework.transaction.annotation.Transactional;
 import org.testcontainers.utility.TestcontainersConfiguration;
 
@@ -36,7 +40,7 @@ class PostV1ControllerE2eTest {
 
     private Long createUser() {
         String suffix = UUID.randomUUID().toString().substring(0, 8);
-        return userFacade.register(UserRegisterCommand.of("user" + suffix, "nick" + suffix, "Password123"));
+        return userFacade.registerWithoutEmail(UserRegisterCommand.of("user" + suffix, "nick" + suffix, "Password123", "user" + suffix + "@test.com"));
     }
 
     @Autowired
@@ -55,7 +59,8 @@ class PostV1ControllerE2eTest {
         UserRegisterRequest registerRequest = new UserRegisterRequest(
                 "testUser",
                 "테스트닉네임",
-                "Password123"
+                "Password123",
+                "testuser@test.com"
         );
 
         ResponseEntity<UserRegisterResponse> response = restTemplate
@@ -129,7 +134,7 @@ class PostV1ControllerE2eTest {
     @DisplayName("게시글 삭제 시 204 No Content를 반환하고 소프트 삭제(deleted=true)로 표시된다")
     void 게시글_삭제_성공_소프트삭제_검증() {
         // given - 회원가입
-        UserRegisterRequest registerRequest = new UserRegisterRequest("delUser", "삭제닉", "Password123");
+        UserRegisterRequest registerRequest = new UserRegisterRequest("delUser", "삭제닉", "Password123", "deluser@test.com");
         ResponseEntity<UserRegisterResponse> userRes = restTemplate
                 .postForEntity("/api/v1/users", registerRequest, UserRegisterResponse.class);
         assertThat(userRes.getStatusCode()).isEqualTo(HttpStatus.CREATED);
@@ -170,7 +175,7 @@ class PostV1ControllerE2eTest {
     @DisplayName("좋아요 시 200 OK와 PostStatResponse(likeCount 증가)를 반환한다")
     void 게시글_좋아요_성공() {
         // given - 회원가입 + 게시글 작성
-        UserRegisterRequest registerRequest = new UserRegisterRequest("likeUser", "좋아요닉", "Password123");
+        UserRegisterRequest registerRequest = new UserRegisterRequest("likeUser", "좋아요닉", "Password123", "likeuser@test.com");
         restTemplate.postForEntity("/api/v1/users", registerRequest, UserRegisterResponse.class);
 
         PostRequest postRequest = new PostRequest(1L, 1L, 1L, "좋아요 대상", "내용");
@@ -197,7 +202,7 @@ class PostV1ControllerE2eTest {
     @DisplayName("싫어요 시 200 OK와 PostStatResponse(dislikeCount 증가)를 반환한다")
     void 게시글_싫어요_성공() {
         // given - 회원가입 + 게시글 작성
-        UserRegisterRequest registerRequest = new UserRegisterRequest("dislikeUser", "싫어요닉", "Password123");
+        UserRegisterRequest registerRequest = new UserRegisterRequest("dislikeUser", "싫어요닉", "Password123", "dislikeuser@test.com");
         restTemplate.postForEntity("/api/v1/users", registerRequest, UserRegisterResponse.class);
 
         PostRequest postRequest = new PostRequest(1L, 1L, 1L, "싫어요 대상", "내용");

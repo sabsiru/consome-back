@@ -1,6 +1,7 @@
 package consome.interfaces.message.v1;
 
 import consome.application.message.MessageFacade;
+import consome.infrastructure.aop.RequireEmailVerified;
 import consome.interfaces.message.dto.*;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -19,6 +20,7 @@ public class MessageV1Controller {
     private final MessageFacade messageFacade;
 
     @PostMapping
+    @RequireEmailVerified
     public ResponseEntity<MessageResponse> send(
             @RequestParam Long userId,
             @RequestBody @Valid SendMessageRequest request) {

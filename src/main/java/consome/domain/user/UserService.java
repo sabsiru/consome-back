@@ -23,13 +23,13 @@ public class UserService {
     private final SuspensionHistoryRepository suspensionHistoryRepository;
     private final PasswordEncryptor passwordEncryptor;
 
-    public User register(String loginId, String nickname, String password) {
-        validateDuplicate(loginId, nickname);
-        validateUser(loginId, nickname, password);
+    public User register(String loginId, String nickname, String password, String email) {
+        validateDuplicate(loginId, nickname, email);
+        validateUser(loginId, nickname, password, email);
 
         String encryptedPassword = passwordEncryptor.encrypt(password);
 
-        User user = User.create(loginId, nickname, encryptedPassword);
+        User user = User.create(loginId, nickname, encryptedPassword, email);
         return userRepository.save(user);
     }
 
@@ -46,7 +46,7 @@ public class UserService {
         return user;
     }
 
-    public Boolean validateDuplicate(String loginId, String nickname) {
+    public Boolean validateDuplicate(String loginId, String nickname, String email) {
 
         if (userRepository.existsByLoginId(loginId)) {
             throw new UserException.DuplicateLoginId(loginId);
@@ -55,14 +55,18 @@ public class UserService {
             throw new UserException.DuplicateNickname(nickname) {
             };
         }
+        if (userRepository.existsByEmail(email)) {
+            throw new UserException.DuplicateEmail(email);
+        }
 
         return true;
     }
 
-    public boolean validateUser(String loginId, String nickname, String password) {
+    public boolean validateUser(String loginId, String nickname, String password, String email) {
         User.validateLoginId(loginId);
         User.validateNickname(nickname);
         PasswordPolicy.validate(password);
+        User.validateEmail(email);
 
         return true;
     }

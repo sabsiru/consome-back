@@ -9,10 +9,14 @@ import consome.domain.post.entity.Post;
 import consome.domain.post.entity.PostStat;
 import consome.domain.post.exception.PostException;
 import consome.domain.post.repository.PostStatRepository;
+import consome.infrastructure.mail.EmailService;
+import consome.domain.email.EmailVerificationService;
+import consome.infrastructure.redis.EmailVerificationRedisRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -38,6 +42,9 @@ class PostConcurrencyTest {
     @Autowired CommentFacade commentFacade;
     @Autowired PostService postService;
     @Autowired PostStatRepository statRepository;
+    @MockBean EmailService emailService;
+    @MockBean EmailVerificationService emailVerificationService;
+    @MockBean EmailVerificationRedisRepository emailVerificationRedisRepository;
 
     private static final int THREAD_COUNT = 10;
     private static final long BOARD_ID = 1L;
@@ -51,8 +58,8 @@ class PostConcurrencyTest {
         userIds = new ArrayList<>();
         String suffix = UUID.randomUUID().toString().substring(0, 8);
         for (int i = 0; i < THREAD_COUNT; i++) {
-            Long userId = userFacade.register(
-                UserRegisterCommand.of("user" + suffix + i, "닉" + suffix + i, "Password123!")
+            Long userId = userFacade.registerWithoutEmail(
+                UserRegisterCommand.of("user" + suffix + i, "닉" + suffix + i, "Password123!", "user" + suffix + i + "@test.com")
             );
             userIds.add(userId);
         }

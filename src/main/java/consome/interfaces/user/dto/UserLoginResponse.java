@@ -13,7 +13,8 @@ public record UserLoginResponse(
         int point,
         int level,
         String accessToken,
-        List<Long> managedBoardIds
+        List<Long> managedBoardIds,
+        boolean emailVerified
 ) {
     public static UserLoginResponse from(UserLoginResult result) {
         return new UserLoginResponse(
@@ -24,7 +25,8 @@ public record UserLoginResponse(
                 result.point(),
                 result.level(),
                 result.accessToken(),
-                result.managedBoardIds()
+                result.managedBoardIds(),
+                result.emailVerified()
         );
     }
 }

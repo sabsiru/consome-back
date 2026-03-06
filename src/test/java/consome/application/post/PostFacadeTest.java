@@ -54,8 +54,8 @@ class PostFacadeTest {
     @BeforeEach
     void setUp() {
         userRepository.deleteAll();
-        UserRegisterCommand userRegisterCommand = UserRegisterCommand.of("testid", "테스트닉네임", "Password123");
-        userId = userFacade.register(userRegisterCommand);
+        UserRegisterCommand userRegisterCommand = UserRegisterCommand.of("testid", "테스트닉네임", "Password123", "test@test.com");
+        userId = userFacade.registerWithoutEmail(userRegisterCommand);
     }
 
     @DisplayName("이미지 포함 게시글 작성")

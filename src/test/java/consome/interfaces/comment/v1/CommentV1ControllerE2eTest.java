@@ -17,6 +17,10 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import consome.infrastructure.mail.EmailService;
+import consome.domain.email.EmailVerificationService;
+import consome.infrastructure.redis.EmailVerificationRedisRepository;
 import org.testcontainers.utility.TestcontainersConfiguration;
 
 import java.util.UUID;
@@ -39,8 +43,8 @@ public class CommentV1ControllerE2eTest {
 
     Long 준비_유저_생성() {
         String suffix = UUID.randomUUID().toString().substring(0, 8);
-        UserRegisterCommand userRegisterCommand = UserRegisterCommand.of("user" + suffix, "nick" + suffix, "Password123");
-        return userFacade.register(userRegisterCommand);
+        UserRegisterCommand userRegisterCommand = UserRegisterCommand.of("user" + suffix, "nick" + suffix, "Password123", "user" + suffix + "@test.com");
+        return userFacade.registerWithoutEmail(userRegisterCommand);
     }
 
     Long 준비_게시글_생성(Long userId) {

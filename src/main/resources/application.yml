@@ -18,6 +18,21 @@ spring:
     redis:
       host: localhost
       port: 16379
+  mail:
+    host: ${MAIL_HOST:smtp.gmail.com}
+    port: ${MAIL_PORT:587}
+    username: ${MAIL_USERNAME:}
+    password: ${MAIL_PASSWORD:}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+            required: true
+
+app:
+  base-url: ${APP_BASE_URL:http://localhost:5173}
 
 logging:
   #level:

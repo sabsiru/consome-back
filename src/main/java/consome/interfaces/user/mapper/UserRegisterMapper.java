@@ -8,7 +8,8 @@ public class UserRegisterMapper {
         return new UserRegisterCommand(
                 request.loginId(),
                 request.nickname(),
-                request.password()
+                request.password(),
+                request.email()
         );
     }
 }

@@ -13,6 +13,10 @@ import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import consome.infrastructure.mail.EmailService;
+import consome.domain.email.EmailVerificationService;
+import consome.infrastructure.redis.EmailVerificationRedisRepository;
 import org.springframework.transaction.annotation.Transactional;
 import org.testcontainers.utility.TestcontainersConfiguration;
 
@@ -43,8 +47,8 @@ class MessageServiceIntegrationTest {
     void setUp() {
         messageRepository.deleteAll();
         String suffix = UUID.randomUUID().toString().substring(0, 8);
-        senderId = userFacade.register(UserRegisterCommand.of("sender" + suffix, "발신자" + suffix, "Password123"));
-        receiverId = userFacade.register(UserRegisterCommand.of("receiver" + suffix, "수신자" + suffix, "Password123"));
+        senderId = userFacade.registerWithoutEmail(UserRegisterCommand.of("sender" + suffix, "발신자" + suffix, "Password123", "sender" + suffix + "@test.com"));
+        receiverId = userFacade.registerWithoutEmail(UserRegisterCommand.of("receiver" + suffix, "수신자" + suffix, "Password123", "receiver" + suffix + "@test.com"));
     }
 
     @Test
@@ -144,7 +148,7 @@ class MessageServiceIntegrationTest {
     void 권한_없는_쪽지_접근_예외() {
         Message message = messageService.send(senderId, receiverId, "내용", 0);
         String suffix = UUID.randomUUID().toString().substring(0, 8);
-        Long otherUserId = userFacade.register(UserRegisterCommand.of("other" + suffix, "다른유저" + suffix, "Password123"));
+        Long otherUserId = userFacade.registerWithoutEmail(UserRegisterCommand.of("other" + suffix, "다른유저" + suffix, "Password123", "other" + suffix + "@test.com"));
 
         assertThatThrownBy(() -> messageService.readMessage(message.getId(), otherUserId))
                 .isInstanceOf(MessageException.AccessDenied.class);
