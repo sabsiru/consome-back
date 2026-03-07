@@ -8,6 +8,7 @@ public record PostPagingResult(
         String description,
         boolean writeEnabled,
         boolean commentEnabled,
+        boolean isFavorited,
         List<PostRowResult> posts,
         List<ManagerInfo> managers,
         int page,

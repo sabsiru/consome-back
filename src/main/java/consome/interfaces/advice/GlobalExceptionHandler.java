@@ -166,8 +166,13 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(BusinessException.class)
     public ResponseEntity<ErrorResponse> handleBusinessException(BusinessException ex) {
+        HttpStatus status = switch (ex.getCode()) {
+            case "FAVORITE_ALREADY_EXISTS" -> HttpStatus.CONFLICT;
+            case "FAVORITE_NOT_FOUND" -> HttpStatus.NOT_FOUND;
+            default -> HttpStatus.BAD_REQUEST;
+        };
         return ResponseEntity
-                .status(HttpStatus.BAD_REQUEST)
+                .status(status)
                 .body(new ErrorResponse(ex.getCode(), ex.getMessage()));
     }
 

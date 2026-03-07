@@ -6,9 +6,11 @@ import consome.infrastructure.security.CustomUserDetails;
 import consome.interfaces.admin.dto.CategoryResponse;
 import consome.interfaces.board.dto.BoardPostListResponse;
 import consome.interfaces.board.dto.BoardSearchResponse;
+import consome.interfaces.board.dto.FavoriteBoardResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -30,7 +32,6 @@ public class BoardV1Controller {
             @RequestParam(defaultValue = "false") boolean headerOnly,
             @AuthenticationPrincipal CustomUserDetails userDetails
     ) {
-        // headerOnly=true면 방문 기록 안 함 (BoardLayout용)
         Long userId = (!headerOnly && userDetails != null) ? userDetails.getUserId() : null;
         PostPagingResult result = boardFacade.getPosts(boardId, pageable, categoryId, userId);
         return ResponseEntity.ok(BoardPostListResponse.from(result));
@@ -46,7 +47,7 @@ public class BoardV1Controller {
         PostPagingResult result = boardFacade.searchPosts(boardId, keyword, type, pageable);
         return ResponseEntity.ok(BoardPostListResponse.from(result));
     }
-    
+
     @GetMapping("/{boardId}/categories")
     public ResponseEntity<List<CategoryResponse>> getCategories(@PathVariable Long boardId) {
         List<CategoryResponse> categories = boardFacade.getCategories(boardId).stream()
@@ -70,5 +71,34 @@ public class BoardV1Controller {
                 .map(BoardSearchResponse::from)
                 .toList();
         return ResponseEntity.ok(results);
+    }
+
+    @PostMapping("/{boardId}/favorites")
+    public ResponseEntity<Void> addFavorite(
+            @PathVariable Long boardId,
+            @AuthenticationPrincipal CustomUserDetails userDetails
+    ) {
+        boardFacade.addFavorite(boardId, userDetails.getUserId());
+        return ResponseEntity.status(HttpStatus.CREATED).build();
+    }
+
+    @DeleteMapping("/{boardId}/favorites")
+    public ResponseEntity<Void> removeFavorite(
+            @PathVariable Long boardId,
+            @AuthenticationPrincipal CustomUserDetails userDetails
+    ) {
+        boardFacade.removeFavorite(boardId, userDetails.getUserId());
+        return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/favorites")
+    public ResponseEntity<List<FavoriteBoardResponse>> getFavoriteBoards(
+            @AuthenticationPrincipal CustomUserDetails userDetails
+    ) {
+        List<FavoriteBoardResponse> result = boardFacade.getFavoriteBoards(userDetails.getUserId())
+                .stream()
+                .map(FavoriteBoardResponse::from)
+                .toList();
+        return ResponseEntity.ok(result);
     }
 }
