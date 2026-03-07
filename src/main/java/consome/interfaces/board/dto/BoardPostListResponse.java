@@ -10,6 +10,7 @@ public record BoardPostListResponse(
         String description,
         boolean writeEnabled,
         boolean commentEnabled,
+        boolean isFavorited,
         List<BoardPostResponse> posts,
         List<ManagerResponse> managers,
         int page,
@@ -19,7 +20,7 @@ public record BoardPostListResponse(
 ) {
     public record ManagerResponse(Long userId, String nickname) {}
 
-    public static BoardPostListResponse from (PostPagingResult result){
+    public static BoardPostListResponse from(PostPagingResult result) {
         List<BoardPostResponse> posts = result.posts().stream()
                 .map(BoardPostResponse::from)
                 .toList();
@@ -34,6 +35,7 @@ public record BoardPostListResponse(
                 result.description(),
                 result.writeEnabled(),
                 result.commentEnabled(),
+                result.isFavorited(),
                 posts,
                 managers,
                 result.page(),
