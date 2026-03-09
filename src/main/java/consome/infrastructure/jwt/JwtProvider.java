@@ -8,6 +8,7 @@ import org.springframework.stereotype.Component;
 import java.security.Key;
 import java.util.Date;
 import java.util.Map;
+import java.util.UUID;
 
 @Component
 public class JwtProvider {
@@ -37,6 +38,7 @@ public class JwtProvider {
 
         return Jwts.builder()
                 .setSubject(String.valueOf(userId))
+                .setId(UUID.randomUUID().toString())
                 .addClaims(Map.of("role", role.name()))
                 .setIssuedAt(now)
                 .setExpiration(expiry)
@@ -68,6 +70,20 @@ public class JwtProvider {
         Claims claims = parseClaims(token);
         String roleName = claims.get("role", String.class);
         return Role.valueOf(roleName); // String → Enum 변환
+    }
+
+    /** 토큰에서 jti (JWT ID) 추출 */
+    public String getJti(String token) {
+        Claims claims = parseClaims(token);
+        return claims.getId();
+    }
+
+    /** 토큰의 남은 만료 시간(ms) 반환 */
+    public long getRemainingExpiration(String token) {
+        Claims claims = parseClaims(token);
+        long expiration = claims.getExpiration().getTime();
+        long remaining = expiration - System.currentTimeMillis();
+        return Math.max(remaining, 0);
     }
 
     private Claims parseClaims(String token) {
