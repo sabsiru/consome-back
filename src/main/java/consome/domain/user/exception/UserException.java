@@ -142,4 +142,10 @@ public abstract class UserException extends RuntimeException {
         }
     }
 
+    public static class InvalidRefreshToken extends UserException {
+        public InvalidRefreshToken() {
+            super("INVALID_REFRESH_TOKEN", "유효하지 않거나 만료된 리프레시 토큰입니다.");
+        }
+    }
+
 }

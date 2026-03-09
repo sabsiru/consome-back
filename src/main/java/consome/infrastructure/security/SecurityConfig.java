@@ -2,7 +2,9 @@ package consome.infrastructure.security;
 
 import consome.infrastructure.filter.OnlineTrackingFilter;
 import consome.infrastructure.jwt.JwtProvider;
+import consome.infrastructure.redis.TokenRedisRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
@@ -23,11 +25,15 @@ import org.springframework.http.HttpMethod;
 public class SecurityConfig {
 
     private final JwtProvider jwtProvider;
+    private final TokenRedisRepository tokenRedisRepository;
     private final OnlineTrackingFilter onlineTrackingFilter;
+
+    @Value("${app.cors.allowed-origins}")
+    private String allowedOrigins;
 
     @Bean
     public JwtAuthenticationFilter jwtAuthenticationFilter() {
-        return new JwtAuthenticationFilter(jwtProvider);
+        return new JwtAuthenticationFilter(jwtProvider, tokenRedisRepository);
     }
 
     @Bean
@@ -39,6 +45,7 @@ public class SecurityConfig {
                 )
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                        .requestMatchers("/api/v1/auth/logout").authenticated()
                         .requestMatchers("/api/v1/admin/**").hasAnyRole("ADMIN", "MANAGER")
                         .anyRequest().permitAll()
                 )
@@ -61,8 +68,8 @@ public class SecurityConfig {
             @Override
             public void addCorsMappings(org.springframework.web.servlet.config.annotation.CorsRegistry registry) {
                 registry.addMapping("/**")
-                        .allowedOrigins("http://localhost:5173") // Vue 개발 서버 포트
-                        .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS","PATCH")
+                        .allowedOrigins(allowedOrigins.split(","))
+                        .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH")
                         .allowCredentials(true);
             }
         };

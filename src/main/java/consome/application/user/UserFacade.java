@@ -13,8 +13,10 @@ import consome.domain.user.UserService;
 import consome.domain.user.exception.UserException;
 import consome.domain.user.repository.UserQueryRepository;
 import consome.domain.user.repository.UserRepository;
+import consome.infrastructure.jwt.JwtProperties;
 import consome.infrastructure.jwt.JwtProvider;
 import consome.infrastructure.mail.EmailService;
+import consome.infrastructure.redis.TokenRedisRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -31,6 +33,8 @@ public class UserFacade {
     private final PointService pointService;
     private final LevelService levelService;
     private final JwtProvider jwtProvider;
+    private final JwtProperties jwtProperties;
+    private final TokenRedisRepository tokenRedisRepository;
     private final BoardManagerRepository boardManagerRepository;
     private final UserQueryRepository userQueryRepository;
     private final EmailVerificationService emailVerificationService;
@@ -90,7 +94,10 @@ public class UserFacade {
                 .toList();
 
         String accessToken = jwtProvider.createAccessToken(user.getId(), user.getRole());
-        return new UserLoginResult(user.getId(), user.getLoginId(), user.getNickname(), user.getRole(), currentPoint, level, accessToken, managedBoardIds, user.isEmailVerified());
+        String refreshToken = jwtProvider.createRefreshToken(user.getId(), user.getRole());
+        tokenRedisRepository.saveRefreshToken(user.getId(), refreshToken, jwtProperties.getRefreshTokenExpiration());
+
+        return new UserLoginResult(user.getId(), user.getLoginId(), user.getNickname(), user.getRole(), currentPoint, level, accessToken, refreshToken, managedBoardIds, user.isEmailVerified());
     }
 
     @Transactional(readOnly = true)

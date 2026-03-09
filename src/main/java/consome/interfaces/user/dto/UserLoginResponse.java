@@ -13,6 +13,7 @@ public record UserLoginResponse(
         int point,
         int level,
         String accessToken,
+        String refreshToken,
         List<Long> managedBoardIds,
         boolean emailVerified
 ) {
@@ -25,9 +26,9 @@ public record UserLoginResponse(
                 result.point(),
                 result.level(),
                 result.accessToken(),
+                result.refreshToken(),
                 result.managedBoardIds(),
                 result.emailVerified()
         );
     }
 }
-
