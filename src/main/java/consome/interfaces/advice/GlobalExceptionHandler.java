@@ -48,6 +48,13 @@ public class GlobalExceptionHandler {
                 .body(new ErrorResponse(ex.getCode(), ex.getMessage()));
     }
 
+    @ExceptionHandler(UserException.InvalidRefreshToken.class)
+    public ResponseEntity<ErrorResponse> handleInvalidRefreshToken(UserException.InvalidRefreshToken ex) {
+        return ResponseEntity
+                .status(HttpStatus.UNAUTHORIZED)
+                .body(new ErrorResponse(ex.getCode(), ex.getMessage()));
+    }
+
     @ExceptionHandler(UserException.DuplicateEmail.class)
     public ResponseEntity<ErrorResponse> handleDuplicateEmail(UserException.DuplicateEmail ex) {
         return ResponseEntity
