@@ -2,6 +2,7 @@ package consome.infrastructure.security;
 
 import consome.domain.user.Role;
 import consome.infrastructure.jwt.JwtProvider;
+import consome.infrastructure.redis.TokenRedisRepository;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -13,13 +14,16 @@ import org.springframework.security.web.authentication.WebAuthenticationDetailsS
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+
 @Slf4j
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtProvider jwtProvider;
+    private final TokenRedisRepository tokenRedisRepository;
 
-    public JwtAuthenticationFilter(JwtProvider jwtProvider) {
+    public JwtAuthenticationFilter(JwtProvider jwtProvider, TokenRedisRepository tokenRedisRepository) {
         this.jwtProvider = jwtProvider;
+        this.tokenRedisRepository = tokenRedisRepository;
     }
 
     @Override
@@ -28,25 +32,27 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                                     FilterChain filterChain)
             throws ServletException, IOException {
 
-        log.info("JwtAuthenticationFilter activated for URI: {}", request.getRequestURI());
         String authHeader = request.getHeader("Authorization");
 
-        // Authorization 헤더 확인
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
             String token = authHeader.substring(7);
 
             if (jwtProvider.validateToken(token)) {
+                String jti = jwtProvider.getJti(token);
+                if (tokenRedisRepository.isBlacklisted(jti)) {
+                    filterChain.doFilter(request, response);
+                    return;
+                }
+
                 Long userId = jwtProvider.getUserId(token);
                 Role role = jwtProvider.getRole(token);
 
                 CustomUserDetails customUserDetails = new CustomUserDetails(userId, role);
 
-                // 인증 객체 생성
                 UsernamePasswordAuthenticationToken authentication =
                         new UsernamePasswordAuthenticationToken(customUserDetails, null, customUserDetails.getAuthorities());
                 authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
 
-                // SecurityContext에 등록
                 SecurityContextHolder.getContext().setAuthentication(authentication);
             }
         }
