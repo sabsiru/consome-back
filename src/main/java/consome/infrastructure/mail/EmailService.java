@@ -56,6 +56,16 @@ public class EmailService {
         }
     }
 
+    @Async
+    public void sendPasswordResetEmail(String to, String token) {
+        String subject = "[Consome] 비밀번호 재설정 안내";
+        String resetUrl = baseUrl + "/password/reset?token=" + token;
+        log.info("[DEV] 비밀번호 재설정 URL: {}", resetUrl);
+        String content = buildPasswordResetEmailContent(resetUrl);
+
+        sendHtmlEmail(to, subject, content);
+    }
+
     private String buildVerificationEmailContent(String verifyUrl) {
         return """
             <!DOCTYPE html>
@@ -87,5 +97,38 @@ public class EmailService {
             </body>
             </html>
             """.formatted(verifyUrl, verifyUrl, verifyUrl);
+    }
+
+    private String buildPasswordResetEmailContent(String resetUrl) {
+        return """
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <meta charset="UTF-8">
+            </head>
+            <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+                <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
+                    <h2 style="color: #2563eb;">Consome 비밀번호 재설정</h2>
+                    <p>비밀번호 재설정이 요청되었습니다.</p>
+                    <p>아래 버튼을 클릭하여 새 비밀번호를 설정해주세요.</p>
+                    <div style="margin: 30px 0;">
+                        <a href="%s"
+                           style="background-color: #2563eb; color: white; padding: 12px 24px;
+                                  text-decoration: none; border-radius: 4px; display: inline-block;">
+                            비밀번호 재설정
+                        </a>
+                    </div>
+                    <p style="color: #666; font-size: 14px;">
+                        버튼이 동작하지 않는 경우, 아래 링크를 복사하여 브라우저에 붙여넣어 주세요:<br>
+                        <a href="%s">%s</a>
+                    </p>
+                    <p style="color: #999; font-size: 12px; margin-top: 30px;">
+                        이 링크는 1시간 동안 유효합니다.<br>
+                        본인이 요청하지 않은 경우, 이 메일을 무시해주세요.
+                    </p>
+                </div>
+            </body>
+            </html>
+            """.formatted(resetUrl, resetUrl, resetUrl);
     }
 }
