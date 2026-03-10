@@ -86,6 +86,22 @@ public class UserV1Controller {
         return ResponseEntity.ok(NicknameChangeResponse.from(result));
     }
 
+    @PostMapping("/password/reset-request")
+    public ResponseEntity<PasswordResetResponse> requestPasswordReset(
+            @RequestBody @Valid PasswordResetRequest request
+    ) {
+        String token = userFacade.requestPasswordReset(request.email());
+        return ResponseEntity.ok(PasswordResetResponse.from(token));
+    }
+
+    @PutMapping("/password/reset")
+    public ResponseEntity<Void> resetPassword(
+            @RequestBody @Valid PasswordResetConfirmRequest request
+    ) {
+        userFacade.resetPassword(request.token(), request.newPassword());
+        return ResponseEntity.ok().build();
+    }
+
     @GetMapping("/email/verify")
     public ResponseEntity<Void> verifyEmail(@RequestParam String token) {
         userFacade.verifyEmail(token);

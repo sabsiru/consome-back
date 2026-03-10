@@ -5,10 +5,7 @@ import consome.infrastructure.mail.EmailService;
 import consome.domain.email.EmailVerificationService;
 import consome.infrastructure.redis.EmailVerificationRedisRepository;
 import consome.interfaces.error.ErrorResponse;
-import consome.interfaces.user.dto.UserLoginRequest;
-import consome.interfaces.user.dto.UserLoginResponse;
-import consome.interfaces.user.dto.UserRegisterRequest;
-import consome.interfaces.user.dto.UserRegisterResponse;
+import consome.interfaces.user.dto.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -17,6 +14,8 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.context.annotation.Import;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.ActiveProfiles;
@@ -129,5 +128,50 @@ class UserV1ControllerE2eTest {
                 .contains("아이디 또는 비밀번호가 일치하지 않습니다");
     }
 
+    @Test
+    @DisplayName("성공: 비밀번호 재설정 요청 후 토큰으로 비밀번호 변경, 새 비밀번호로 로그인")
+    void passwordResetSuccess() {
+        // 1. 회원가입
+        restTemplate.postForEntity("/api/v1/users", registerRequest, UserRegisterResponse.class);
 
+        // 2. 비밀번호 재설정 요청
+        PasswordResetRequest resetRequest = new PasswordResetRequest(registerRequest.email());
+        ResponseEntity<PasswordResetResponse> resetResponse = restTemplate
+                .postForEntity("/api/v1/users/password/reset-request", resetRequest, PasswordResetResponse.class);
+
+        assertThat(resetResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(resetResponse.getBody()).isNotNull();
+        String resetToken = resetResponse.getBody().token();
+        assertThat(resetToken).isNotBlank();
+
+        // 3. 토큰으로 비밀번호 변경
+        String newPassword = "NewPass123";
+        PasswordResetConfirmRequest confirmRequest = new PasswordResetConfirmRequest(resetToken, newPassword);
+        ResponseEntity<Void> confirmResponse = restTemplate.exchange(
+                "/api/v1/users/password/reset",
+                HttpMethod.PUT,
+                new HttpEntity<>(confirmRequest),
+                Void.class
+        );
+        assertThat(confirmResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
+
+        // 4. 새 비밀번호로 로그인
+        UserLoginRequest loginRequest = new UserLoginRequest(registerRequest.loginId(), newPassword);
+        ResponseEntity<UserLoginResponse> loginResponse = restTemplate
+                .postForEntity("/api/v1/users/login", loginRequest, UserLoginResponse.class);
+        assertThat(loginResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(loginResponse.getBody().loginId()).isEqualTo(registerRequest.loginId());
+    }
+
+    @Test
+    @DisplayName("실패: 존재하지 않는 이메일로 재설정 요청시 404 반환")
+    void passwordResetNotFoundEmail() {
+        PasswordResetRequest resetRequest = new PasswordResetRequest("nonexistent@test.com");
+        ResponseEntity<ErrorResponse> response = restTemplate
+                .postForEntity("/api/v1/users/password/reset-request", resetRequest, ErrorResponse.class);
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
+        assertThat(response.getBody()).isNotNull();
+        assertThat(response.getBody().getCode()).isEqualTo("USER_NOT_FOUND");
+    }
 }

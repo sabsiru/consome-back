@@ -4,6 +4,7 @@ package consome.application.user;
 import consome.domain.admin.BoardManager;
 import consome.domain.admin.repository.BoardManagerRepository;
 import consome.domain.email.EmailVerificationService;
+import consome.domain.password.PasswordResetService;
 import consome.domain.level.LevelInfo;
 import consome.domain.level.LevelService;
 import consome.domain.point.PointHistoryType;
@@ -40,6 +41,7 @@ public class UserFacade {
     private final EmailVerificationService emailVerificationService;
     private final EmailService emailService;
     private final UserRepository userRepository;
+    private final PasswordResetService passwordResetService;
 
     @Transactional
     public String register(UserRegisterCommand command) {
@@ -147,6 +149,23 @@ public class UserFacade {
     @Transactional
     public void changePassword(Long userId, String currentPassword, String newPassword) {
         userService.changePassword(userId, currentPassword, newPassword);
+    }
+
+    @Transactional
+    public String requestPasswordReset(String email) {
+        User user = userService.findByEmail(email);
+        passwordResetService.checkCooldown(user.getEmail());
+
+        String token = passwordResetService.generateToken(user.getId());
+        emailService.sendPasswordResetEmail(user.getEmail(), token);
+        passwordResetService.setCooldown(user.getEmail());
+
+        return token;
+    }
+
+    @Transactional
+    public void resetPassword(String token, String newPassword) {
+        passwordResetService.resetPassword(token, newPassword);
     }
 
     @Transactional
