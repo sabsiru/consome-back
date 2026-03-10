@@ -148,4 +148,16 @@ public abstract class UserException extends RuntimeException {
         }
     }
 
+    public static class InvalidResetToken extends UserException {
+        public InvalidResetToken() {
+            super("INVALID_RESET_TOKEN", "유효하지 않거나 만료된 비밀번호 재설정 토큰입니다.");
+        }
+    }
+
+    public static class ResetCooldown extends UserException {
+        public ResetCooldown() {
+            super("RESET_COOLDOWN", "비밀번호 재설정 메일은 1분에 한 번만 발송할 수 있습니다.");
+        }
+    }
+
 }

@@ -79,6 +79,12 @@ public class UserService {
 
 
     @Transactional(readOnly = true)
+    public User findByEmail(String email) {
+        return userRepository.findByEmail(email)
+                .orElseThrow(() -> new UserException.NotFound("해당 이메일의 사용자를 찾을 수 없습니다."));
+    }
+
+    @Transactional(readOnly = true)
     public Page<UserInfo> findUsers(Pageable pageable) {
         return userQueryRepository.findUsers(pageable);
     }
