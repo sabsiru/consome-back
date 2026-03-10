@@ -48,6 +48,13 @@ public class GlobalExceptionHandler {
                 .body(new ErrorResponse(ex.getCode(), ex.getMessage()));
     }
 
+    @ExceptionHandler(UserException.ResetCooldown.class)
+    public ResponseEntity<ErrorResponse> handleResetCooldown(UserException.ResetCooldown ex) {
+        return ResponseEntity
+                .status(HttpStatus.TOO_MANY_REQUESTS)
+                .body(new ErrorResponse(ex.getCode(), ex.getMessage()));
+    }
+
     @ExceptionHandler(UserException.InvalidRefreshToken.class)
     public ResponseEntity<ErrorResponse> handleInvalidRefreshToken(UserException.InvalidRefreshToken ex) {
         return ResponseEntity
