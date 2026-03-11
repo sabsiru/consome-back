@@ -1,5 +1,6 @@
 package consome.infrastructure.security;
 
+import consome.domain.user.repository.UserRepository;
 import consome.infrastructure.filter.OnlineTrackingFilter;
 import consome.infrastructure.jwt.JwtProvider;
 import consome.infrastructure.redis.TokenRedisRepository;
@@ -26,6 +27,7 @@ public class SecurityConfig {
 
     private final JwtProvider jwtProvider;
     private final TokenRedisRepository tokenRedisRepository;
+    private final UserRepository userRepository;
     private final OnlineTrackingFilter onlineTrackingFilter;
 
     @Value("${app.cors.allowed-origins}")
@@ -33,7 +35,7 @@ public class SecurityConfig {
 
     @Bean
     public JwtAuthenticationFilter jwtAuthenticationFilter() {
-        return new JwtAuthenticationFilter(jwtProvider, tokenRedisRepository);
+        return new JwtAuthenticationFilter(jwtProvider, tokenRedisRepository, userRepository);
     }
 
     @Bean
