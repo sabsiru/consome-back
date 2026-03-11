@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -161,5 +162,17 @@ public class UserService {
 
         String until = user.getSuspendedUntil().toString().replace("T", " ").substring(0, 16);
         throw new UserException.Suspended(user.getSuspendReason(), until);
+    }
+
+    @Transactional
+    public int cleanupExpiredSuspensions() {
+        List<User> expiredUsers = userRepository.findExpiredSuspensions(
+                SuspensionType.PERMANENT, LocalDateTime.now());
+
+        for (User user : expiredUsers) {
+            user.unsuspend();
+        }
+
+        return expiredUsers.size();
     }
 }
