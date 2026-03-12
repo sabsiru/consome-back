@@ -34,6 +34,20 @@ public class GlobalExceptionHandler {
                 .body(new ErrorResponse(ex.getCode(), ex.getMessage()));
     }
 
+    @ExceptionHandler(UserException.Suspended.class)
+    public ResponseEntity<ErrorResponse> handleSuspended(UserException.Suspended ex) {
+        return ResponseEntity
+                .status(HttpStatus.FORBIDDEN)
+                .body(new ErrorResponse(ex.getCode(), ex.getMessage()));
+    }
+
+    @ExceptionHandler(UserException.Banned.class)
+    public ResponseEntity<ErrorResponse> handleBanned(UserException.Banned ex) {
+        return ResponseEntity
+                .status(HttpStatus.FORBIDDEN)
+                .body(new ErrorResponse(ex.getCode(), ex.getMessage()));
+    }
+
     @ExceptionHandler(UserException.EmailNotVerified.class)
     public ResponseEntity<ErrorResponse> handleEmailNotVerified(UserException.EmailNotVerified ex) {
         return ResponseEntity
