@@ -208,6 +208,10 @@ public class PostFacade {
         return LevelInfo.calculateLevel(point).getLevel();
     }
 
+    public User getUser(Long userId) {
+        return userService.findById(userId);
+    }
+
     private String replaceImageIndexes(String content, List<String> urls) {
         for (int i = 0; i < urls.size(); i++) {
             content = content.replace(
