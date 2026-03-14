@@ -10,6 +10,8 @@ public record PostDetailResponse(
         String title,
         String content,
         Long authorId,
+        String authorNickname,
+        String authorRole,
         int authorLevel,
         Long boardId,
         Long categoryId,
@@ -23,13 +25,14 @@ public record PostDetailResponse(
         boolean hasDisliked,
         boolean commentEnabled
 ) {
-    /** Post + PostStat 동시 제공 시 사용 */
-    public static PostDetailResponse of(Post post, PostStat stat, int authorLevel, boolean hasLiked, boolean hasDisliked, boolean commentEnabled) {
+    public static PostDetailResponse of(Post post, PostStat stat, String authorNickname, String authorRole, int authorLevel, boolean hasLiked, boolean hasDisliked, boolean commentEnabled) {
         return new PostDetailResponse(
                 post.getId(),
                 post.getTitle(),
                 post.getContent(),
                 post.getUserId(),
+                authorNickname,
+                authorRole,
                 authorLevel,
                 post.getBoardId(),
                 post.getCategoryId(),
@@ -45,13 +48,14 @@ public record PostDetailResponse(
         );
     }
 
-    /** 아직 PostStat이 생성되지 않았거나 별도 조회하지 않은 경우 사용(카운트 0 처리) */
-    public static PostDetailResponse from(Post post, int authorLevel, boolean commentEnabled) {
+    public static PostDetailResponse from(Post post, String authorNickname, String authorRole, int authorLevel, boolean commentEnabled) {
         return new PostDetailResponse(
                 post.getId(),
                 post.getTitle(),
                 post.getContent(),
                 post.getUserId(),
+                authorNickname,
+                authorRole,
                 authorLevel,
                 post.getBoardId(),
                 post.getCategoryId(),

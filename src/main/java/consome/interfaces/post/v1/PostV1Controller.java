@@ -76,6 +76,8 @@ public class PostV1Controller {
         String userIp = request.getRemoteAddr();
         PostStat stat = postFacade.increaseViewCount(postId, userIp, userId);
         Post post = postFacade.getPost(postId);
+
+        var author = postFacade.getUser(post.getUserId());
         int authorLevel = postFacade.getAuthorLevel(post.getUserId());
 
         boolean hasLiked = userId != null && postFacade.hasLiked(postId, userId);
@@ -83,7 +85,7 @@ public class PostV1Controller {
 
         Board board = boardService.findById(post.getBoardId());
 
-        return ResponseEntity.ok(PostDetailResponse.of(post, stat, authorLevel, hasLiked, hasDisliked, board.isCommentEnabled()));
+        return ResponseEntity.ok(PostDetailResponse.of(post, stat, author.getNickname(), author.getRole().name(), authorLevel, hasLiked, hasDisliked, board.isCommentEnabled()));
     }
 
     @PutMapping("/{postId}")
