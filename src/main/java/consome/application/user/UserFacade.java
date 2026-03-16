@@ -25,6 +25,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import org.springframework.data.domain.PageRequest;
 
 @Service
 @RequiredArgsConstructor
@@ -181,6 +182,12 @@ public class UserFacade {
         int remainingPoint = pointService.penalize(userId, PointHistoryType.NICKNAME_CHANGE);
 
         return new UserNicknameChangeResult(newNickname, remainingPoint);
+    }
+
+    @Transactional(readOnly = true)
+    public List<UserSearchResult> searchByNickname(String nickname) {
+        UserSearchCommand command = new UserSearchCommand(null, null, null, nickname);
+        return userQueryRepository.search(command, PageRequest.of(0, 5)).getContent();
     }
 
 }
