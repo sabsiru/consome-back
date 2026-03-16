@@ -1,10 +1,12 @@
 package consome.application.message;
 
+import consome.application.notification.NotificationFacade;
 import consome.domain.message.MessageBlockService;
 import consome.domain.message.MessageService;
 import consome.domain.message.entity.Message;
 import consome.domain.message.entity.MessageBlock;
 import consome.domain.message.exception.MessageException;
+import consome.domain.notification.NotificationType;
 import consome.domain.point.Point;
 import consome.domain.point.PointHistory;
 import consome.domain.point.PointHistoryType;
@@ -26,6 +28,7 @@ public class MessageFacade {
     private final UserService userService;
     private final PointService pointService;
     private final PointHistoryRepository pointHistoryRepository;
+    private final NotificationFacade notificationFacade;
 
     @Transactional
     public MessageResult send(SendMessageCommand command) {
@@ -41,6 +44,18 @@ public class MessageFacade {
                 command.receiverId(),
                 command.content(),
                 command.point()
+        );
+
+        // 쪽지 수신 알림
+        String senderNickname = userService.getNicknameById(command.senderId());
+        notificationFacade.notify(
+                command.receiverId(),
+                NotificationType.MESSAGE,
+                command.senderId(),
+                message.getId(),
+                null,
+                null,
+                senderNickname + "님이 쪽지를 보냈습니다."
         );
 
         return toMessageResult(message);

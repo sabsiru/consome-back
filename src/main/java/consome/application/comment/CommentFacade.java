@@ -4,10 +4,12 @@ import consome.domain.admin.Board;
 import consome.domain.admin.BoardService;
 import consome.domain.admin.Section;
 import consome.domain.admin.SectionService;
+import consome.application.notification.NotificationFacade;
 import consome.domain.comment.*;
 import consome.domain.comment.repository.CommentQueryRepository;
 import consome.domain.comment.repository.CommentReactionRepository;
 import consome.domain.common.exception.BusinessException;
+import consome.domain.notification.NotificationType;
 import consome.domain.point.PointHistoryType;
 import consome.domain.point.PointService;
 import consome.domain.post.PopularPostService;
@@ -34,6 +36,7 @@ public class CommentFacade {
     private final CommentReactionRepository commentReactionRepository;
     private final BoardService boardService;
     private final SectionService sectionService;
+    private final NotificationFacade notificationFacade;
 
     @Transactional
     public CommentResult comment(Long postId, Long userId, Long parentId, String content) {
@@ -54,6 +57,10 @@ public class CommentFacade {
                 comment.getCreatedAt(),
                 comment.getUpdatedAt()
         );
+
+        // 알림 트리거
+        sendCommentNotification(post, comment, userId, nickname, parentId);
+
         return result;
     }
 
@@ -109,6 +116,28 @@ public class CommentFacade {
                 hasLiked(c.commentId(), userId),
                 hasDisliked(c.commentId(), userId)
         ));
+    }
+
+    private void sendCommentNotification(Post post, Comment comment, Long actorId, String actorNickname, Long parentId) {
+        Long boardId = post.getBoardId();
+
+        if (parentId != null) {
+            // 대댓글 → 부모 댓글 작성자에게 REPLY 알림
+            Comment parent = commentService.findById(parentId);
+            notificationFacade.notify(parent.getUserId(), NotificationType.REPLY, actorId,
+                    post.getId(), comment.getId(), boardId,
+                    actorNickname + "님이 회원님의 댓글에 답글을 남겼습니다.");
+
+            // 부모 댓글 작성자 == 게시글 작성자면 COMMENT 알림 중복 방지
+            if (parent.getUserId().equals(post.getUserId())) {
+                return;
+            }
+        }
+
+        // 게시글 작성자에게 COMMENT 알림
+        notificationFacade.notify(post.getUserId(), NotificationType.COMMENT, actorId,
+                post.getId(), comment.getId(), boardId,
+                actorNickname + "님이 회원님의 게시글에 댓글을 남겼습니다.");
     }
 
     private void validateCommentPermission(Long boardId, Long userId) {
