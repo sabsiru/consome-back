@@ -15,6 +15,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/users")
@@ -34,6 +36,17 @@ public class UserV1Controller {
         UserLoginCommand command = UserLoginMapper.toLoginCommand(request);
         UserLoginResult result = userFacade.login(command);
         UserLoginResponse response = UserLoginResponseMapper.toLoginResponse(result);
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/search")
+    public ResponseEntity<List<UserNicknameSearchResponse>> searchByNickname(
+            @RequestParam String nickname
+    ) {
+        List<UserNicknameSearchResponse> response = userFacade.searchByNickname(nickname)
+                .stream()
+                .map(UserNicknameSearchResponse::from)
+                .toList();
         return ResponseEntity.ok(response);
     }
 
