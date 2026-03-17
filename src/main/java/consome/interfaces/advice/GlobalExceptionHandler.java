@@ -7,6 +7,8 @@ import consome.domain.post.exception.PostException;
 import consome.domain.report.exception.ReportException;
 import consome.domain.user.exception.UserException;
 import consome.interfaces.error.ErrorResponse;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataAccessException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -16,6 +18,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import java.util.HashMap;
 import java.util.Map;
 
+@Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
@@ -231,5 +234,23 @@ public class GlobalExceptionHandler {
         body.put("message", message);
 
         return ResponseEntity.badRequest().body(body);
+    }
+
+    // ===== Database Exceptions =====
+    @ExceptionHandler(DataAccessException.class)
+    public ResponseEntity<ErrorResponse> handleDataAccessException(DataAccessException ex) {
+        log.error("데이터베이스 오류 발생", ex);
+        return ResponseEntity
+                .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(new ErrorResponse("DATABASE_ERROR", "데이터 처리 중 오류가 발생했습니다."));
+    }
+
+    // ===== Catch-all Fallback =====
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<ErrorResponse> handleException(Exception ex) {
+        log.error("예상치 못한 오류 발생", ex);
+        return ResponseEntity
+                .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(new ErrorResponse("INTERNAL_ERROR", "서버 내부 오류가 발생했습니다."));
     }
 }
