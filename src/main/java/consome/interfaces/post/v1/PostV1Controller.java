@@ -5,8 +5,6 @@ import consome.application.post.ImageUploadResult;
 import consome.application.post.PostFacade;
 import consome.application.post.PostResult;
 import consome.application.post.VideoUploadResult;
-import consome.domain.admin.Board;
-import consome.domain.admin.BoardService;
 import consome.domain.post.entity.Post;
 import consome.domain.post.entity.PostStat;
 import consome.infrastructure.aop.RequireEmailVerified;
@@ -30,7 +28,6 @@ import java.util.List;
 public class PostV1Controller {
 
     private final PostFacade postFacade;
-    private final BoardService boardService;
 
     @PostMapping
     @RequireEmailVerified
@@ -83,9 +80,9 @@ public class PostV1Controller {
         boolean hasLiked = userId != null && postFacade.hasLiked(postId, userId);
         boolean hasDisliked = userId != null && postFacade.hasDisliked(postId, userId);
 
-        Board board = boardService.findById(post.getBoardId());
+        boolean commentEnabled = postFacade.isCommentEnabled(post.getBoardId());
 
-        return ResponseEntity.ok(PostDetailResponse.of(post, stat, author.getNickname(), author.getRole().name(), authorLevel, hasLiked, hasDisliked, board.isCommentEnabled()));
+        return ResponseEntity.ok(PostDetailResponse.of(post, stat, author.getNickname(), author.getRole().name(), authorLevel, hasLiked, hasDisliked, commentEnabled));
     }
 
     @PutMapping("/{postId}")

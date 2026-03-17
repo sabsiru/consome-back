@@ -265,6 +265,10 @@ public class PostFacade {
                 .toList();
     }
 
+    public boolean isCommentEnabled(Long boardId) {
+        return boardService.findById(boardId).isCommentEnabled();
+    }
+
     private void validateAdminOnlySection(Long boardId, Long userId) {
         Board board = boardService.findById(boardId);
         User user = userService.findById(userId);
