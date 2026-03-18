@@ -99,11 +99,17 @@ public class UserV1Controller {
         return ResponseEntity.ok(NicknameChangeResponse.from(result));
     }
 
+    @PostMapping("/find-id")
+    public ResponseEntity<FindIdResponse> findId(@RequestBody @Valid FindIdRequest request) {
+        String maskedLoginId = userFacade.findLoginId(request.email());
+        return ResponseEntity.ok(FindIdResponse.from(maskedLoginId));
+    }
+
     @PostMapping("/password/reset-request")
     public ResponseEntity<PasswordResetResponse> requestPasswordReset(
             @RequestBody @Valid PasswordResetRequest request
     ) {
-        String token = userFacade.requestPasswordReset(request.email());
+        String token = userFacade.requestPasswordReset(request.loginId(), request.email());
         return ResponseEntity.ok(PasswordResetResponse.from(token));
     }
 
