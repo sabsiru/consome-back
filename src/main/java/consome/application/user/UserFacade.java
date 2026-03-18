@@ -153,8 +153,11 @@ public class UserFacade {
     }
 
     @Transactional
-    public String requestPasswordReset(String email) {
-        User user = userService.findByEmail(email);
+    public String requestPasswordReset(String loginId, String email) {
+        User user = userRepository.findByLoginId(loginId)
+                .filter(u -> u.getEmail().equals(email))
+                .orElseThrow(() -> new UserException.NotFound("아이디 또는 이메일이 일치하지 않습니다."));
+
         passwordResetService.checkCooldown(user.getEmail());
 
         String token = passwordResetService.generateToken(user.getId());
@@ -162,6 +165,11 @@ public class UserFacade {
         passwordResetService.setCooldown(user.getEmail());
 
         return token;
+    }
+
+    @Transactional(readOnly = true)
+    public String findLoginId(String email) {
+        return userService.findLoginIdByEmail(email);
     }
 
     @Transactional
