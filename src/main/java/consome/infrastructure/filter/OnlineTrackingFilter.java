@@ -16,7 +16,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
-import java.time.LocalDate;
 
 @Slf4j
 @Component
@@ -49,12 +48,9 @@ public class OnlineTrackingFilter extends OncePerRequestFilter {
         String memberKey = OnlineUserRedisRepository.buildMemberKey(userId, ip);
         onlineUserRedisRepository.recordActivity(memberKey);
 
-        // DB: 일일 방문자 기록 (중복 방지)
+        // DB: 일일 방문자 기록 (INSERT IGNORE로 race condition 방지)
         String visitorKey = SiteVisit.buildVisitorKey(userId, ip);
-        LocalDate today = LocalDate.now();
-        if (!siteVisitRepository.existsByVisitorKeyAndVisitDate(visitorKey, today)) {
-            siteVisitRepository.save(SiteVisit.create(visitorKey));
-        }
+        siteVisitRepository.insertIgnore(visitorKey);
     }
 
     private Long extractUserId() {
