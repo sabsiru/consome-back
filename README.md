@@ -35,7 +35,7 @@ score = (viewCount / boardAvgViewCount) * 0.1   // 조회수 가중치 10%
       + (commentCount / boardAvgCommentCount) * 0.2 // 댓글수 가중치 20%
 ```
 
-- _게시판별 평균 통계(`boardAvg...`)는 실시간 부하를 줄이기 위해 매일 새벽 배치(Batch)로 갱신합니다._
+- _게시판별 평균 통계(`boardAvg...`)는 실시간 부하를 줄이기 위해 매일 새벽 4시 배치(`BoardStatScheduler`)로 갱신합니다._
 
 #### B. Redis 기반의 실시간 처리 및 DB 이원화 워크플로우
 
@@ -43,14 +43,14 @@ score = (viewCount / boardAvgViewCount) * 0.1   // 조회수 가중치 10%
 graph LR
     Event["이벤트 발생<br/>(조회/추천/댓글)"] -->|"1️⃣ 비동기"| Calc["점수 계산<br/>(PostFacade)"]
 
-    Calc -->|"2️⃣ 실시간"| Redis["🔴 Redis<br/>Sorted Set<br/>(TTL: 5일)"]
+    Calc -->|"2️⃣ 실시간"| Redis["🔴 Redis Sorted Set<br/>(popular_post_candidates)<br/>TTL: 5일"]
 
-    Redis -->|"3️⃣ 배치<br/>(매일 00:00)"| Check{"기준 충족?<br/>(score >= 1.0<br/>AND like >= 5)"}
+    Redis -->|"3️⃣ 이벤트마다<br/>기준 체크"| Check{"기준 충족?<br/>(score >= 1.0<br/>AND like >= 5)"}
 
     Check -->|"YES"| Promote["✅ DB 승격<br/>(popular_post)"]
     Check -->|"NO"| Discard["❌ 폐기"]
 
-    Promote -->|"4️⃣ 캐싱<br/>(@Cacheable, TTL: 6h)"| Display["📊 인기글 목록"]
+    Promote -->|"4️⃣ 캐싱<br/>(@Cacheable, sync=true, TTL: 5분)"| Display["📊 인기글 목록"]
 
     style Event fill:#fff3cd
     style Calc fill:#cfe2ff
@@ -64,7 +64,7 @@ graph LR
 2. **Redis 집계:** 계산된 점수를 **Redis Sorted Set** (`popular_post_candidates`)에 실시간 업데이트. 메모리 효율을 위해 **TTL(5일)** 설정.
 3. **DB 승격(Promotion):** 일정 기준(`score >= 1.0 AND likeCount >= 5`)을 충족한 후보만 선별하여 메인 DB의 `popular_post` 테이블로 승격.
     - **결과:** 실시간성은 Redis로 확보하고, 영구 저장 및 복잡한 조회가 필요한 데이터만 DB로 관리하여 부하를 분산했습니다.
-    - **성능 개선:** DB 쿼리 빈도 80% 감소
+    - DB 승격 후 Redis Candidate에서 제거하여 메모리 효율 관리
 
 <br>
 
@@ -78,52 +78,21 @@ graph LR
 - **스레드 안전한 캐싱 적용 (`Cache Stampede` 방지):**
   빈번하게 조회되는 주요 게시판 목록에는 **`@Cacheable(sync = true)`**를 적용했습니다. 캐시가 만료되는 순간 다수의 요청이 동시에 DB로 몰리는 캐시 스탬피드 현상을 방지하고, 단 하나의 스레드만 DB에 접근하도록 하여 안정적인 응답 속도를 보장합니다.
 
-**Redis 활용 전략:**
-```mermaid
-graph TB
-    Redis["🔴 Redis Master<br/>(포트 16379)"]
+**Redis 활용 전략 (11가지 패턴):**
 
-    subgraph Pattern1["1️⃣ 토큰 관리<br/>(@TTL: 24h)"]
-        BL["Blacklist<br/>로그아웃/만료 토큰"]
-    end
-
-    subgraph Pattern2["2️⃣ 이메일 검증<br/>(@TTL: 10min)"]
-        Email["인증 코드<br/>(회가입/비번재설정)"]
-    end
-
-    subgraph Pattern3["3️⃣ 세션 추적<br/>(@TTL: 1day)"]
-        Session["접속자 세트<br/>(userId)"]
-    end
-
-    subgraph Pattern4["4️⃣ 조회 캐싱<br/>(@Cacheable, TTL: 6h)"]
-        Cache["인기글 목록<br/>주요게시판"]
-    end
-
-    subgraph Pattern5["5️⃣ 방문 기록<br/>(@TTL: 7day)"]
-        Visit["읽은 게시글 ID"]
-    end
-
-    subgraph Pattern6["6️⃣ 인기글 후보<br/>(@TTL: 1day)"]
-        Popular["일일 Top 50<br/>(점수 정렬)"]
-    end
-
-    Redis --> Pattern1
-    Redis --> Pattern2
-    Redis --> Pattern3
-    Redis --> Pattern4
-    Redis --> Pattern5
-    Redis --> Pattern6
-
-    style Redis fill:#ff6b6b
-    style BL fill:#ffe0e0
-    style Email fill:#ffe0e0
-    style Session fill:#fff4e0
-    style Cache fill:#e0f4ff
-    style Visit fill:#e0ffe0
-    style Popular fill:#f4e0ff
-```
-
-**성능 효과:** DB 쿼리 75% 감소, 평균 응답시간 500ms → 100ms
+| 패턴 | 용도 | Key | TTL | 자료구조 |
+|:---:|------|-----|:---:|:---:|
+| 1️⃣ | **Refresh Token** | `refresh:{userId}` | 7일 | String |
+| 2️⃣ | **Token Blacklist** | `blacklist:{jti}` | 동적 (남은 만료시간) | String |
+| 3️⃣ | **이메일 인증** | `email:verify:{token}` | 24시간 | String |
+| 4️⃣ | **이메일 쿨다운** | `email:cooldown:{email}` | 60초 | String |
+| 5️⃣ | **비밀번호 재설정** | `password:reset:{token}` | 1시간 | String |
+| 6️⃣ | **비밀번호 쿨다운** | `password:cooldown:{email}` | 60초 | String |
+| 7️⃣ | **접속자 추적** | `online:users` | 5분 비활동 정리 | Sorted Set |
+| 8️⃣ | **방문 게시판** | `visited:boards:{userId}` | 7일 | List (최대 10개) |
+| 9️⃣ | **인기글 후보** | `popular_post_candidates` | 5일 | Sorted Set |
+| 🔟 | **주요게시판 캐싱** | `popular-boards` (`@Cacheable`, sync=true) | 5분 | JSON |
+| 1️⃣1️⃣ | **인기글 캐싱** | `popular-posts` (`@Cacheable`, sync=true) | 5분 | JSON |
 
 <br>
 
@@ -171,7 +140,7 @@ graph TB
 **구현 및 검증:**
 - **비관적 락(Pessimistic Lock) 적용:** 포인트 히스토리 기록이나 조회수/추천수 카운터 증가 시 `@Lock(PESSIMISTIC_WRITE)` 기반의 비관적 락을 적용하여 동시 수정 요청을 순차적으로 안전하게 처리했습니다.
 - **Testcontainers 기반 검증:** 실제 운영 환경과 동일한 MySQL Docker 컨테이너를 띄우고 멀티스레드 환경에서 동시성 테스트를 수행하여, 락 메커니즘이 정상 작동하고 데이터 정합성이 유지됨을 검증했습니다.
-- **성능:** 비관적 락 오버헤드 약 5ms (무시할 수 있는 수준)
+- **적용 도메인:** 추천/비추천, 게시글 조회수, 포인트 시스템
 
 <br>
 
@@ -194,7 +163,7 @@ sequenceDiagram
     end
 
     Note over Server,SSE: 알림 발생!
-    Server->>SSE: 6️⃣ COMMENT_ADDED 이벤트
+    Server->>SSE: 6️⃣ notification 이벤트<br/>(COMMENT/REPLY/MESSAGE)
     SSE-->>Client: 7️⃣ 실시간 알림 수신
 
     Note over Client: ⚠️ 네트워크 끊김
