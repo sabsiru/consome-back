@@ -1,0 +1,10 @@
+logging:
+  level:
+    root: WARN
+    consome: INFO
+  file:
+    name: logs/consome.log
+  logback:
+    rollingpolicy:
+      max-file-size: 10MB
+      max-history: 30
