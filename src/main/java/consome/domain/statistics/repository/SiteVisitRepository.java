@@ -2,8 +2,10 @@ package consome.domain.statistics.repository;
 
 import consome.domain.statistics.entity.SiteVisit;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.Optional;
@@ -19,4 +21,9 @@ public interface SiteVisitRepository extends JpaRepository<SiteVisit, Long> {
     long countByVisitDate(@Param("date") LocalDate date);
 
     boolean existsByVisitorKeyAndVisitDate(String visitorKey, LocalDate visitDate);
+
+    @Transactional
+    @Modifying
+    @Query(value = "INSERT IGNORE INTO site_visit (visitor_key, visit_date, first_visit_at) VALUES (:visitorKey, CURDATE(), NOW())", nativeQuery = true)
+    void insertIgnore(@Param("visitorKey") String visitorKey);
 }

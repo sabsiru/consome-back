@@ -75,7 +75,7 @@ public class SseEmitterRepository {
                 emitter.send(SseEmitter.event()
                         .name("heartbeat")
                         .data("ping"));
-            } catch (IOException e) {
+            } catch (Exception e) {
                 emitters.remove(userId);
                 log.debug("SSE heartbeat 실패, 연결 제거: userId={}", userId);
             }
