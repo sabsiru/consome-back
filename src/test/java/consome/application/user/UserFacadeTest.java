@@ -6,6 +6,7 @@ import consome.domain.point.PointService;
 import consome.domain.user.User;
 import consome.domain.user.UserService;
 import consome.domain.user.exception.UserException;
+import consome.domain.user.repository.UserRepository;
 import consome.domain.level.LevelService;
 import consome.infrastructure.mail.EmailService;
 import org.junit.jupiter.api.BeforeEach;
@@ -14,6 +15,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -41,6 +44,9 @@ class UserFacadeTest {
 
     @Mock
     private PasswordResetService passwordResetService;
+
+    @Mock
+    private UserRepository userRepository;
 
     @InjectMocks
     private UserFacade userFacade;
@@ -80,15 +86,16 @@ class UserFacadeTest {
     }
 
     @Test
-    void 비밀번호_재설정_요청시_토큰을_생성하고_이메일을_발송한다() {
+    void 비밀번호_재설정_요청시_아이디와_이메일이_일치하면_토큰을_생성하고_이메일을_발송한다() {
         // given
+        String loginId = "testId";
         String email = "test@test.com";
-        when(userService.findByEmail(email)).thenReturn(mockUser);
+        when(userRepository.findByLoginId(loginId)).thenReturn(Optional.of(mockUser));
         when(mockUser.getEmail()).thenReturn(email);
         when(passwordResetService.generateToken(1L)).thenReturn("reset-token");
 
         // when
-        String token = userFacade.requestPasswordReset(email);
+        String token = userFacade.requestPasswordReset(loginId, email);
 
         // then
         assertThat(token).isEqualTo("reset-token");
@@ -99,15 +106,38 @@ class UserFacadeTest {
     }
 
     @Test
-    void 존재하지_않는_이메일로_재설정_요청시_예외가_발생한다() {
+    void 비밀번호_재설정_요청시_아이디가_없으면_예외가_발생한다() {
         // given
-        String email = "notfound@test.com";
-        when(userService.findByEmail(email))
-                .thenThrow(new UserException.NotFound("사용자를 찾을 수 없습니다."));
+        when(userRepository.findByLoginId("wrongId")).thenReturn(Optional.empty());
 
         // when & then
-        assertThatThrownBy(() -> userFacade.requestPasswordReset(email))
+        assertThatThrownBy(() -> userFacade.requestPasswordReset("wrongId", "test@test.com"))
                 .isInstanceOf(UserException.NotFound.class);
+    }
+
+    @Test
+    void 비밀번호_재설정_요청시_이메일이_불일치하면_예외가_발생한다() {
+        // given
+        when(userRepository.findByLoginId("testId")).thenReturn(Optional.of(mockUser));
+        when(mockUser.getEmail()).thenReturn("real@test.com");
+
+        // when & then
+        assertThatThrownBy(() -> userFacade.requestPasswordReset("testId", "wrong@test.com"))
+                .isInstanceOf(UserException.NotFound.class);
+    }
+
+    @Test
+    void 아이디_찾기_요청시_마스킹된_아이디를_반환한다() {
+        // given
+        String email = "test@test.com";
+        when(userService.findLoginIdByEmail(email)).thenReturn("te***d");
+
+        // when
+        String maskedId = userFacade.findLoginId(email);
+
+        // then
+        assertThat(maskedId).isEqualTo("te***d");
+        verify(userService).findLoginIdByEmail(email);
     }
 
     @Test
