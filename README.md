@@ -39,32 +39,10 @@ score = (viewCount / boardAvgViewCount) * 0.1   // 조회수 가중치 10%
 
 #### B. Redis 기반의 실시간 처리 및 DB 이원화 워크플로우
 
-```mermaid
-graph LR
-    Event["이벤트 발생<br/>(조회/추천/댓글)"] -->|"1️⃣ 비동기"| Calc["점수 계산<br/>(PostFacade)"]
-
-    Calc -->|"2️⃣ 실시간"| Redis["🔴 Redis<br/>Sorted Set<br/>(TTL: 5일)"]
-
-    Redis -->|"3️⃣ 배치<br/>(매일 00:00)"| Check{"기준 충족?<br/>(score >= 1.0<br/>AND like >= 5)"}
-
-    Check -->|"YES"| Promote["✅ DB 승격<br/>(popular_post)"]
-    Check -->|"NO"| Discard["❌ 폐기"]
-
-    Promote -->|"4️⃣ 캐싱<br/>(@Cacheable, TTL: 6h)"| Display["📊 인기글 목록"]
-
-    style Event fill:#fff3cd
-    style Calc fill:#cfe2ff
-    style Redis fill:#f8d7da
-    style Promote fill:#d1e7dd
-    style Display fill:#d1e7dd
-```
-
-**효과:**
 1. **이벤트 발생:** 조회, 추천, 댓글 이벤트 발생 시 `PostFacade`를 통해 비동기로 점수 계산 요청.
 2. **Redis 집계:** 계산된 점수를 **Redis Sorted Set** (`popular_post_candidates`)에 실시간 업데이트. 메모리 효율을 위해 **TTL(5일)** 설정.
 3. **DB 승격(Promotion):** 일정 기준(`score >= 1.0 AND likeCount >= 5`)을 충족한 후보만 선별하여 메인 DB의 `popular_post` 테이블로 승격.
-    - **결과:** 실시간성은 Redis로 확보하고, 영구 저장 및 복잡한 조회가 필요한 데이터만 DB로 관리하여 부하를 분산했습니다.
-    - **성능 개선:** DB 쿼리 빈도 80% 감소
+    - _결과: 실시간성은 Redis로 확보하고, 영구 저장 및 복잡한 조회가 필요한 데이터만 DB로 관리하여 부하를 분산했습니다._
 
 <br>
 
@@ -78,141 +56,21 @@ graph LR
 - **스레드 안전한 캐싱 적용 (`Cache Stampede` 방지):**
   빈번하게 조회되는 주요 게시판 목록에는 **`@Cacheable(sync = true)`**를 적용했습니다. 캐시가 만료되는 순간 다수의 요청이 동시에 DB로 몰리는 캐시 스탬피드 현상을 방지하고, 단 하나의 스레드만 DB에 접근하도록 하여 안정적인 응답 속도를 보장합니다.
 
-**Redis 활용 전략:**
-```mermaid
-graph TB
-    Redis["🔴 Redis Master<br/>(포트 16379)"]
-
-    subgraph Pattern1["1️⃣ 토큰 관리<br/>(@TTL: 24h)"]
-        BL["Blacklist<br/>로그아웃/만료 토큰"]
-    end
-
-    subgraph Pattern2["2️⃣ 이메일 검증<br/>(@TTL: 10min)"]
-        Email["인증 코드<br/>(회가입/비번재설정)"]
-    end
-
-    subgraph Pattern3["3️⃣ 세션 추적<br/>(@TTL: 1day)"]
-        Session["접속자 세트<br/>(userId)"]
-    end
-
-    subgraph Pattern4["4️⃣ 조회 캐싱<br/>(@Cacheable, TTL: 6h)"]
-        Cache["인기글 목록<br/>주요게시판"]
-    end
-
-    subgraph Pattern5["5️⃣ 방문 기록<br/>(@TTL: 7day)"]
-        Visit["읽은 게시글 ID"]
-    end
-
-    subgraph Pattern6["6️⃣ 인기글 후보<br/>(@TTL: 1day)"]
-        Popular["일일 Top 50<br/>(점수 정렬)"]
-    end
-
-    Redis --> Pattern1
-    Redis --> Pattern2
-    Redis --> Pattern3
-    Redis --> Pattern4
-    Redis --> Pattern5
-    Redis --> Pattern6
-
-    style Redis fill:#ff6b6b
-    style BL fill:#ffe0e0
-    style Email fill:#ffe0e0
-    style Session fill:#fff4e0
-    style Cache fill:#e0f4ff
-    style Visit fill:#e0ffe0
-    style Popular fill:#f4e0ff
-```
-
-**성능 효과:** DB 쿼리 75% 감소, 평균 응답시간 500ms → 100ms
-
 <br>
 
 ### 3. 데이터 정합성을 위한 강력한 동시성 제어
 
 포인트 적립, 게시글 추천과 같이 갱신 손실(Lost Update)이 치명적인 도메인에 대한 처리입니다.
 
-```mermaid
-graph TB
-    Request["동시 3개 요청<br/>(같은 리소스)"]
-
-    subgraph Without["❌ 락 없음<br/>(Race Condition)"]
-        R1["요청1<br/>count = 10 읽음"]
-        R2["요청2<br/>count = 10 읽음"]
-        R3["요청3<br/>count = 10 읽음"]
-
-        R1 -->|"count++"| Lost1["쓰기 손실"]
-        R2 -->|"count++"| Lost1
-        R3 -->|"count++"| Lost1
-
-        Lost1 --> Result1["❌ 최종: count = 11<br/>(정확도 66% 손실)"]
-    end
-
-    subgraph With["✅ @Lock<br/>(PESSIMISTIC_WRITE)"]
-        L1["요청1<br/>Lock 획득"]
-        Wait2["요청2<br/>대기 중..."]
-        Wait3["요청3<br/>대기 중..."]
-
-        L1 -->|"count++"| U1["업데이트"]
-        U1 -->|"Lock 해제"| Wait2
-        Wait2 -->|"Lock 획득"| U2["업데이트"]
-        U2 -->|"Lock 해제"| Wait3
-        Wait3 -->|"Lock 획득"| U3["업데이트"]
-
-        U3 --> Result2["✅ 최종: count = 13<br/>(100% 정확)"]
-    end
-
-    Request --> Without
-    Request --> With
-
-    style Result1 fill:#ffcdd2
-    style Result2 fill:#c8e6c9
-```
-
-**구현 및 검증:**
-- **비관적 락(Pessimistic Lock) 적용:** 포인트 히스토리 기록이나 조회수/추천수 카운터 증가 시 `@Lock(PESSIMISTIC_WRITE)` 기반의 비관적 락을 적용하여 동시 수정 요청을 순차적으로 안전하게 처리했습니다.
+- **비관적 락(Pessimistic Lock) 적용:** 포인트 히스토리 기록이나 조회수/추천수 카운터 증가 시 `SELECT ... FOR UPDATE` 기반의 비관적 락을 적용하여 동시 수정 요청을 순차적으로 안전하게 처리했습니다.
 - **Testcontainers 기반 검증:** 실제 운영 환경과 동일한 MySQL Docker 컨테이너를 띄우고 멀티스레드 환경에서 동시성 테스트를 수행하여, 락 메커니즘이 정상 작동하고 데이터 정합성이 유지됨을 검증했습니다.
-- **성능:** 비관적 락 오버헤드 약 5ms (무시할 수 있는 수준)
 
 <br>
 
 ### 4. 안정적인 실시간 알림 시스템 (SSE)
 
-```mermaid
-sequenceDiagram
-    participant Client as 클라이언트
-    participant Server as Spring Boot
-    participant SSE as SseEmitter
-    participant Queue as 알림 큐
-
-    Client->>Server: 1️⃣ GET /api/subscribe<br/>(userId)
-    Server->>SSE: 2️⃣ new SseEmitter() 생성
-    Server-->>Client: 3️⃣ 연결 수립 (200 OK)
-
-    loop Heartbeat (30초마다)
-        Server->>SSE: 4️⃣ ping 발송<br/>(연결 유지)
-        SSE-->>Client: 5️⃣ keep-alive
-    end
-
-    Note over Server,SSE: 알림 발생!
-    Server->>SSE: 6️⃣ COMMENT_ADDED 이벤트
-    SSE-->>Client: 7️⃣ 실시간 알림 수신
-
-    Note over Client: ⚠️ 네트워크 끊김
-    Client->>Server: 8️⃣ 자동 재연결 시도<br/>(Exponential Backoff)
-    Note over Client: 1s → 2s → 4s → 8s...<br/>(최대 10회, 60초 상한)
-
-    Server->>Queue: 9️⃣ 미수신 알림 조회
-    Server-->>Client: 🔟 과거 알림 + 새 연결
-
-    Note over Client: ✅ 정상 복구
-    SSE-->>Client: 1️⃣1️⃣ 알림 수신 재개
-```
-
-**설계 포인트:**
 - **SSE(Server-Sent Events)** 를 활용하여 댓글, 쪽지 도착 시 실시간 알림을 구현했습니다.
-- **Heartbeat (30초):** 주기적으로 ping을 발송하여 연결 상태를 감지합니다.
-- **Exponential Backoff 재연결:** 네트워크 불안정으로 연결이 끊길 경우 클라이언트에서 자동 재연결 로직을 실행합니다 (최대 10회, 60초 상한).
-- **미수신 알림 보정:** 재연결 시 폴링으로 과거 알림을 조회하여 알림 유실을 방지합니다.
+- 네트워크 불안정으로 연결이 끊길 경우를 대비해 클라이언트 측에 **Exponential Backoff(지수 백오프)** 알고리즘을 적용한 자동 재연결 로직을 구현하여 안정성을 높였습니다.
 
 ---
 
@@ -236,41 +94,33 @@ sequenceDiagram
 
 **4-레이어드 아키텍처**를 기반으로 **Facade 패턴**을 도입하여, 복잡한 유스케이스 흐름을 캡슐화하고 도메인 계층의 순수성을 유지했습니다.
 
-```mermaid
-graph TD
-    Client["🌐 Client<br/>(Web/Mobile)"]
-
-    subgraph Backend["Backend Layer"]
-        Controller["Controller<br/>(interfaces/)"]
-        Facade["Facade<br/>(application/)"]
-        Service["Service<br/>(domain/)"]
-        Entity["Entity<br/>(domain/)"]
-        Repo["Repository<br/>(infrastructure/)"]
-    end
-
-    subgraph External["External Resources"]
-        DB[("MySQL 8.0")]
-        Redis[("Redis 7<br/>(Master-Replica)")]
-        Mail["📧 Mail SMTP"]
-    end
-
-    Client -->|"REST API / SSE"| Controller
-    Controller -->|"Request/DTO"| Facade
-    Facade -->|"Command/Result"| Service
-    Service -->|"Entity 조회"| Repo
-    Repo -->|"SQL/Query"| DB
-    Service -->|"캐싱/토큰"| Redis
-    Service -->|"메일"| Mail
-    Controller -->|"Response DTO"| Client
-
-    style Backend fill:#f0f4ff
-    style External fill:#fff8f0
 ```
-
-**설계 원칙:**
-- **Controller → Facade → Service** 단방향 의존성 (계층간 책임 분리)
-- Facade에서 여러 Service를 조합하여 트랜잭션 단위의 유스케이스 처리
-- Repository는 데이터 접근만 담당 (QueryDSL로 복잡한 쿼리 처리)
+[Client (Web/Mobile)]
+       │ (REST API / SSE)
+       ▼
+┌─────────────────────────────────────────────────────────────┐
+│  interfaces/ (Presentation Layer)                           │
+│  - Controller, Request/Response DTO, Global Exception Handler │
+├─────────────────────────────────────────────────────────────┤
+│       │ (Command / Criteria)                                │
+│       ▼                                                     │
+│  application/ (Application Layer - Facade)                  │
+│  - Facade: 여러 Service를 조합하여 트랜잭션 단위의 유스케이스 처리  │
+├─────────────────────────────────────────────────────────────┤
+│       │ (Call Domain Logic)                                 │
+│       ▼                                                     │
+│  domain/ (Domain Layer)                                     │
+│  - Entity, Service(비즈니스 로직), Repository(Interface)       │
+├─────────────────────────────────────────────────────────────┤
+│       │ (Impl Interface / Use Infra)                        │
+│       ▼                                                     │
+│  infrastructure/ (Infrastructure Layer)                     │
+│  - Repository Impl(QueryDSL), Redis, External API, Config   │
+└─────────────────────────────────────────────────────────────┘
+       │
+       ▼
+[MySQL] [Redis]
+```
 
 ---
 
