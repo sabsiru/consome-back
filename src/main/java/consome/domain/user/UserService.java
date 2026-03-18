@@ -86,6 +86,20 @@ public class UserService {
     }
 
     @Transactional(readOnly = true)
+    public String findLoginIdByEmail(String email) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new UserException.NotFound("해당 이메일로 가입된 계정을 찾을 수 없습니다."));
+        return maskLoginId(user.getLoginId());
+    }
+
+    private String maskLoginId(String loginId) {
+        if (loginId.length() <= 4) {
+            return loginId.charAt(0) + "***";
+        }
+        return loginId.substring(0, 2) + "***" + loginId.charAt(loginId.length() - 1);
+    }
+
+    @Transactional(readOnly = true)
     public Page<UserInfo> findUsers(Pageable pageable) {
         return userQueryRepository.findUsers(pageable);
     }
