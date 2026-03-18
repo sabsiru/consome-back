@@ -135,7 +135,7 @@ class UserV1ControllerE2eTest {
         restTemplate.postForEntity("/api/v1/users", registerRequest, UserRegisterResponse.class);
 
         // 2. 비밀번호 재설정 요청
-        PasswordResetRequest resetRequest = new PasswordResetRequest(registerRequest.email());
+        PasswordResetRequest resetRequest = new PasswordResetRequest(registerRequest.loginId(), registerRequest.email());
         ResponseEntity<PasswordResetResponse> resetResponse = restTemplate
                 .postForEntity("/api/v1/users/password/reset-request", resetRequest, PasswordResetResponse.class);
 
@@ -166,7 +166,7 @@ class UserV1ControllerE2eTest {
     @Test
     @DisplayName("실패: 존재하지 않는 이메일로 재설정 요청시 404 반환")
     void passwordResetNotFoundEmail() {
-        PasswordResetRequest resetRequest = new PasswordResetRequest("nonexistent@test.com");
+        PasswordResetRequest resetRequest = new PasswordResetRequest("nonexistid", "nonexistent@test.com");
         ResponseEntity<ErrorResponse> response = restTemplate
                 .postForEntity("/api/v1/users/password/reset-request", resetRequest, ErrorResponse.class);
 
