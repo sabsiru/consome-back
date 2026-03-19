@@ -7,6 +7,9 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+
+import java.time.LocalDateTime;
+
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
@@ -115,6 +118,50 @@ class UserTest {
         // 한글, 영문, 숫자 이외 문자가 포함된 경우 예외 발생 확인
         assertThatThrownBy(() -> User.validateNickname("test!@#"))
                 .isInstanceOf(UserException.InvalidNicknameFormat.class);
+    }
+
+    @Test
+    void 정지중인_유저에게_새_정지_적용시_현재시점_기준으로_계산() {
+        // given
+        User user = User.create("id", "nick", "pw", "test@test.com");
+        // 기존 정지 중인 상태 시뮬레이션 (종료일 3일 뒤)
+        user.suspend(SuspensionType.DAY_1, "첫 번째 정지", LocalDateTime.now().plusDays(3));
+
+        // when - 새 1일 정지 적용 (now + 1일)
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime newEndAt = now.plusDays(1);
+        user.suspend(SuspensionType.DAY_1, "두 번째 정지", newEndAt);
+
+        // then - 전달한 newEndAt(now + 1일)이어야 함 (기존 종료일 + 1일이 아님)
+        assertThat(user.getSuspendedUntil()).isEqualTo(newEndAt);
+    }
+
+    @Test
+    void 정지_안된_유저에게_정지_적용시_현재시점_기준으로_계산() {
+        // given
+        User user = User.create("id", "nick", "pw", "test@test.com");
+
+        // when
+        LocalDateTime suspendedUntil = LocalDateTime.now().plusDays(1);
+        user.suspend(SuspensionType.DAY_1, "정지 사유", suspendedUntil);
+
+        // then
+        assertThat(user.getSuspendedUntil()).isEqualTo(suspendedUntil);
+        assertThat(user.getSuspensionType()).isEqualTo(SuspensionType.DAY_1);
+        assertThat(user.getSuspendReason()).isEqualTo("정지 사유");
+    }
+
+    @Test
+    void 영구정지_적용시_suspendedUntil은_null() {
+        // given
+        User user = User.create("id", "nick", "pw", "test@test.com");
+
+        // when
+        user.suspend(SuspensionType.PERMANENT, "영구 정지 사유", null);
+
+        // then
+        assertThat(user.getSuspendedUntil()).isNull();
+        assertThat(user.getSuspensionType()).isEqualTo(SuspensionType.PERMANENT);
     }
 
     @Test
