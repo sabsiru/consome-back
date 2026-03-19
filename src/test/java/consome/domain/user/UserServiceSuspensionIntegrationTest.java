@@ -1,5 +1,6 @@
 package consome.domain.user;
 
+import consome.domain.user.repository.SuspensionHistoryRepository;
 import consome.domain.user.repository.UserRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,6 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.testcontainers.utility.TestcontainersConfiguration;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -25,6 +27,9 @@ class UserServiceSuspensionIntegrationTest {
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private SuspensionHistoryRepository suspensionHistoryRepository;
 
     private User createUser(String loginId, String nickname, String email) {
         User user = User.create(loginId, nickname, "Password123", email);
@@ -74,6 +79,34 @@ class UserServiceSuspensionIntegrationTest {
 
         // 제재 안 받은 유저는 그대로
         assertThat(reloadedActive.getSuspensionType()).isNull();
+    }
+
+    @Test
+    void 정지중인_유저에게_재정지시_현재시점_기준으로_계산된다() {
+        // given
+        User user = createUser("sus1", "정지유저", "sus1@test.com");
+        userService.suspend(user.getId(), SuspensionType.DAY_1, "첫 번째 정지", null, 999L);
+
+        // suspendedUntil을 3일 뒤로 설정 (정지 중인 상태)
+        user = userRepository.findById(user.getId()).orElseThrow();
+        ReflectionTestUtils.setField(user, "suspendedUntil", LocalDateTime.now().plusDays(3));
+        userRepository.flush();
+
+        // when - 새 1일 정지 적용
+        LocalDateTime beforeSuspend = LocalDateTime.now();
+        userService.suspend(user.getId(), SuspensionType.DAY_1, "두 번째 정지", null, 999L);
+        LocalDateTime afterSuspend = LocalDateTime.now();
+
+        // then - User의 suspendedUntil은 now() + 1일
+        User reloaded = userRepository.findById(user.getId()).orElseThrow();
+        assertThat(reloaded.getSuspendedUntil()).isAfterOrEqualTo(beforeSuspend.plusDays(1));
+        assertThat(reloaded.getSuspendedUntil()).isBeforeOrEqualTo(afterSuspend.plusDays(1));
+
+        // SuspensionHistory의 endAt도 startAt + 1일
+        List<SuspensionHistory> histories = suspensionHistoryRepository.findByUserIdOrderByCreatedAtDesc(user.getId());
+        SuspensionHistory latestHistory = histories.get(0);
+        assertThat(latestHistory.getEndAt()).isAfterOrEqualTo(beforeSuspend.plusDays(1));
+        assertThat(latestHistory.getEndAt()).isBeforeOrEqualTo(afterSuspend.plusDays(1));
     }
 
     @Test

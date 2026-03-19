@@ -120,20 +120,11 @@ public class User {
         this.updatedAt = LocalDateTime.now();
     }
 
-    // 정지 적용 (누적)
-    public void suspend(SuspensionType type, String reason) {
+    // 정지 적용
+    public void suspend(SuspensionType type, String reason, LocalDateTime suspendedUntil) {
         this.suspensionType = type;
         this.suspendReason = reason;
-
-        if (type.isPermanent()) {
-            this.suspendedUntil = null;
-        } else {
-            // 이미 정지 중이면 기존 종료일 기준, 아니면 현재 시점 기준
-            LocalDateTime baseTime = isSuspended() && suspendedUntil != null
-                    ? suspendedUntil
-                    : LocalDateTime.now();
-            this.suspendedUntil = baseTime.plusDays(type.getDays());
-        }
+        this.suspendedUntil = suspendedUntil;
         this.updatedAt = LocalDateTime.now();
     }
 
