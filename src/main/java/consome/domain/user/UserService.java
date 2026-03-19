@@ -143,10 +143,7 @@ public class UserService {
         LocalDateTime startAt = LocalDateTime.now();
         LocalDateTime endAt = null;
         if (!type.isPermanent()) {
-            LocalDateTime baseTime = user.isSuspended() && user.getSuspendedUntil() != null
-                    ? user.getSuspendedUntil()
-                    : startAt;
-            endAt = baseTime.plusDays(type.getDays());
+            endAt = startAt.plusDays(type.getDays());
         }
 
         // 이력 저장
@@ -155,7 +152,7 @@ public class UserService {
         suspensionHistoryRepository.save(history);
 
         // 유저 상태 업데이트
-        user.suspend(type, reason);
+        user.suspend(type, reason, endAt);
         return user;
     }
 
