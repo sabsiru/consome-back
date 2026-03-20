@@ -74,6 +74,16 @@ public class NotificationFacade {
         notificationService.markAllAsRead(userId);
     }
 
+    @Transactional
+    public void delete(Long notificationId, Long userId) {
+        notificationService.delete(notificationId, userId);
+    }
+
+    @Transactional
+    public void deleteAll(Long userId) {
+        notificationService.deleteAll(userId);
+    }
+
     private String resolveNickname(Long userId) {
         try {
             return userService.getNicknameById(userId);
