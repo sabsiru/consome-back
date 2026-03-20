@@ -38,4 +38,19 @@ public class NotificationService {
     public int markAllAsRead(Long userId) {
         return notificationRepository.markAllAsRead(userId);
     }
+
+    @Transactional
+    public void delete(Long notificationId, Long userId) {
+        Notification notification = notificationRepository.findById(notificationId)
+                .orElseThrow(() -> new IllegalArgumentException("알림을 찾을 수 없습니다: " + notificationId));
+        if (!notification.getUserId().equals(userId)) {
+            throw new IllegalArgumentException("본인의 알림만 삭제할 수 있습니다.");
+        }
+        notificationRepository.delete(notification);
+    }
+
+    @Transactional
+    public int deleteAll(Long userId) {
+        return notificationRepository.deleteAllByUserId(userId);
+    }
 }
