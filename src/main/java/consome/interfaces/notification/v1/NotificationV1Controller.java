@@ -47,6 +47,20 @@ public class NotificationV1Controller {
         return ResponseEntity.noContent().build();
     }
 
+    @DeleteMapping("/{notificationId}")
+    public ResponseEntity<Void> delete(
+            @PathVariable Long notificationId,
+            @RequestParam Long userId) {
+        notificationFacade.delete(notificationId, userId);
+        return ResponseEntity.noContent().build();
+    }
+
+    @DeleteMapping
+    public ResponseEntity<Void> deleteAll(@RequestParam Long userId) {
+        notificationFacade.deleteAll(userId);
+        return ResponseEntity.noContent().build();
+    }
+
     @GetMapping(value = "/subscribe", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     public SseEmitter subscribe(@RequestParam String token) {
         return notificationFacade.subscribe(token);
