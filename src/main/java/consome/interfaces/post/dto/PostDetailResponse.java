@@ -14,6 +14,7 @@ public record PostDetailResponse(
         String authorRole,
         int authorLevel,
         Long boardId,
+        String boardName,
         Long categoryId,
         LocalDateTime createdAt,
         LocalDateTime updatedAt,
@@ -25,7 +26,7 @@ public record PostDetailResponse(
         boolean hasDisliked,
         boolean commentEnabled
 ) {
-    public static PostDetailResponse of(Post post, PostStat stat, String authorNickname, String authorRole, int authorLevel, boolean hasLiked, boolean hasDisliked, boolean commentEnabled) {
+    public static PostDetailResponse of(Post post, PostStat stat, String authorNickname, String authorRole, int authorLevel, String boardName, boolean hasLiked, boolean hasDisliked, boolean commentEnabled) {
         return new PostDetailResponse(
                 post.getId(),
                 post.getTitle(),
@@ -35,6 +36,7 @@ public record PostDetailResponse(
                 authorRole,
                 authorLevel,
                 post.getBoardId(),
+                boardName,
                 post.getCategoryId(),
                 post.getCreatedAt(),
                 post.getUpdatedAt(),
@@ -48,7 +50,7 @@ public record PostDetailResponse(
         );
     }
 
-    public static PostDetailResponse from(Post post, String authorNickname, String authorRole, int authorLevel, boolean commentEnabled) {
+    public static PostDetailResponse from(Post post, String authorNickname, String authorRole, int authorLevel, String boardName, boolean commentEnabled) {
         return new PostDetailResponse(
                 post.getId(),
                 post.getTitle(),
@@ -58,6 +60,7 @@ public record PostDetailResponse(
                 authorRole,
                 authorLevel,
                 post.getBoardId(),
+                boardName,
                 post.getCategoryId(),
                 post.getCreatedAt(),
                 post.getUpdatedAt(),

@@ -81,8 +81,9 @@ public class PostV1Controller {
         boolean hasDisliked = userId != null && postFacade.hasDisliked(postId, userId);
 
         boolean commentEnabled = postFacade.isCommentEnabled(post.getBoardId());
+        String boardName = postFacade.getBoardName(post.getBoardId());
 
-        return ResponseEntity.ok(PostDetailResponse.of(post, stat, author.getNickname(), author.getRole().name(), authorLevel, hasLiked, hasDisliked, commentEnabled));
+        return ResponseEntity.ok(PostDetailResponse.of(post, stat, author.getNickname(), author.getRole().name(), authorLevel, boardName, hasLiked, hasDisliked, commentEnabled));
     }
 
     @PutMapping("/{postId}")
