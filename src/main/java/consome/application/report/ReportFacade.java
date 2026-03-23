@@ -10,6 +10,8 @@ import consome.domain.report.entity.ReportTargetType;
 import consome.domain.report.exception.ReportException;
 import consome.domain.user.UserService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -41,6 +43,12 @@ public class ReportFacade {
         );
 
         return ReportResult.from(report);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<ReportResult> getMyReports(Long userId, Pageable pageable) {
+        return reportService.findByReporterId(userId, pageable)
+                .map(ReportResult::from);
     }
 
     private Long validateAndGetTargetOwnerId(ReportTargetType targetType, Long targetId) {

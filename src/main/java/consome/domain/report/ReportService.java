@@ -56,6 +56,11 @@ public class ReportService {
         return report;
     }
 
+    @Transactional(readOnly = true)
+    public Page<Report> findByReporterId(Long reporterId, Pageable pageable) {
+        return reportRepository.findByReporterIdOrderByCreatedAtDesc(reporterId, pageable);
+    }
+
     private void validateNotDuplicate(Long reporterId, ReportTargetType targetType, Long targetId) {
         if (reportRepository.existsByReporterIdAndTargetTypeAndTargetId(reporterId, targetType, targetId)) {
             throw new ReportException.AlreadyReported();
