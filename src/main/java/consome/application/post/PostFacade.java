@@ -269,6 +269,10 @@ public class PostFacade {
         return boardService.findById(boardId).isCommentEnabled();
     }
 
+    public String getBoardName(Long boardId) {
+        return boardService.findById(boardId).getName();
+    }
+
     private void validateAdminOnlySection(Long boardId, Long userId) {
         Board board = boardService.findById(boardId);
         User user = userService.findById(userId);
