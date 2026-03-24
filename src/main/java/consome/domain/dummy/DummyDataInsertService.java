@@ -93,8 +93,11 @@ public class DummyDataInsertService {
         session.close();
     }
 
+    private static final List<String> EXCLUDED_BOARD_NAMES = List.of("공지사항", "건의사항", "게시판 요청");
+
     public void bulkInsertPosts(int count) {
         List<Long> boardIds = boardRepository.findAll().stream()
+                .filter(board -> !EXCLUDED_BOARD_NAMES.contains(board.getName()))
                 .map(Board::getId)
                 .toList();
 
