@@ -8,6 +8,8 @@ import consome.domain.post.repository.PopularPostQueryRepository;
 import consome.domain.post.repository.PostQueryRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -107,6 +109,15 @@ public class NavigationFacade {
     )
     public List<PopularPostResult> getPopularPosts(PopularPostCriteria criteria) {
         return popularPostQueryRepository.findPopularPosts(criteria.limit());
+    }
+
+    @Cacheable(
+            value = "popular-posts-paged",
+            key = "#pageable.pageNumber + ':' + #pageable.pageSize",
+            sync = true
+    )
+    public Page<PopularPostResult> getPopularPostsPaged(Pageable pageable) {
+        return popularPostQueryRepository.findPopularPosts(pageable);
     }
 
     public FeaturedBoardsResult getFeaturedBoards() {
