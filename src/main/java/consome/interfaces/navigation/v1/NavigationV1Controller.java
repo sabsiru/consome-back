@@ -4,12 +4,15 @@ import consome.application.navigation.BoardResult;
 import consome.application.navigation.NavigationFacade;
 import consome.application.navigation.PopularBoardCriteria;
 import consome.application.navigation.PopularPostCriteria;
+import consome.application.navigation.PopularPostResult;
 import consome.domain.post.PopularityType;
 import consome.interfaces.navigation.dto.BoardItemResponse;
 import consome.interfaces.navigation.dto.FeaturedBoardsResponse;
 import consome.interfaces.navigation.dto.PopularBoardResponse;
 import consome.interfaces.navigation.dto.PopularPostResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -61,6 +64,17 @@ public class NavigationV1Controller {
         List<PopularPostResponse> response = PopularPostResponse.fromList(
                 navigationFacade.getPopularPosts(criteria)
         );
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/popular-posts/paged")
+    public ResponseEntity<Page<PopularPostResponse>> getPopularPostsPaged(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "50") int size
+    ) {
+        int safeSize = Math.min(size, 50);
+        Page<PopularPostResult> results = navigationFacade.getPopularPostsPaged(PageRequest.of(page, safeSize));
+        Page<PopularPostResponse> response = results.map(PopularPostResponse::from);
         return ResponseEntity.ok(response);
     }
 
