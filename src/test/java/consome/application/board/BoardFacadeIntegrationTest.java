@@ -72,12 +72,12 @@ class BoardFacadeIntegrationTest {
         @DisplayName("게시판별 게시글 목록을 조회한다")
         void getPosts_success() {
             // given
-            long initialCount = boardFacade.getPosts(boardId, pageable, null, null).totalElements();
+            long initialCount = boardFacade.getPosts(boardId, pageable, null, null, false).totalElements();
             PostResult post1 = postFacade.post(PostCommand.of(boardId, categoryId, userId, "첫번째 글", "첫번째 내용"));
             PostResult post2 = postFacade.post(PostCommand.of(boardId, categoryId, userId, "두번째 글", "두번째 내용"));
 
             // when
-            PostPagingResult result = boardFacade.getPosts(boardId, pageable, null, null);
+            PostPagingResult result = boardFacade.getPosts(boardId, pageable, null, null, false);
 
             // then
             assertThat(result.boardId()).isEqualTo(boardId);
@@ -91,12 +91,12 @@ class BoardFacadeIntegrationTest {
         @DisplayName("카테고리별로 게시글을 필터링한다")
         void getPosts_withCategoryFilter() {
             // given
-            long initialCount = boardFacade.getPosts(boardId, pageable, categoryId, null).totalElements();
+            long initialCount = boardFacade.getPosts(boardId, pageable, categoryId, null, false).totalElements();
             PostResult cat1Post = postFacade.post(PostCommand.of(boardId, categoryId, userId, "카테고리1 글", "내용"));
             postFacade.post(PostCommand.of(boardId, categoryId2, userId, "카테고리2 글", "내용"));
 
             // when
-            PostPagingResult result = boardFacade.getPosts(boardId, pageable, categoryId, null);
+            PostPagingResult result = boardFacade.getPosts(boardId, pageable, categoryId, null, false);
 
             // then
             assertThat(result.totalElements()).isEqualTo(initialCount + 1);
