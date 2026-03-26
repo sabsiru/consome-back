@@ -44,8 +44,10 @@ public class PostQueryRepositoryImpl implements PostQueryRepository {
         return categoryId == null ? null : QPost.post.categoryId.eq(categoryId);
     }
 
+    private static final int POPULAR_POST_MIN_LIKES = 10;
+
     @Override
-    public Page<PostSummary> findPostWithStatsByBoardId(Long boardId, Pageable pageable, Long categoryId) {
+    public Page<PostSummary> findPostWithStatsByBoardId(Long boardId, Pageable pageable, Long categoryId, boolean popularOnly) {
         QPost post = QPost.post;
         QPostStat postStat = QPostStat.postStat;
         QUser user = QUser.user;
@@ -87,14 +89,18 @@ public class PostQueryRepositoryImpl implements PostQueryRepository {
                 .leftJoin(category).on(post.categoryId.eq(category.id))
                 .leftJoin(postStat).on(post.id.eq(postStat.postId))
                 .leftJoin(point).on(post.userId.eq(point.userId))
-                .where(post.boardId.eq(boardId),
-                        categoryEq(categoryId))
+                .where(
+                        post.boardId.eq(boardId),
+                        categoryEq(categoryId),
+                        popularOnly ? postStat.likeCount.goe(POPULAR_POST_MIN_LIKES) : null
+                )
                 .orderBy(
-                        post.isPinned.desc(),
-                        new CaseBuilder()
-                                .when(post.isPinned.isTrue()).then(post.pinnedOrder)
-                                .otherwise((Integer) null)
-                                .asc().nullsLast(),
+                        popularOnly ? postStat.likeCount.desc() : post.isPinned.desc(),
+                        popularOnly ? post.createdAt.desc() :
+                                new CaseBuilder()
+                                        .when(post.isPinned.isTrue()).then(post.pinnedOrder)
+                                        .otherwise((Integer) null)
+                                        .asc().nullsLast(),
                         post.createdAt.desc()
                 )
                 .offset(pageable.getOffset())
@@ -124,12 +130,18 @@ public class PostQueryRepositoryImpl implements PostQueryRepository {
                 ))
                 .toList();
 
-        Long total = queryFactory
+        var countQuery = queryFactory
                 .select(post.count())
-                .from(post)
-                .where(post.boardId.eq(boardId),
-                        categoryEq(categoryId))
-                .fetchOne();
+                .from(post);
+        if (popularOnly) {
+            countQuery.leftJoin(postStat).on(post.id.eq(postStat.postId));
+        }
+        countQuery.where(
+                post.boardId.eq(boardId),
+                categoryEq(categoryId),
+                popularOnly ? postStat.likeCount.goe(POPULAR_POST_MIN_LIKES) : null
+        );
+        Long total = countQuery.fetchOne();
 
         return PageableExecutionUtils.getPage(contents, pageable, () -> total == null ? 0L : total);
     }
