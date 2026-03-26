@@ -14,7 +14,7 @@ import java.util.Optional;
 
 public interface PostQueryRepository {
 
-    Page<PostSummary> findPostWithStatsByBoardId(Long boardId, Pageable pageable, Long categoryId);
+    Page<PostSummary> findPostWithStatsByBoardId(Long boardId, Pageable pageable, Long categoryId, boolean popularOnly);
 
     List<BoardPopularityRow> findPopularBoards(LocalDateTime since, PopularityType sortBy, int limit);
 

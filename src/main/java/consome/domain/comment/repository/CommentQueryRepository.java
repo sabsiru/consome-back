@@ -4,8 +4,11 @@ import consome.application.comment.CommentListResult;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
+import java.util.List;
+
 public interface CommentQueryRepository{
     Page<CommentListResult> findCommentsByPostId(Long postId, Pageable pageable);
+    List<CommentListResult> findPopularComments(Long postId, int limit);
     int allocateReplyStep(Long postId, int parentRef, int parentStep, int parentDepth);
 
     int nextRef(Long postId);
