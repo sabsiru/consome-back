@@ -5,7 +5,9 @@ import consome.application.navigation.NavigationFacade;
 import consome.application.navigation.PopularBoardCriteria;
 import consome.application.navigation.PopularPostCriteria;
 import consome.application.navigation.PopularPostResult;
+import consome.application.navigation.CachedPage;
 import consome.domain.post.PopularityType;
+import java.util.List;
 import consome.interfaces.navigation.dto.BoardItemResponse;
 import consome.interfaces.navigation.dto.FeaturedBoardsResponse;
 import consome.interfaces.navigation.dto.PopularBoardResponse;
@@ -68,14 +70,20 @@ public class NavigationV1Controller {
     }
 
     @GetMapping("/popular-posts/paged")
-    public ResponseEntity<Page<PopularPostResponse>> getPopularPostsPaged(
+    public ResponseEntity<CachedPage<PopularPostResponse>> getPopularPostsPaged(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "50") int size
     ) {
         int safeSize = Math.min(size, 50);
-        Page<PopularPostResult> results = navigationFacade.getPopularPostsPaged(PageRequest.of(page, safeSize));
-        Page<PopularPostResponse> response = results.map(PopularPostResponse::from);
-        return ResponseEntity.ok(response);
+        CachedPage<PopularPostResult> results = navigationFacade.getPopularPostsPaged(PageRequest.of(page, safeSize));
+        List<PopularPostResponse> content = results.content().stream()
+                .map(PopularPostResponse::from)
+                .toList();
+        return ResponseEntity.ok(new CachedPage<>(
+                content, results.number(), results.size(),
+                results.totalElements(), results.totalPages(),
+                results.first(), results.last()
+        ));
     }
 
     @GetMapping("/featured-boards")
