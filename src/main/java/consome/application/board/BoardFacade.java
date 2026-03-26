@@ -41,7 +41,7 @@ public class BoardFacade {
     private final BoardFavoriteRepository boardFavoriteRepository;
     private final BoardRepository boardRepository;
 
-    public PostPagingResult getPosts(Long boardId, Pageable pageable, Long categoryId, Long userId) {
+    public PostPagingResult getPosts(Long boardId, Pageable pageable, Long categoryId, Long userId, boolean popularOnly) {
         if (userId != null) {
             visitedBoardRedisRepository.recordVisit(userId, boardId);
         }
@@ -49,7 +49,7 @@ public class BoardFacade {
         Board board = boardService.findById(boardId);
         boolean isFavorited = userId != null && boardFavoriteRepository.existsByUserIdAndBoardId(userId, boardId);
 
-        Page<PostSummary> page = postService.findBoardPosts(boardId, pageable, categoryId);
+        Page<PostSummary> page = postService.findBoardPosts(boardId, pageable, categoryId, popularOnly);
 
         List<PostRowResult> rows = page.getContent().stream()
                 .map(summary -> new PostRowResult(

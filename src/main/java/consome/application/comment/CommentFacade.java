@@ -23,6 +23,8 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 public class CommentFacade {
@@ -98,24 +100,46 @@ public class CommentFacade {
         return commentReactionRepository.findByCommentIdAndUserIdAndTypeAndDeletedFalse(commentId, userId, ReactionType.DISLIKE).isPresent();
     }
 
+    private static final int POPULAR_COMMENT_MIN_TOTAL = 10;
+    private static final int POPULAR_COMMENT_LIMIT = 3;
+
     @Transactional(readOnly = true)
-    public Page<CommentListResult> listByPost(Long postId, Long userId, Pageable pageable) {
+    public CommentPageResult listByPost(Long postId, Long userId, Pageable pageable) {
         Page<CommentListResult> comments =
                 commentQueryRepository.findCommentsByPostId(postId, pageable);
 
-        if (userId == null) {
-            return comments;
+        if (userId != null) {
+            comments = comments.map(c -> new CommentListResult(
+                    c.commentId(), c.postId(), c.userId(), c.userNickname(), c.userLevel(),
+                    c.parentId(), c.parentUserNickname(),
+                    c.content(), c.depth(),
+                    c.likeCount(), c.dislikeCount(),
+                    c.isDeleted(), c.createdAt(), c.updatedAt(),
+                    hasLiked(c.commentId(), userId),
+                    hasDisliked(c.commentId(), userId)
+            ));
         }
 
-        return comments.map(c -> new CommentListResult(
-                c.commentId(), c.postId(), c.userId(), c.userNickname(), c.userLevel(),
-                c.parentId(), c.parentUserNickname(),
-                c.content(), c.depth(),
-                c.likeCount(), c.dislikeCount(),
-                c.isDeleted(), c.createdAt(), c.updatedAt(),
-                hasLiked(c.commentId(), userId),
-                hasDisliked(c.commentId(), userId)
-        ));
+        List<CommentListResult> popularComments = List.of();
+        boolean isFirstPage = pageable.getPageNumber() == 0;
+        if (isFirstPage && comments.getTotalElements() >= POPULAR_COMMENT_MIN_TOTAL) {
+            popularComments = commentQueryRepository.findPopularComments(postId, POPULAR_COMMENT_LIMIT);
+            if (userId != null) {
+                popularComments = popularComments.stream()
+                        .map(c -> new CommentListResult(
+                                c.commentId(), c.postId(), c.userId(), c.userNickname(), c.userLevel(),
+                                c.parentId(), c.parentUserNickname(),
+                                c.content(), c.depth(),
+                                c.likeCount(), c.dislikeCount(),
+                                c.isDeleted(), c.createdAt(), c.updatedAt(),
+                                hasLiked(c.commentId(), userId),
+                                hasDisliked(c.commentId(), userId)
+                        ))
+                        .toList();
+            }
+        }
+
+        return new CommentPageResult(popularComments, comments);
     }
 
     private void sendCommentNotification(Post post, Comment comment, Long actorId, String actorNickname, Long parentId) {
