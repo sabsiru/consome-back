@@ -1,7 +1,7 @@
 package consome.interfaces.comment.v1;
 
 import consome.application.comment.CommentFacade;
-import consome.application.comment.CommentListResult;
+import consome.application.comment.CommentPageResult;
 import consome.application.comment.CommentResult;
 import consome.domain.comment.Comment;
 import consome.domain.comment.CommentReaction;
@@ -12,7 +12,6 @@ import consome.interfaces.comment.dto.*;
 import consome.interfaces.comment.mapper.CommentResponseMapper;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
@@ -31,8 +30,8 @@ public class CommentV1Controller {
             @RequestParam(required = false) Long userId,
             @PageableDefault(size = 50) Pageable pageable) {
 
-        Page<CommentListResult> page = commentFacade.listByPost(postId, userId, pageable);
-        return ResponseEntity.ok(CommentResponseMapper.toPageResponse(page));
+        CommentPageResult result = commentFacade.listByPost(postId, userId, pageable);
+        return ResponseEntity.ok(CommentResponseMapper.toPageResponse(result));
     }
 
     @PostMapping("/{postId}/comments")
