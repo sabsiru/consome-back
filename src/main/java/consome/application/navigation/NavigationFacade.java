@@ -116,8 +116,8 @@ public class NavigationFacade {
             key = "#pageable.pageNumber + ':' + #pageable.pageSize",
             sync = true
     )
-    public Page<PopularPostResult> getPopularPostsPaged(Pageable pageable) {
-        return popularPostQueryRepository.findPopularPosts(pageable);
+    public CachedPage<PopularPostResult> getPopularPostsPaged(Pageable pageable) {
+        return CachedPage.from(popularPostQueryRepository.findPopularPosts(pageable));
     }
 
     public FeaturedBoardsResult getFeaturedBoards() {
