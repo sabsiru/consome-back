@@ -3,6 +3,7 @@ package consome.interfaces.comment.dto;
 import java.util.List;
 
 public record CommentPageResponse(
+        List<CommentListResponse> popularComments,
         List<CommentListResponse> comments,
         int currentPage,
         int totalPages,

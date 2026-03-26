@@ -13,7 +13,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
@@ -62,22 +61,22 @@ class CommentFacadeIntegrationTest {
         }
 
         // when
-        Page<CommentListResult> firstPage = commentFacade.listByPost(
+        CommentPageResult firstResult = commentFacade.listByPost(
                 post.getId(),
                 null,  // userId 없이 조회
                 PageRequest.of(0, 50)
         );
 
-        Page<CommentListResult> secondPage = commentFacade.listByPost(
+        CommentPageResult secondResult = commentFacade.listByPost(
                 post.getId(),
                 null,
                 PageRequest.of(1, 50)
         );
 
         // then
-        assertThat(firstPage.getContent()).hasSize(50);
-        assertThat(secondPage.getContent()).hasSize(50);
-        assertThat(firstPage.getTotalElements()).isEqualTo(100);
+        assertThat(firstResult.comments().getContent()).hasSize(50);
+        assertThat(secondResult.comments().getContent()).hasSize(50);
+        assertThat(firstResult.comments().getTotalElements()).isEqualTo(100);
     }
 
     @Test
@@ -99,14 +98,14 @@ class CommentFacadeIntegrationTest {
         commentFacade.like(comment.commentId(), register);
 
         // when
-        Page<CommentListResult> page = commentFacade.listByPost(
+        CommentPageResult pageResult = commentFacade.listByPost(
                 post.getId(),
                 register,  // userId로 조회
                 PageRequest.of(0, 50)
         );
 
         // then
-        CommentListResult result = page.getContent().get(0);
+        CommentListResult result = pageResult.comments().getContent().get(0);
         assertThat(result.hasLiked()).isTrue();
         assertThat(result.hasDisliked()).isFalse();
     }

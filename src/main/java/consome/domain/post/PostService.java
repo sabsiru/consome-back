@@ -151,8 +151,8 @@ public class PostService {
                 .orElseThrow(() -> new PostException.NotFound(postId));
     }
 
-    public Page<PostSummary> findBoardPosts(Long boardId, Pageable pageable, Long categoryId) {
-        return postQueryRepository.findPostWithStatsByBoardId(boardId, pageable, categoryId);
+    public Page<PostSummary> findBoardPosts(Long boardId, Pageable pageable, Long categoryId, boolean popularOnly) {
+        return postQueryRepository.findPostWithStatsByBoardId(boardId, pageable, categoryId, popularOnly);
     }
 
     public Post getPost(Long postId) {
@@ -161,7 +161,7 @@ public class PostService {
     }
 
     public Page<PostSummary> getPostByBoard(Long boardId, Pageable pageable, Long categoryId) {
-        return postQueryRepository.findPostWithStatsByBoardId(boardId, pageable, categoryId);
+        return postQueryRepository.findPostWithStatsByBoardId(boardId, pageable, categoryId, false);
     }
 
     public Post getPostForUpdate(Long postId) {

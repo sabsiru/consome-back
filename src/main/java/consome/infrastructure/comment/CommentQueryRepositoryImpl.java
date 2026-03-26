@@ -86,6 +86,45 @@ public class CommentQueryRepositoryImpl implements CommentQueryRepository {
         );
     }
 
+    @Override
+    public List<CommentListResult> findPopularComments(Long postId, int limit) {
+        List<Tuple> results = queryFactory
+                .select(comment, user.nickname, point.userPoint, commentStat.likeCount, commentStat.dislikeCount)
+                .from(comment)
+                .join(user).on(user.id.eq(comment.userId))
+                .leftJoin(point).on(point.userId.eq(comment.userId))
+                .leftJoin(commentStat).on(commentStat.commentId.eq(comment.id))
+                .where(
+                        comment.postId.eq(postId),
+                        comment.depth.eq(0),
+                        comment.deleted.isFalse(),
+                        commentStat.likeCount.coalesce(0).goe(10)
+                )
+                .orderBy(commentStat.likeCount.desc(), comment.createdAt.asc())
+                .limit(limit)
+                .fetch();
+
+        return results.stream()
+                .map(t -> {
+                    Comment c = t.get(comment);
+                    Integer userPoint = t.get(point.userPoint);
+                    Integer likeCount = t.get(commentStat.likeCount);
+                    Integer dislikeCount = t.get(commentStat.dislikeCount);
+                    return new CommentListResult(
+                            c.getId(), c.getPostId(), c.getUserId(),
+                            t.get(user.nickname),
+                            LevelInfo.calculateLevel(userPoint != null ? userPoint : 0).getLevel(),
+                            c.getParentId(), null,
+                            c.getContent(), c.getDepth(),
+                            likeCount != null ? likeCount : 0,
+                            dislikeCount != null ? dislikeCount : 0,
+                            c.isDeleted(), c.getCreatedAt(), c.getUpdatedAt(),
+                            false, false
+                    );
+                })
+                .toList();
+    }
+
     public int allocateReplyStep(Long postId, int parentRef, int parentStep, int parentDepth) {
         Integer next = queryFactory
                 .select(comment.step)

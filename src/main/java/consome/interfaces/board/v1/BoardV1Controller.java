@@ -30,10 +30,11 @@ public class BoardV1Controller {
             @PageableDefault(size = 50) Pageable pageable,
             @RequestParam(required = false) Long categoryId,
             @RequestParam(defaultValue = "false") boolean headerOnly,
+            @RequestParam(defaultValue = "false") boolean popular,
             @AuthenticationPrincipal CustomUserDetails userDetails
     ) {
         Long userId = (!headerOnly && userDetails != null) ? userDetails.getUserId() : null;
-        PostPagingResult result = boardFacade.getPosts(boardId, pageable, categoryId, userId);
+        PostPagingResult result = boardFacade.getPosts(boardId, pageable, categoryId, userId, popular);
         return ResponseEntity.ok(BoardPostListResponse.from(result));
     }
 
