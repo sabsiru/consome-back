@@ -20,6 +20,14 @@ public class AdminV1BoardController {
 
     private final AdminBoardFacade adminBoardFacade;
 
+    @GetMapping("/check-name")
+    public ResponseEntity<NameCheckResponse> checkName(
+            @RequestParam String name,
+            @RequestParam(required = false) Long excludeId) {
+        String reason = adminBoardFacade.checkNameAvailable(name, excludeId);
+        return ResponseEntity.ok(new NameCheckResponse(reason == null, reason));
+    }
+
     @PostMapping()
     public BoardResponse create(@RequestBody @Valid CreateBoardRequest request,
                                 @AuthenticationPrincipal CustomUserDetails userDetails) {
