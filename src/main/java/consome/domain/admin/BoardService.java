@@ -19,19 +19,25 @@ public class BoardService {
     private final SectionRepository sectionRepository;
 
     public Board create(String name, String description, Long sectionId) {
-        isNameDuplicate(name);
+        String reason = checkNameAvailable(name, null);
+        if (reason != null) {
+            throw new BusinessException("BOARD_INVALID_NAME", reason);
+        }
         if (!sectionRepository.existsById(sectionId)) {
             throw new BusinessException("SECTION_NOT_FOUND", "섹션을 찾을 수 없습니다.");
         }
-        Board board = Board.create(name, description, sectionId);
+        Board board = Board.create(name.trim(), description, sectionId);
         return boardRepository.save(board);
     }
 
     public Board update(Long boardId, String name, String description) {
         Board board = findById(boardId);
         if (name != null) {
-            isNameDuplicate(name);
-            board.rename(name);
+            String trimmedName = name.trim();
+            if (boardRepository.existsByNameAndIdNot(trimmedName, boardId)) {
+                throw new BusinessException("BOARD_DUPLICATE_NAME", "이미 존재하는 게시판 이름입니다.");
+            }
+            board.rename(trimmedName);
         }
         if (description != null) {
             board.changeDescription(description);
@@ -64,14 +70,17 @@ public class BoardService {
         boardRepository.save(board);
     }
 
-    public boolean isNameDuplicate(String name) {
-        if (boardRepository.existsByName(name)) {
-            throw new BusinessException("BOARD_DUPLICATE_NAME", "이미 존재하는 게시판 이름입니다.");
+public String checkNameAvailable(String name, Long excludeId) {
+        if (name == null || name.trim().isEmpty() || name.trim().length() > 20) {
+            return "게시판 이름은 1자 이상 20자 이하로 입력해야 합니다.";
         }
-        if (name == null || name.trim().isEmpty() || name.length() < 1 || name.length() > 10) {
-            throw new BusinessException("BOARD_INVALID_NAME", "게시판 이름은 1자 이상 10자 이하로 입력해야 합니다.");
+        boolean exists = excludeId != null
+                ? boardRepository.existsByNameAndIdNot(name.trim(), excludeId)
+                : boardRepository.existsByName(name.trim());
+        if (exists) {
+            return "이미 존재하는 게시판 이름입니다.";
         }
-        return boardRepository.existsByName(name);
+        return null;
     }
 
     public Board findById(Long boardId) {

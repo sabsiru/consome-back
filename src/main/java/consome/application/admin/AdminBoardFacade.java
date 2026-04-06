@@ -72,4 +72,8 @@ public class AdminBoardFacade {
         validateManagerAccess(boardId, userId, userRole);
         return boardService.toggleCommentEnabled(boardId);
     }
+
+    public String checkNameAvailable(String name, Long excludeId) {
+        return boardService.checkNameAvailable(name, excludeId);
+    }
 }
