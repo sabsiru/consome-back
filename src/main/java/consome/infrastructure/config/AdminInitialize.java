@@ -10,6 +10,7 @@ import consome.domain.user.User;
 import consome.domain.user.repository.UserRepository;
 import consome.interfaces.admin.dto.section.SectionResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,6 +24,9 @@ public class AdminInitialize implements CommandLineRunner {
     private final AdminBoardFacade adminBoardFacade;
     private final AdminSectionFacade adminSectionFacade;
 
+    @Value("${app.admin.password:#{null}}")
+    private String adminPassword;
+
     @Override
     @Transactional
     public void run(String... args) {
@@ -33,10 +37,15 @@ public class AdminInitialize implements CommandLineRunner {
             return;
         }
 
+        if (adminPassword == null || adminPassword.isBlank()) {
+            System.out.println("[ADMIN INIT] app.admin.password 미설정 — 관리자 계정 생성 스킵");
+            return;
+        }
+
         UserRegisterCommand command = UserRegisterCommand.of(
                 loginId,
                 "관리자",
-                "Admin!23",
+                adminPassword,
                 "admin@consome.site"
         );
 
@@ -85,7 +94,7 @@ public class AdminInitialize implements CommandLineRunner {
         userRepository.findByLoginId("test3").ifPresent(User::verifyEmail);
         userRepository.findByLoginId("test4").ifPresent(User::verifyEmail);
 
-        System.out.println("[ADMIN INIT] 관리자 계정 생성 완료 : ID=admin / PW=Admin!23");
+        System.out.println("[ADMIN INIT] 관리자 계정 생성 완료");
 
         // 기본 섹션 및 게시판 생성
         SectionResponse gameSection = adminSectionFacade.create("게임", Role.ADMIN);
