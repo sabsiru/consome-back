@@ -12,7 +12,9 @@ import consome.domain.report.entity.ReportReason;
 import consome.domain.report.entity.ReportTargetType;
 import consome.interfaces.user.dto.UserLoginRequest;
 import consome.interfaces.user.dto.UserLoginResponse;
+import consome.config.TestBoardSetup;
 import consome.infrastructure.mail.EmailService;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,8 +46,16 @@ class ReportV1ControllerE2eTest {
     @Autowired
     PostFacade postFacade;
 
+    @Autowired
+    TestBoardSetup testBoardSetup;
+
     @MockBean
     EmailService emailService;
+
+    @BeforeEach
+    void setUp() {
+        testBoardSetup.setup();
+    }
 
     private Long 유저_생성() {
         String suffix = UUID.randomUUID().toString().substring(0, 8);
@@ -84,7 +94,7 @@ class ReportV1ControllerE2eTest {
     }
 
     private Long 게시글_생성(Long userId) {
-        PostCommand cmd = PostCommand.of(1L, 1L, userId, "테스트 게시글", "내용");
+        PostCommand cmd = PostCommand.of(testBoardSetup.getBoardId(), testBoardSetup.getCategoryId(), userId, "테스트 게시글", "내용");
         PostResult result = postFacade.post(cmd);
         return result.postId();
     }

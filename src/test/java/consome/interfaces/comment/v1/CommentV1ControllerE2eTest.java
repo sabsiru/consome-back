@@ -18,9 +18,11 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import consome.config.TestBoardSetup;
 import consome.infrastructure.mail.EmailService;
 import consome.domain.email.EmailVerificationService;
 import consome.infrastructure.redis.EmailVerificationRedisRepository;
+import org.junit.jupiter.api.BeforeEach;
 import org.testcontainers.utility.TestcontainersConfiguration;
 
 import java.util.UUID;
@@ -41,6 +43,14 @@ public class CommentV1ControllerE2eTest {
     @Autowired
     UserFacade userFacade;
 
+    @Autowired
+    TestBoardSetup testBoardSetup;
+
+    @BeforeEach
+    void setUp() {
+        testBoardSetup.setup();
+    }
+
     Long 준비_유저_생성() {
         String suffix = UUID.randomUUID().toString().substring(0, 8);
         UserRegisterCommand userRegisterCommand = UserRegisterCommand.of("user" + suffix, "nick" + suffix, "Password123", "user" + suffix + "@test.com");
@@ -48,8 +58,7 @@ public class CommentV1ControllerE2eTest {
     }
 
     Long 준비_게시글_생성(Long userId) {
-        Post post = Post.post(1L, 1L, userId, "title", "content");
-        PostCommand postCommand = PostCommand.of(post.getBoardId(), post.getCategoryId(), post.getUserId(), post.getTitle(), post.getContent());
+        PostCommand postCommand = PostCommand.of(testBoardSetup.getBoardId(), testBoardSetup.getCategoryId(), userId, "title", "content");
         PostResult postResult = postFacade.post(postCommand);
         return postResult.postId();
     }

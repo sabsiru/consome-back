@@ -23,6 +23,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import consome.config.TestBoardSetup;
 import consome.infrastructure.mail.EmailService;
 import consome.domain.email.EmailVerificationService;
 import consome.infrastructure.redis.EmailVerificationRedisRepository;
@@ -64,13 +65,19 @@ public class PostFacadeIntegrationTest {
     @Autowired
     private CommentReactionRepository commentReactionRepository;
 
+    @Autowired
+    private TestBoardSetup testBoardSetup;
+
     private UserRegisterCommand userRegisterCommand;
 
-    private long boardId = 1L;
-    private long categoryId = 1L;
+    private long boardId;
+    private long categoryId;
 
     @BeforeEach
     void setUp() {
+        testBoardSetup.setup();
+        boardId = testBoardSetup.getBoardId();
+        categoryId = testBoardSetup.getCategoryId();
         userRegisterCommand = UserRegisterCommand.of("testid", "테스트닉네임", "Password123", "test@test.com");
         userRepository.deleteAll();
     }

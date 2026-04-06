@@ -13,6 +13,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import consome.config.TestBoardSetup;
 import org.springframework.context.annotation.Import;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.context.ActiveProfiles;
@@ -47,12 +48,18 @@ class PostFacadeTest {
     @Autowired
     private FileStorage fileStorage;
 
+    @Autowired
+    private TestBoardSetup testBoardSetup;
+
     private Long userId;
-    private long boardId = 1L;
-    private long categoryId = 1L;
+    private long boardId;
+    private long categoryId;
 
     @BeforeEach
     void setUp() {
+        testBoardSetup.setup();
+        boardId = testBoardSetup.getBoardId();
+        categoryId = testBoardSetup.getCategoryId();
         userRepository.deleteAll();
         UserRegisterCommand userRegisterCommand = UserRegisterCommand.of("testid", "테스트닉네임", "Password123", "test@test.com");
         userId = userFacade.registerWithoutEmail(userRegisterCommand);

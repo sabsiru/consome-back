@@ -5,9 +5,11 @@ import consome.application.user.UserRegisterCommand;
 import consome.domain.comment.CommentService;
 import consome.domain.post.PostService;
 import consome.domain.post.entity.Post;
+import consome.config.TestBoardSetup;
 import consome.infrastructure.mail.EmailService;
 import consome.domain.email.EmailVerificationService;
 import consome.infrastructure.redis.EmailVerificationRedisRepository;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -38,8 +40,16 @@ class CommentFacadeIntegrationTest {
     @Autowired
     private UserFacade userFacade;
 
+    @Autowired
+    private TestBoardSetup testBoardSetup;
+
     @MockBean
     private EmailService emailService;
+
+    @BeforeEach
+    void setUp() {
+        testBoardSetup.setup();
+    }
 
 
     @Test
@@ -52,7 +62,7 @@ class CommentFacadeIntegrationTest {
                 "tester@test.com"
         );
         Long register = userFacade.registerWithoutEmail(registerCommand);
-        Post post = postService.post(1L, 2L, register, "testTitle",
+        Post post = postService.post(testBoardSetup.getBoardId(), testBoardSetup.getCategoryId(), register, "testTitle",
                 "testContent");
 
         for (int i = 1; i <= 100; i++) {
@@ -89,7 +99,7 @@ class CommentFacadeIntegrationTest {
                 "tester@test.com"
         );
         Long register = userFacade.registerWithoutEmail(registerCommand);
-        Post post = postService.post(1L, 2L, register, "testTitle",
+        Post post = postService.post(testBoardSetup.getBoardId(), testBoardSetup.getCategoryId(), register, "testTitle",
                 "testContent");
         CommentResult comment = commentFacade.comment(post.getId(), register,
                 null, "테스트 댓글");
