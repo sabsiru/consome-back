@@ -124,7 +124,7 @@ public class BoardServiceIntegrationTest {
         //when & then
         assertThatThrownBy(() -> boardService.create(invalidName, "유효성 검사 게시판", testSectionId))
                 .isInstanceOf(BusinessException.class)
-                .hasMessageContaining("게시판 이름은 1자 이상 10자 이하로 입력해야 합니다.");
+                .hasMessageContaining("게시판 이름은 1자 이상 20자 이하로 입력해야 합니다.");
     }
 
     @Test

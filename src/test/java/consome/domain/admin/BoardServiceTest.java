@@ -133,7 +133,7 @@ class BoardServiceTest {
         Board existing = Board.create("자유게시판", "설명", 1L);
 
         when(boardRepository.findById(id)).thenReturn(Optional.of(existing));
-        when(boardRepository.existsByName(duplicateName)).thenReturn(true);
+        when(boardRepository.existsByNameAndIdNot(duplicateName, id)).thenReturn(true);
 
         // when / then
         assertThatThrownBy(() -> boardService.update(id, duplicateName, null))
