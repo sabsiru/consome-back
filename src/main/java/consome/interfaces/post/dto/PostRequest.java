@@ -10,9 +10,6 @@ public record PostRequest(
 
         Long categoryId,
 
-        @NotNull(message = "작성자 정보가 필요합니다.")
-        Long userId,
-
         @NotBlank(message = "제목을 입력해주세요.")
         @Size(max = 100, message = "제목은 100자 이하로 입력해주세요.")
         String title,
