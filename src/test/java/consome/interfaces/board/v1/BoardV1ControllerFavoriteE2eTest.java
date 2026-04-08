@@ -15,7 +15,9 @@ import org.springframework.context.annotation.Import;
 import org.springframework.http.*;
 import org.springframework.test.context.ActiveProfiles;
 import org.testcontainers.utility.TestcontainersConfiguration;
+import consome.config.TestBoardSetup;
 import consome.infrastructure.mail.EmailService;
+import org.junit.jupiter.api.BeforeEach;
 
 import java.util.UUID;
 
@@ -32,10 +34,19 @@ class BoardV1ControllerFavoriteE2eTest {
     @Autowired
     private UserFacade userFacade;
 
+    @Autowired
+    private TestBoardSetup testBoardSetup;
+
     @MockBean
     private EmailService emailService;
 
-    private static final Long BOARD_ID = 1L;
+    private Long BOARD_ID;
+
+    @BeforeEach
+    void setUp() {
+        testBoardSetup.setup();
+        BOARD_ID = testBoardSetup.getBoardId();
+    }
 
     private String 로그인_토큰_획득() {
         String suffix = UUID.randomUUID().toString().substring(0, 8);

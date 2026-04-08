@@ -27,6 +27,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import consome.config.TestBoardSetup;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
 
@@ -42,19 +43,19 @@ class PostConcurrencyTest {
     @Autowired CommentFacade commentFacade;
     @Autowired PostService postService;
     @Autowired PostStatRepository statRepository;
+    @Autowired TestBoardSetup testBoardSetup;
     @MockBean EmailService emailService;
     @MockBean EmailVerificationService emailVerificationService;
     @MockBean EmailVerificationRedisRepository emailVerificationRedisRepository;
 
     private static final int THREAD_COUNT = 10;
-    private static final long BOARD_ID = 1L;
-    private static final long CATEGORY_ID = 1L;
 
     private List<Long> userIds;
     private Post post;
 
     @BeforeEach
     void setUp() {
+        testBoardSetup.setup();
         userIds = new ArrayList<>();
         String suffix = UUID.randomUUID().toString().substring(0, 8);
         for (int i = 0; i < THREAD_COUNT; i++) {
@@ -65,7 +66,7 @@ class PostConcurrencyTest {
         }
 
         Long authorId = userIds.get(0);
-        PostResult postResult = postFacade.post(PostCommand.of(BOARD_ID, CATEGORY_ID, authorId, "제목", "내용"));
+        PostResult postResult = postFacade.post(PostCommand.of(testBoardSetup.getBoardId(), testBoardSetup.getCategoryId(), authorId, "제목", "내용"));
         post = postService.getPost(postResult.postId());
     }
 

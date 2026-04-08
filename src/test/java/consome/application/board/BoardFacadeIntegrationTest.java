@@ -20,6 +20,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import consome.config.TestBoardSetup;
 import consome.infrastructure.mail.EmailService;
 import consome.domain.email.EmailVerificationService;
 import consome.infrastructure.redis.EmailVerificationRedisRepository;
@@ -51,14 +52,21 @@ class BoardFacadeIntegrationTest {
     @Autowired
     private UserRepository userRepository;
 
+    @Autowired
+    private TestBoardSetup testBoardSetup;
+
     private Long userId;
-    private final Long boardId = 1L;
-    private final Long categoryId = 1L;
-    private final Long categoryId2 = 2L;
+    private Long boardId;
+    private Long categoryId;
+    private Long categoryId2;
     private final Pageable pageable = PageRequest.of(0, 100);
 
     @BeforeEach
     void setUp() {
+        testBoardSetup.setup();
+        boardId = testBoardSetup.getBoardId();
+        categoryId = testBoardSetup.getCategoryId();
+        categoryId2 = testBoardSetup.getCategoryId2();
         userRepository.deleteAll();
         UserRegisterCommand command = UserRegisterCommand.of("testuser", "테스트유저", "Password123", "testuser@test.com");
         userId = userFacade.registerWithoutEmail(command);

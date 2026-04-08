@@ -13,6 +13,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import consome.config.TestBoardSetup;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -42,16 +43,16 @@ class CommentConcurrencyTest {
     @Autowired CommentFacade commentFacade;
     @Autowired CommentService commentService;
     @Autowired CommentStatRepository commentStatRepository;
+    @Autowired TestBoardSetup testBoardSetup;
 
     private static final int THREAD_COUNT = 10;
-    private static final long BOARD_ID = 1L;
-    private static final long CATEGORY_ID = 1L;
 
     private List<Long> userIds;
     private Long commentId;
 
     @BeforeEach
     void setUp() {
+        testBoardSetup.setup();
         userIds = new ArrayList<>();
         String suffix = UUID.randomUUID().toString().substring(0, 8);
         for (int i = 0; i < THREAD_COUNT; i++) {
@@ -62,7 +63,7 @@ class CommentConcurrencyTest {
         }
 
         Long authorId = userIds.get(0);
-        PostResult postResult = postFacade.post(PostCommand.of(BOARD_ID, CATEGORY_ID, authorId, "제목", "내용"));
+        PostResult postResult = postFacade.post(PostCommand.of(testBoardSetup.getBoardId(), testBoardSetup.getCategoryId(), authorId, "제목", "내용"));
         CommentResult commentResult = commentFacade.comment(postResult.postId(), authorId, null, "댓글내용");
         commentId = commentResult.commentId();
     }
