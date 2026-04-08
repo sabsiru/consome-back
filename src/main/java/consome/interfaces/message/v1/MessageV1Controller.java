@@ -2,6 +2,7 @@ package consome.interfaces.message.v1;
 
 import consome.application.message.MessageFacade;
 import consome.infrastructure.aop.RequireEmailVerified;
+import consome.infrastructure.security.CustomUserDetails;
 import consome.interfaces.message.dto.*;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -10,6 +11,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -22,71 +24,72 @@ public class MessageV1Controller {
     @PostMapping
     @RequireEmailVerified
     public ResponseEntity<MessageResponse> send(
-            @RequestParam Long userId,
+            @AuthenticationPrincipal CustomUserDetails userDetails,
             @RequestBody @Valid SendMessageRequest request) {
-        var result = messageFacade.send(request.toCommand(userId));
+        var result = messageFacade.send(request.toCommand(userDetails.getUserId()));
         return ResponseEntity.status(HttpStatus.CREATED).body(MessageResponse.from(result));
     }
 
     @GetMapping("/received")
     public ResponseEntity<Page<MessageListResponse>> getReceivedMessages(
-            @RequestParam Long userId,
+            @AuthenticationPrincipal CustomUserDetails userDetails,
             @PageableDefault(size = 50) Pageable pageable) {
-        var result = messageFacade.getReceivedMessages(userId, pageable);
+        var result = messageFacade.getReceivedMessages(userDetails.getUserId(), pageable);
         return ResponseEntity.ok(result.map(MessageListResponse::from));
     }
 
     @GetMapping("/sent")
     public ResponseEntity<Page<MessageListResponse>> getSentMessages(
-            @RequestParam Long userId,
+            @AuthenticationPrincipal CustomUserDetails userDetails,
             @PageableDefault(size = 50) Pageable pageable) {
-        var result = messageFacade.getSentMessages(userId, pageable);
+        var result = messageFacade.getSentMessages(userDetails.getUserId(), pageable);
         return ResponseEntity.ok(result.map(MessageListResponse::from));
     }
 
     @GetMapping("/{messageId}")
     public ResponseEntity<MessageResponse> readMessage(
             @PathVariable Long messageId,
-            @RequestParam Long userId) {
-        var result = messageFacade.readMessage(messageId, userId);
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
+        var result = messageFacade.readMessage(messageId, userDetails.getUserId());
         return ResponseEntity.ok(MessageResponse.from(result));
     }
 
     @DeleteMapping("/{messageId}")
     public ResponseEntity<Void> deleteMessage(
             @PathVariable Long messageId,
-            @RequestParam Long userId) {
-        messageFacade.deleteMessage(messageId, userId);
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
+        messageFacade.deleteMessage(messageId, userDetails.getUserId());
         return ResponseEntity.noContent().build();
     }
 
     @GetMapping("/unread-count")
-    public ResponseEntity<UnreadCountResponse> getUnreadCount(@RequestParam Long userId) {
-        long count = messageFacade.getUnreadCount(userId);
+    public ResponseEntity<UnreadCountResponse> getUnreadCount(
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
+        long count = messageFacade.getUnreadCount(userDetails.getUserId());
         return ResponseEntity.ok(new UnreadCountResponse(count));
     }
 
     @PostMapping("/blocks/{blockedId}")
     public ResponseEntity<BlockResponse> block(
-            @RequestParam Long userId,
+            @AuthenticationPrincipal CustomUserDetails userDetails,
             @PathVariable Long blockedId) {
-        var result = messageFacade.block(userId, blockedId);
+        var result = messageFacade.block(userDetails.getUserId(), blockedId);
         return ResponseEntity.status(HttpStatus.CREATED).body(BlockResponse.from(result));
     }
 
     @DeleteMapping("/blocks/{blockedId}")
     public ResponseEntity<Void> unblock(
-            @RequestParam Long userId,
+            @AuthenticationPrincipal CustomUserDetails userDetails,
             @PathVariable Long blockedId) {
-        messageFacade.unblock(userId, blockedId);
+        messageFacade.unblock(userDetails.getUserId(), blockedId);
         return ResponseEntity.noContent().build();
     }
 
     @GetMapping("/blocks")
     public ResponseEntity<Page<BlockResponse>> getBlockList(
-            @RequestParam Long userId,
+            @AuthenticationPrincipal CustomUserDetails userDetails,
             @PageableDefault(size = 50) Pageable pageable) {
-        var result = messageFacade.getBlockList(userId, pageable);
+        var result = messageFacade.getBlockList(userDetails.getUserId(), pageable);
         return ResponseEntity.ok(result.map(BlockResponse::from));
     }
 }

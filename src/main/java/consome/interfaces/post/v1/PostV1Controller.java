@@ -8,6 +8,7 @@ import consome.application.post.VideoUploadResult;
 import consome.domain.post.entity.Post;
 import consome.domain.post.entity.PostStat;
 import consome.infrastructure.aop.RequireEmailVerified;
+import consome.infrastructure.security.CustomUserDetails;
 import consome.interfaces.post.dto.*;
 import consome.interfaces.post.mapper.PostRequestMapper;
 import consome.interfaces.post.mapper.PostResponseMapper;
@@ -17,6 +18,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -32,8 +34,9 @@ public class PostV1Controller {
     @PostMapping
     @RequireEmailVerified
     public ResponseEntity<PostResponse> post(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
             @RequestBody @Valid PostRequest request) {
-        PostResult result = postFacade.post(PostRequestMapper.toPostCommand(request));
+        PostResult result = postFacade.post(PostRequestMapper.toPostCommand(request, userDetails.getUserId()));
         PostResponse response = PostResponseMapper.toResponse(result);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
@@ -69,7 +72,8 @@ public class PostV1Controller {
     @GetMapping("/{postId}")
     public ResponseEntity<PostDetailResponse> getPostDetail(@PathVariable Long postId,
                                                             HttpServletRequest request,
-                                                            @RequestParam(required = false) Long userId) {
+                                                            @AuthenticationPrincipal CustomUserDetails userDetails) {
+        Long userId = userDetails != null ? userDetails.getUserId() : null;
         String userIp = request.getRemoteAddr();
         PostStat stat = postFacade.increaseViewCount(postId, userIp, userId);
         Post post = postFacade.getPost(postId);
@@ -89,10 +93,10 @@ public class PostV1Controller {
     @PutMapping("/{postId}")
     public ResponseEntity<EditResponse> edit(
             @PathVariable Long postId,
+            @AuthenticationPrincipal CustomUserDetails userDetails,
             @RequestPart("request") @Valid EditRequest request,
-            @RequestPart(value = "images", required = false) List<MultipartFile> images,
-            @RequestParam Long userId) {
-        EditResult result = postFacade.edit(request.title(), request.categoryId(), request.content(), postId, userId, images);
+            @RequestPart(value = "images", required = false) List<MultipartFile> images) {
+        EditResult result = postFacade.edit(request.title(), request.categoryId(), request.content(), postId, userDetails.getUserId(), images);
         EditResponse response = EditResponse.from(result);
 
         return ResponseEntity.ok(response);
@@ -100,16 +104,16 @@ public class PostV1Controller {
 
     @DeleteMapping("/{postId}")
     public ResponseEntity<Void> delete(@PathVariable Long postId,
-                                       @RequestParam Long userId) {
-        postFacade.delete(postId, userId);
+                                       @AuthenticationPrincipal CustomUserDetails userDetails) {
+        postFacade.delete(postId, userDetails.getUserId());
         return ResponseEntity.noContent().build();
     }
 
     @PostMapping("/{postId}/like")
     public ResponseEntity<PostStatResponse> like(@PathVariable Long postId,
-                                                 @RequestParam Long userId) {
+                                                 @AuthenticationPrincipal CustomUserDetails userDetails) {
         Post post = postFacade.getPost(postId);
-        PostStat stat = postFacade.like(post, userId);
+        PostStat stat = postFacade.like(post, userDetails.getUserId());
         PostStatResponse response = PostStatResponse.from(stat);
 
         return ResponseEntity.ok(response);
@@ -117,9 +121,9 @@ public class PostV1Controller {
 
     @PostMapping("/{postId}/dislike")
     public ResponseEntity<PostStatResponse> dislike(@PathVariable Long postId,
-                                                    @RequestParam Long userId) {
+                                                    @AuthenticationPrincipal CustomUserDetails userDetails) {
         Post post = postFacade.getPost(postId);
-        PostStat stat = postFacade.dislike(post, userId);
+        PostStat stat = postFacade.dislike(post, userDetails.getUserId());
         PostStatResponse response = PostStatResponse.from(stat);
 
         return ResponseEntity.ok(response);

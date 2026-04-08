@@ -5,6 +5,7 @@ import consome.domain.report.entity.ReportStatus;
 import consome.domain.report.entity.ReportTargetType;
 import consome.domain.user.SuspensionType;
 import consome.interfaces.report.dto.AdminReportResponse;
+import consome.infrastructure.security.CustomUserDetails;
 import consome.interfaces.report.dto.GroupedReportResponse;
 import consome.interfaces.report.dto.ReporterDetailResponse;
 import lombok.RequiredArgsConstructor;
@@ -12,6 +13,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -58,17 +60,17 @@ public class AdminV1ReportController {
     @PatchMapping("/{reportId}/resolve")
     public ResponseEntity<AdminReportResponse> resolve(
             @PathVariable Long reportId,
-            @RequestParam Long userId,
+            @AuthenticationPrincipal CustomUserDetails userDetails,
             @RequestParam(required = false) SuspensionType suspensionType) {
-        var result = adminReportFacade.resolve(reportId, userId, suspensionType);
+        var result = adminReportFacade.resolve(reportId, userDetails.getUserId(), suspensionType);
         return ResponseEntity.ok(AdminReportResponse.from(result));
     }
 
     @PatchMapping("/{reportId}/reject")
     public ResponseEntity<AdminReportResponse> reject(
             @PathVariable Long reportId,
-            @RequestParam Long userId) {
-        var result = adminReportFacade.reject(reportId, userId);
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
+        var result = adminReportFacade.reject(reportId, userDetails.getUserId());
         return ResponseEntity.ok(AdminReportResponse.from(result));
     }
 }
