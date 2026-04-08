@@ -47,10 +47,38 @@ public class SecurityConfig {
                 )
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+
+                        // Auth
                         .requestMatchers("/api/v1/auth/logout").authenticated()
+
+                        // Post write operations
+                        .requestMatchers(HttpMethod.POST, "/api/v1/posts", "/api/v1/posts/images", "/api/v1/posts/videos").authenticated()
+                        .requestMatchers(HttpMethod.PUT, "/api/v1/posts/*").authenticated()
+                        .requestMatchers(HttpMethod.DELETE, "/api/v1/posts/*").authenticated()
+                        .requestMatchers(HttpMethod.POST, "/api/v1/posts/*/like", "/api/v1/posts/*/dislike").authenticated()
+
+                        // Comment write operations
+                        .requestMatchers(HttpMethod.POST, "/api/v1/posts/*/comments").authenticated()
+                        .requestMatchers(HttpMethod.PUT, "/api/v1/posts/*/comments/*").authenticated()
+                        .requestMatchers(HttpMethod.DELETE, "/api/v1/posts/*/comments/*").authenticated()
+                        .requestMatchers(HttpMethod.POST, "/api/v1/posts/*/comments/*/like", "/api/v1/posts/*/comments/*/dislike").authenticated()
+
+                        // Messages - all require auth
+                        .requestMatchers("/api/v1/messages/**").authenticated()
+
+                        // Notifications - subscribe uses token param auth
+                        .requestMatchers(HttpMethod.GET, "/api/v1/notifications/subscribe").permitAll()
+                        .requestMatchers("/api/v1/notifications/**").authenticated()
+
+                        // Reports
+                        .requestMatchers("/api/v1/reports/**").authenticated()
+
+                        // Board favorites
                         .requestMatchers("/api/v1/boards/favorites").authenticated()
-                        .requestMatchers("/api/v1/reports/mine").authenticated()
+
+                        // Admin
                         .requestMatchers("/api/v1/admin/**").hasAnyRole("ADMIN", "MANAGER")
+
                         .anyRequest().permitAll()
                 )
                 .formLogin(form -> form.disable())
