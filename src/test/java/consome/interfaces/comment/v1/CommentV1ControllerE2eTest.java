@@ -5,23 +5,19 @@ import consome.application.post.PostFacade;
 import consome.application.post.PostResult;
 import consome.application.user.UserFacade;
 import consome.application.user.UserRegisterCommand;
-import consome.domain.post.entity.Post;
+import consome.domain.user.Role;
+import consome.domain.user.User;
+import consome.domain.user.repository.UserRepository;
+import consome.infrastructure.jwt.JwtProvider;
 import consome.interfaces.comment.dto.*;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.context.annotation.Import;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import consome.config.TestBoardSetup;
-import consome.infrastructure.mail.EmailService;
-import consome.domain.email.EmailVerificationService;
-import consome.infrastructure.redis.EmailVerificationRedisRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.testcontainers.utility.TestcontainersConfiguration;
 
@@ -46,6 +42,12 @@ public class CommentV1ControllerE2eTest {
     @Autowired
     TestBoardSetup testBoardSetup;
 
+    @Autowired
+    JwtProvider jwtProvider;
+
+    @Autowired
+    UserRepository userRepository;
+
     @BeforeEach
     void setUp() {
         testBoardSetup.setup();
@@ -54,7 +56,11 @@ public class CommentV1ControllerE2eTest {
     Long 준비_유저_생성() {
         String suffix = UUID.randomUUID().toString().substring(0, 8);
         UserRegisterCommand userRegisterCommand = UserRegisterCommand.of("user" + suffix, "nick" + suffix, "Password123", "user" + suffix + "@test.com");
-        return userFacade.registerWithoutEmail(userRegisterCommand);
+        Long userId = userFacade.registerWithoutEmail(userRegisterCommand);
+        User user = userRepository.findById(userId).orElseThrow();
+        user.verifyEmail();
+        userRepository.save(user);
+        return userId;
     }
 
     Long 준비_게시글_생성(Long userId) {
@@ -63,17 +69,29 @@ public class CommentV1ControllerE2eTest {
         return postResult.postId();
     }
 
+    private HttpHeaders authHeaders(Long userId) {
+        String token = jwtProvider.createAccessToken(userId, Role.USER);
+        HttpHeaders headers = new HttpHeaders();
+        headers.setBearerAuth(token);
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        return headers;
+    }
+
     @Test
     void 댓글_생성하면_200과_댓글정보를_반환한다() {
         // given
         Long userId = 준비_유저_생성();
         Long postId = 준비_게시글_생성(userId);
-        CreateCommentRequest request = new CreateCommentRequest(userId, null, "댓글 내용");
+        CreateCommentRequest request = new CreateCommentRequest(null, "댓글 내용");
         String url = "/api/v1/posts/" + postId + "/comments";
 
         // when
-        ResponseEntity<CommentListResponse> response = restTemplate
-                .postForEntity(url, request, CommentListResponse.class);
+        ResponseEntity<CommentListResponse> response = restTemplate.exchange(
+                url,
+                HttpMethod.POST,
+                new HttpEntity<>(request, authHeaders(userId)),
+                CommentListResponse.class
+        );
 
         // then
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
@@ -90,21 +108,24 @@ public class CommentV1ControllerE2eTest {
         //given
         Long userId = 준비_유저_생성();
         Long postId = 준비_게시글_생성(userId);
-        CreateCommentRequest request = new CreateCommentRequest(userId, null, "댓글 내용");
+        CreateCommentRequest request = new CreateCommentRequest(null, "댓글 내용");
         String url = "/api/v1/posts/" + postId + "/comments";
-        ResponseEntity<CommentListResponse> response = restTemplate
-                .postForEntity(url, request, CommentListResponse.class);
+        ResponseEntity<CommentListResponse> response = restTemplate.exchange(
+                url,
+                HttpMethod.POST,
+                new HttpEntity<>(request, authHeaders(userId)),
+                CommentListResponse.class
+        );
         Long commentId = response.getBody().commentId();
 
-
         //when
-        EditCommentRequest editRequest = new EditCommentRequest(userId, "수정된 댓글 내용");
+        EditCommentRequest editRequest = new EditCommentRequest("수정된 댓글 내용");
         String editUrl = "/api/v1/posts/" + postId + "/comments/" + commentId;
 
         ResponseEntity<EditCommentResponse> editResponse = restTemplate.exchange(
                 editUrl,
                 HttpMethod.PUT,
-                new HttpEntity<>(editRequest),
+                new HttpEntity<>(editRequest, authHeaders(userId)),
                 EditCommentResponse.class
         );
         EditCommentResponse body = editResponse.getBody();
@@ -112,7 +133,6 @@ public class CommentV1ControllerE2eTest {
         //then
         assertThat(body).isNotNull();
         assertThat(body.content()).isEqualTo("수정된 댓글 내용");
-
     }
 
     @Test
@@ -120,18 +140,22 @@ public class CommentV1ControllerE2eTest {
         // given
         Long userId = 준비_유저_생성();
         Long postId = 준비_게시글_생성(userId);
-        CreateCommentRequest request = new CreateCommentRequest(userId, null, "댓글 내용");
+        CreateCommentRequest request = new CreateCommentRequest(null, "댓글 내용");
         String url = "/api/v1/posts/" + postId + "/comments";
-        ResponseEntity<CommentListResponse> response = restTemplate
-                .postForEntity(url, request, CommentListResponse.class);
+        ResponseEntity<CommentListResponse> response = restTemplate.exchange(
+                url,
+                HttpMethod.POST,
+                new HttpEntity<>(request, authHeaders(userId)),
+                CommentListResponse.class
+        );
         Long commentId = response.getBody().commentId();
 
         // when
-        String deleteUrl = "/api/v1/posts/" + postId + "/comments/" + commentId + "?userId=" + userId;
+        String deleteUrl = "/api/v1/posts/" + postId + "/comments/" + commentId;
         ResponseEntity<Void> deleteResponse = restTemplate.exchange(
                 deleteUrl,
                 HttpMethod.DELETE,
-                null,
+                new HttpEntity<>(null, authHeaders(userId)),
                 Void.class
         );
 
@@ -144,18 +168,26 @@ public class CommentV1ControllerE2eTest {
         //given
         Long userId = 준비_유저_생성();
         Long postId = 준비_게시글_생성(userId);
-        CreateCommentRequest request = new CreateCommentRequest(userId, null, "댓글 내용");
+        CreateCommentRequest request = new CreateCommentRequest(null, "댓글 내용");
         String url = "/api/v1/posts/" + postId + "/comments";
-        ResponseEntity<CommentListResponse> response = restTemplate
-                .postForEntity(url, request, CommentListResponse.class);
+        ResponseEntity<CommentListResponse> response = restTemplate.exchange(
+                url,
+                HttpMethod.POST,
+                new HttpEntity<>(request, authHeaders(userId)),
+                CommentListResponse.class
+        );
         Long commentId = response.getBody().commentId();
 
-        // 다른 유저로 좋아요 (자신의 댓글에 좋아요 불가능할 수 있음)
         Long otherUserId = 준비_유저_생성();
 
         //when
-        String likeUrl = "/api/v1/posts/" + postId + "/comments/" + commentId + "/like?userId=" + otherUserId;
-        ResponseEntity<CommentStatResponse> likeResponse = restTemplate.postForEntity(likeUrl, null, CommentStatResponse.class);
+        String likeUrl = "/api/v1/posts/" + postId + "/comments/" + commentId + "/like";
+        ResponseEntity<CommentStatResponse> likeResponse = restTemplate.exchange(
+                likeUrl,
+                HttpMethod.POST,
+                new HttpEntity<>(null, authHeaders(otherUserId)),
+                CommentStatResponse.class
+        );
 
         //then
         assertThat(likeResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
@@ -169,17 +201,26 @@ public class CommentV1ControllerE2eTest {
         // given
         Long userId = 준비_유저_생성();
         Long postId = 준비_게시글_생성(userId);
-        CreateCommentRequest request = new CreateCommentRequest(userId, null, "댓글 내용");
+        CreateCommentRequest request = new CreateCommentRequest(null, "댓글 내용");
         String url = "/api/v1/posts/" + postId + "/comments";
-        ResponseEntity<CommentListResponse> response = restTemplate
-                .postForEntity(url, request, CommentListResponse.class);
+        ResponseEntity<CommentListResponse> response = restTemplate.exchange(
+                url,
+                HttpMethod.POST,
+                new HttpEntity<>(request, authHeaders(userId)),
+                CommentListResponse.class
+        );
         Long commentId = response.getBody().commentId();
 
         Long otherUserId = 준비_유저_생성();
 
         // when
-        String dislikeUrl = "/api/v1/posts/" + postId + "/comments/" + commentId + "/dislike?userId=" + otherUserId;
-        ResponseEntity<CommentStatResponse> dislikeResponse = restTemplate.postForEntity(dislikeUrl, null, CommentStatResponse.class);
+        String dislikeUrl = "/api/v1/posts/" + postId + "/comments/" + commentId + "/dislike";
+        ResponseEntity<CommentStatResponse> dislikeResponse = restTemplate.exchange(
+                dislikeUrl,
+                HttpMethod.POST,
+                new HttpEntity<>(null, authHeaders(otherUserId)),
+                CommentStatResponse.class
+        );
 
         // then
         assertThat(dislikeResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
