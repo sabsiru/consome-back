@@ -1,6 +1,7 @@
 package consome.interfaces.notification.v1;
 
 import consome.application.notification.NotificationFacade;
+import consome.infrastructure.security.CustomUserDetails;
 import consome.interfaces.notification.dto.NotificationResponse;
 import consome.interfaces.notification.dto.UnreadCountResponse;
 import lombok.RequiredArgsConstructor;
@@ -9,6 +10,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
@@ -21,43 +23,46 @@ public class NotificationV1Controller {
 
     @GetMapping
     public ResponseEntity<Page<NotificationResponse>> getNotifications(
-            @RequestParam Long userId,
+            @AuthenticationPrincipal CustomUserDetails userDetails,
             @PageableDefault(size = 20) Pageable pageable) {
-        var result = notificationFacade.getNotifications(userId, pageable);
+        var result = notificationFacade.getNotifications(userDetails.getUserId(), pageable);
         return ResponseEntity.ok(result.map(NotificationResponse::from));
     }
 
     @GetMapping("/unread-count")
-    public ResponseEntity<UnreadCountResponse> getUnreadCount(@RequestParam Long userId) {
-        long count = notificationFacade.getUnreadCount(userId);
+    public ResponseEntity<UnreadCountResponse> getUnreadCount(
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
+        long count = notificationFacade.getUnreadCount(userDetails.getUserId());
         return ResponseEntity.ok(new UnreadCountResponse(count));
     }
 
     @PatchMapping("/{notificationId}/read")
     public ResponseEntity<NotificationResponse> markAsRead(
             @PathVariable Long notificationId,
-            @RequestParam Long userId) {
-        var result = notificationFacade.markAsRead(notificationId, userId);
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
+        var result = notificationFacade.markAsRead(notificationId, userDetails.getUserId());
         return ResponseEntity.ok(NotificationResponse.from(result));
     }
 
     @PatchMapping("/read-all")
-    public ResponseEntity<Void> markAllAsRead(@RequestParam Long userId) {
-        notificationFacade.markAllAsRead(userId);
+    public ResponseEntity<Void> markAllAsRead(
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
+        notificationFacade.markAllAsRead(userDetails.getUserId());
         return ResponseEntity.noContent().build();
     }
 
     @DeleteMapping("/{notificationId}")
     public ResponseEntity<Void> delete(
             @PathVariable Long notificationId,
-            @RequestParam Long userId) {
-        notificationFacade.delete(notificationId, userId);
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
+        notificationFacade.delete(notificationId, userDetails.getUserId());
         return ResponseEntity.noContent().build();
     }
 
     @DeleteMapping
-    public ResponseEntity<Void> deleteAll(@RequestParam Long userId) {
-        notificationFacade.deleteAll(userId);
+    public ResponseEntity<Void> deleteAll(
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
+        notificationFacade.deleteAll(userDetails.getUserId());
         return ResponseEntity.noContent().build();
     }
 

@@ -4,10 +4,9 @@ import consome.application.comment.CommentFacade;
 import consome.application.comment.CommentPageResult;
 import consome.application.comment.CommentResult;
 import consome.domain.comment.Comment;
-import consome.domain.comment.CommentReaction;
 import consome.domain.comment.CommentStat;
-import consome.domain.post.ReactionType;
 import consome.infrastructure.aop.RequireEmailVerified;
+import consome.infrastructure.security.CustomUserDetails;
 import consome.interfaces.comment.dto.*;
 import consome.interfaces.comment.mapper.CommentResponseMapper;
 import jakarta.validation.Valid;
@@ -15,6 +14,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -27,9 +27,10 @@ public class CommentV1Controller {
     @GetMapping("{postId}/comments")
     public ResponseEntity<CommentPageResponse> list(
             @PathVariable Long postId,
-            @RequestParam(required = false) Long userId,
+            @AuthenticationPrincipal CustomUserDetails userDetails,
             @PageableDefault(size = 50) Pageable pageable) {
 
+        Long userId = userDetails != null ? userDetails.getUserId() : null;
         CommentPageResult result = commentFacade.listByPost(postId, userId, pageable);
         return ResponseEntity.ok(CommentResponseMapper.toPageResponse(result));
     }
@@ -38,9 +39,10 @@ public class CommentV1Controller {
     @RequireEmailVerified
     public ResponseEntity<CommentResponse> comment(
             @PathVariable Long postId,
+            @AuthenticationPrincipal CustomUserDetails userDetails,
             @RequestBody @Valid CreateCommentRequest request) {
 
-        CommentResult result = commentFacade.comment(postId, request.userId(), request.parentId(), request.content());
+        CommentResult result = commentFacade.comment(postId, userDetails.getUserId(), request.parentId(), request.content());
         CommentResponse response = new CommentResponse(
                 result.commentId(),
                 result.postId(),
@@ -59,9 +61,10 @@ public class CommentV1Controller {
     public ResponseEntity<EditCommentResponse> edit(
             @PathVariable Long postId,
             @PathVariable Long commentId,
+            @AuthenticationPrincipal CustomUserDetails userDetails,
             @RequestBody @Valid EditCommentRequest request) {
 
-        Comment comment = commentFacade.edit(request.userId(), commentId, request.content());
+        Comment comment = commentFacade.edit(userDetails.getUserId(), commentId, request.content());
         EditCommentResponse response = new EditCommentResponse(
                 comment.getId(),
                 comment.getPostId(),
@@ -75,9 +78,9 @@ public class CommentV1Controller {
     public ResponseEntity<Void> delete(
             @PathVariable Long postId,
             @PathVariable Long commentId,
-            @RequestParam Long userId) {
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
 
-        commentFacade.delete(userId, commentId);
+        commentFacade.delete(userDetails.getUserId(), commentId);
         return ResponseEntity.noContent().build();
     }
 
@@ -85,12 +88,9 @@ public class CommentV1Controller {
     public ResponseEntity<CommentStatResponse> like(
             @PathVariable Long postId,
             @PathVariable Long commentId,
-            @RequestParam(required = false) Long userId) {
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
 
-        if (userId == null) {
-            return ResponseEntity.badRequest().build();
-        }
-        CommentStat stat = commentFacade.like(commentId, userId);
+        CommentStat stat = commentFacade.like(commentId, userDetails.getUserId());
         return ResponseEntity.ok(CommentStatResponse.from(stat));
     }
 
@@ -98,12 +98,9 @@ public class CommentV1Controller {
     public ResponseEntity<CommentStatResponse> dislike(
             @PathVariable Long postId,
             @PathVariable Long commentId,
-            @RequestParam(required = false) Long userId) {
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
 
-        if (userId == null) {
-            return ResponseEntity.badRequest().build();
-        }
-        CommentStat stat = commentFacade.dislike(commentId, userId);
+        CommentStat stat = commentFacade.dislike(commentId, userDetails.getUserId());
         return ResponseEntity.ok(CommentStatResponse.from(stat));
     }
 }

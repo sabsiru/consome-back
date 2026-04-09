@@ -14,10 +14,12 @@ import consome.interfaces.admin.dto.manage.ManageUserListResponse;
 import consome.interfaces.admin.dto.manage.UserSearchListResponse;
 import consome.interfaces.admin.dto.SuspendUserRequest;
 import consome.domain.user.User;
+import consome.infrastructure.security.CustomUserDetails;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -93,9 +95,9 @@ public class AdminV1DashboardController {
     @PostMapping("/users/{userId}/suspend")
     public ResponseEntity<Void> suspendUser(
             @PathVariable Long userId,
-            @RequestParam Long adminId,
+            @AuthenticationPrincipal CustomUserDetails userDetails,
             @RequestBody SuspendUserRequest request) {
-        adminDashboardFacade.suspendUser(userId, request.type(), request.reason(), adminId);
+        adminDashboardFacade.suspendUser(userId, request.type(), request.reason(), userDetails.getUserId());
         return ResponseEntity.ok().build();
     }
 
