@@ -5,9 +5,11 @@ import consome.application.user.UserFacade;
 import consome.application.user.UserRegisterCommand;
 import consome.config.TestBoardSetup;
 import consome.domain.post.repository.PostRepository;
+import consome.domain.user.Role;
+import consome.domain.user.User;
+import consome.domain.user.repository.UserRepository;
+import consome.infrastructure.jwt.JwtProvider;
 import consome.interfaces.post.dto.*;
-import consome.interfaces.user.dto.UserRegisterRequest;
-import consome.interfaces.user.dto.UserRegisterResponse;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -15,16 +17,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.context.annotation.Import;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import consome.infrastructure.mail.EmailService;
-import consome.domain.email.EmailVerificationService;
-import consome.infrastructure.redis.EmailVerificationRedisRepository;
+import org.springframework.util.LinkedMultiValueMap;
 import org.testcontainers.utility.TestcontainersConfiguration;
 
 import java.util.UUID;
@@ -51,12 +47,30 @@ class PostV1ControllerE2eTest {
     @Autowired
     private TestBoardSetup testBoardSetup;
 
+    @Autowired
+    private JwtProvider jwtProvider;
+
+    @Autowired
+    private UserRepository userRepository;
+
     private Long boardId;
     private Long categoryId;
 
     private Long createUser() {
         String suffix = UUID.randomUUID().toString().substring(0, 8);
-        return userFacade.registerWithoutEmail(UserRegisterCommand.of("user" + suffix, "nick" + suffix, "Password123", "user" + suffix + "@test.com"));
+        Long userId = userFacade.registerWithoutEmail(UserRegisterCommand.of("user" + suffix, "nick" + suffix, "Password123", "user" + suffix + "@test.com"));
+        User user = userRepository.findById(userId).orElseThrow();
+        user.verifyEmail();
+        userRepository.save(user);
+        return userId;
+    }
+
+    private HttpHeaders authHeaders(Long userId) {
+        String token = jwtProvider.createAccessToken(userId, Role.USER);
+        HttpHeaders headers = new HttpHeaders();
+        headers.setBearerAuth(token);
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        return headers;
     }
 
     @BeforeEach
@@ -68,56 +82,56 @@ class PostV1ControllerE2eTest {
 
     @Test
     @DisplayName("회원가입 후 게시글 작성 시 201 Created 응답을 반환한다")
-    void 회원가입_후_게시글작성_성공() throws Exception {
+    void 회원가입_후_게시글작성_성공() {
         Long userId = createUser();
 
-        PostRequest postRequest = new PostRequest(
-                boardId, categoryId, userId,
-                "테스트 게시글 제목",
-                "테스트 게시글 내용"
-        );
+        PostRequest postRequest = new PostRequest(boardId, categoryId, "테스트 게시글 제목", "테스트 게시글 내용");
 
-        ResponseEntity<Void> postResponse = restTemplate
-                .postForEntity("/api/v1/posts", postRequest, Void.class);
+        ResponseEntity<Void> postResponse = restTemplate.exchange(
+                "/api/v1/posts",
+                HttpMethod.POST,
+                new HttpEntity<>(postRequest, authHeaders(userId)),
+                Void.class
+        );
 
         assertThat(postResponse.getStatusCode()).isEqualTo(HttpStatus.CREATED);
     }
 
     @Test
     @DisplayName("게시글 수정 시 200 OK와 EditResponse를 반환한다")
-    void 게시글_수정_성공() throws Exception {
+    void 게시글_수정_성공() {
         Long userId = createUser();
 
-        PostRequest postRequest = new PostRequest(
-                boardId, categoryId, userId,
-                "수정 대상 제목",
-                "수정 전 내용"
-        );
+        PostRequest postRequest = new PostRequest(boardId, categoryId, "수정 대상 제목", "수정 전 내용");
 
-        ResponseEntity<PostResult> postResponse = restTemplate
-                .postForEntity("/api/v1/posts", postRequest, PostResult.class);
+        ResponseEntity<PostResult> postResponse = restTemplate.exchange(
+                "/api/v1/posts",
+                HttpMethod.POST,
+                new HttpEntity<>(postRequest, authHeaders(userId)),
+                PostResult.class
+        );
         assertThat(postResponse.getStatusCode()).isEqualTo(HttpStatus.CREATED);
         assertThat(postResponse.getBody()).isNotNull();
         Long postId = postResponse.getBody().postId();
         assertThat(postId).isNotNull();
 
-        org.springframework.util.LinkedMultiValueMap<String, Object> body = new org.springframework.util.LinkedMultiValueMap<>();
-        org.springframework.http.HttpHeaders partHeaders = new org.springframework.http.HttpHeaders();
-        partHeaders.setContentType(org.springframework.http.MediaType.APPLICATION_JSON);
+        LinkedMultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
+        HttpHeaders partHeaders = new HttpHeaders();
+        partHeaders.setContentType(MediaType.APPLICATION_JSON);
         EditRequest editRequest = new EditRequest("수정된 제목", categoryId, "수정 후 내용");
-        org.springframework.http.HttpEntity<EditRequest> requestPart = new org.springframework.http.HttpEntity<>(editRequest, partHeaders);
+        HttpEntity<EditRequest> requestPart = new HttpEntity<>(editRequest, partHeaders);
         body.add("request", requestPart);
 
-        org.springframework.http.HttpHeaders headers = new org.springframework.http.HttpHeaders();
-        headers.setContentType(org.springframework.http.MediaType.MULTIPART_FORM_DATA);
-        HttpEntity<org.springframework.util.LinkedMultiValueMap<String, Object>> requestEntity = new HttpEntity<>(body, headers);
+        HttpHeaders headers = authHeaders(userId);
+        headers.setContentType(MediaType.MULTIPART_FORM_DATA);
+        HttpEntity<LinkedMultiValueMap<String, Object>> requestEntity = new HttpEntity<>(body, headers);
 
         ResponseEntity<EditResponse> editRes = restTemplate.exchange(
-                "/api/v1/posts/{postId}?userId={userId}",
+                "/api/v1/posts/{postId}",
                 HttpMethod.PUT,
                 requestEntity,
                 EditResponse.class,
-                postId, userId
+                postId
         );
 
         assertThat(editRes.getStatusCode()).isEqualTo(HttpStatus.OK);
@@ -128,18 +142,22 @@ class PostV1ControllerE2eTest {
     void 게시글_삭제_성공_소프트삭제_검증() {
         Long userId = createUser();
 
-        PostRequest postRequest = new PostRequest(boardId, categoryId, userId, "삭제 대상", "삭제 전 내용");
-        ResponseEntity<PostResult> postRes = restTemplate
-                .postForEntity("/api/v1/posts", postRequest, PostResult.class);
+        PostRequest postRequest = new PostRequest(boardId, categoryId, "삭제 대상", "삭제 전 내용");
+        ResponseEntity<PostResult> postRes = restTemplate.exchange(
+                "/api/v1/posts",
+                HttpMethod.POST,
+                new HttpEntity<>(postRequest, authHeaders(userId)),
+                PostResult.class
+        );
         assertThat(postRes.getStatusCode()).isEqualTo(HttpStatus.CREATED);
         Long postId = postRes.getBody().postId();
 
         ResponseEntity<Void> deleteRes = restTemplate.exchange(
-                "/api/v1/posts/{postId}?userId={userId}",
+                "/api/v1/posts/{postId}",
                 HttpMethod.DELETE,
-                HttpEntity.EMPTY,
+                new HttpEntity<>(null, authHeaders(userId)),
                 Void.class,
-                postId, userId
+                postId
         );
 
         assertThat(deleteRes.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
@@ -158,16 +176,21 @@ class PostV1ControllerE2eTest {
     void 게시글_좋아요_성공() {
         Long userId = createUser();
 
-        PostRequest postRequest = new PostRequest(boardId, categoryId, userId, "좋아요 대상", "내용");
-        ResponseEntity<PostResult> postRes = restTemplate
-                .postForEntity("/api/v1/posts", postRequest, PostResult.class);
+        PostRequest postRequest = new PostRequest(boardId, categoryId, "좋아요 대상", "내용");
+        ResponseEntity<PostResult> postRes = restTemplate.exchange(
+                "/api/v1/posts",
+                HttpMethod.POST,
+                new HttpEntity<>(postRequest, authHeaders(userId)),
+                PostResult.class
+        );
         Long postId = postRes.getBody().postId();
 
-        ResponseEntity<PostStatResponse> likeRes = restTemplate.postForEntity(
-                "/api/v1/posts/{postId}/like?userId={userId}",
-                null,
+        ResponseEntity<PostStatResponse> likeRes = restTemplate.exchange(
+                "/api/v1/posts/{postId}/like",
+                HttpMethod.POST,
+                new HttpEntity<>(null, authHeaders(userId)),
                 PostStatResponse.class,
-                postId, userId
+                postId
         );
 
         assertThat(likeRes.getStatusCode()).isEqualTo(HttpStatus.OK);
@@ -181,16 +204,21 @@ class PostV1ControllerE2eTest {
     void 게시글_싫어요_성공() {
         Long userId = createUser();
 
-        PostRequest postRequest = new PostRequest(boardId, categoryId, userId, "싫어요 대상", "내용");
-        ResponseEntity<PostResult> postRes = restTemplate
-                .postForEntity("/api/v1/posts", postRequest, PostResult.class);
+        PostRequest postRequest = new PostRequest(boardId, categoryId, "싫어요 대상", "내용");
+        ResponseEntity<PostResult> postRes = restTemplate.exchange(
+                "/api/v1/posts",
+                HttpMethod.POST,
+                new HttpEntity<>(postRequest, authHeaders(userId)),
+                PostResult.class
+        );
         Long postId = postRes.getBody().postId();
 
-        ResponseEntity<PostStatResponse> dislikeRes = restTemplate.postForEntity(
-                "/api/v1/posts/{postId}/dislike?userId={userId}",
-                null,
+        ResponseEntity<PostStatResponse> dislikeRes = restTemplate.exchange(
+                "/api/v1/posts/{postId}/dislike",
+                HttpMethod.POST,
+                new HttpEntity<>(null, authHeaders(userId)),
                 PostStatResponse.class,
-                postId, userId
+                postId
         );
 
         assertThat(dislikeRes.getStatusCode()).isEqualTo(HttpStatus.OK);
@@ -205,15 +233,20 @@ class PostV1ControllerE2eTest {
         Long userId = createUser();
 
         String content = "상세 내용 확인";
-        PostRequest postRequest = new PostRequest(boardId, categoryId, userId, "상세 제목", content);
-        ResponseEntity<PostResult> postRes = restTemplate
-                .postForEntity("/api/v1/posts", postRequest, PostResult.class);
+        PostRequest postRequest = new PostRequest(boardId, categoryId, "상세 제목", content);
+        ResponseEntity<PostResult> postRes = restTemplate.exchange(
+                "/api/v1/posts",
+                HttpMethod.POST,
+                new HttpEntity<>(postRequest, authHeaders(userId)),
+                PostResult.class
+        );
         Long postId = postRes.getBody().postId();
 
+        // 상세 조회는 비로그인도 가능 (Optional Auth)
         ResponseEntity<PostDetailResponse> detailRes = restTemplate.getForEntity(
-                "/api/v1/posts/{postId}?userId={userId}",
+                "/api/v1/posts/{postId}",
                 PostDetailResponse.class,
-                postId, userId
+                postId
         );
 
         assertThat(detailRes.getStatusCode()).isEqualTo(HttpStatus.OK);

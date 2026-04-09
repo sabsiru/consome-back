@@ -17,6 +17,7 @@ import consome.domain.post.PostService;
 import consome.domain.post.ReactionType;
 import consome.domain.post.entity.Post;
 import consome.domain.user.UserService;
+import consome.infrastructure.security.HtmlSanitizer;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -39,9 +40,11 @@ public class CommentFacade {
     private final BoardService boardService;
     private final SectionService sectionService;
     private final NotificationFacade notificationFacade;
+    private final HtmlSanitizer htmlSanitizer;
 
     @Transactional
     public CommentResult comment(Long postId, Long userId, Long parentId, String content) {
+        content = htmlSanitizer.sanitizeComment(content);
         Post post = postService.getPost(postId);
         validateCommentPermission(post.getBoardId(), userId);
         postService.increaseCommentCount(postId);
@@ -68,6 +71,7 @@ public class CommentFacade {
 
     @Transactional
     public Comment edit(Long userId, Long commentId, String content) {
+        content = htmlSanitizer.sanitizeComment(content);
         return commentService.edit(userId, commentId, content);
     }
 
