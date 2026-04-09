@@ -26,6 +26,7 @@ import consome.domain.post.repository.TempPostVideoRepository;
 import consome.domain.user.Role;
 import consome.domain.user.User;
 import consome.domain.user.UserService;
+import consome.infrastructure.security.HtmlSanitizer;
 import consome.infrastructure.storage.FileStorage;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -50,12 +51,13 @@ public class PostFacade {
     private final BoardService boardService;
     private final SectionService sectionService;
     private final UserService userService;
+    private final HtmlSanitizer htmlSanitizer;
 
     @Transactional
     public PostResult post(PostCommand command) {
         validateAdminOnlySection(command.boardId(), command.userId());
 
-        String content = command.content();
+        String content = htmlSanitizer.sanitizePostContent(command.content());
         Post post = postService.post(command.boardId(), command.categoryId(),
                 command.userId(), command.title(), content);
 
@@ -84,11 +86,13 @@ public class PostFacade {
 
         String content = command.content();
 
-        // 이미지 저장 + URL 치환
+        // 이미지 저장 + URL 치환 (sanitize 전에 수행 — data-image-index 속성 보존 필요)
         if (images != null && !images.isEmpty()) {
             List<String> urls = fileStorage.storeAll(images, "posts");
             content = replaceImageIndexes(content, urls);
         }
+
+        content = htmlSanitizer.sanitizePostContent(content);
 
         Post post = postService.post(command.boardId(), command.categoryId(), command.userId(), command.title(), content);
 
@@ -110,18 +114,22 @@ public class PostFacade {
     }
 
     @Transactional
-    public EditResult edit(String title, Long categoryId, String content, Long postId, Long userId, List<MultipartFile> images) {
+    public EditResult edit(String title, Long categoryId, String rawContent, Long postId, Long userId, List<MultipartFile> images) {
         Post post = postService.getPostForUpdate(postId);
 
         if (!post.getUserId().equals(userId)) {
             throw new PostException.Unauthorized("수정");
         }
 
-        // 새 이미지 저장 + URL 치환
+        String content = rawContent;
+
+        // 새 이미지 저장 + URL 치환 (sanitize 전에 수행 — data-image-index 속성 보존 필요)
         if (images != null && !images.isEmpty()) {
             List<String> urls = fileStorage.storeAll(images, "posts");
             content = replaceImageIndexes(content, urls);
         }
+
+        content = htmlSanitizer.sanitizePostContent(content);
 
         // 기존 이미지 URL 조회
         List<PostImage> existingImages = postImageRepository.findByPostId(postId);
