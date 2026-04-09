@@ -1,6 +1,7 @@
 package consome.interfaces.message.v1;
 
 import consome.application.message.MessageFacade;
+import consome.infrastructure.aop.RateLimit;
 import consome.infrastructure.aop.RequireEmailVerified;
 import consome.infrastructure.security.CustomUserDetails;
 import consome.interfaces.message.dto.*;
@@ -23,6 +24,7 @@ public class MessageV1Controller {
 
     @PostMapping
     @RequireEmailVerified
+    @RateLimit(key = "message", limit = 10)
     public ResponseEntity<MessageResponse> send(
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @RequestBody @Valid SendMessageRequest request) {
