@@ -18,7 +18,14 @@ public class JwtProvider {
 
     public JwtProvider(JwtProperties properties) {
         this.properties = properties;
-        this.key = Keys.hmacShaKeyFor(properties.getSecret().getBytes());
+        String secret = properties.getSecret();
+        if (secret == null || secret.isBlank()) {
+            throw new IllegalStateException("JWT_SECRET 환경변수가 설정되지 않았습니다.");
+        }
+        if (secret.getBytes().length < 32) {
+            throw new IllegalStateException("JWT_SECRET은 최소 256비트(32바이트) 이상이어야 합니다.");
+        }
+        this.key = Keys.hmacShaKeyFor(secret.getBytes());
     }
 
     /** ✅ AccessToken 생성 */
