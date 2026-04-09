@@ -1,6 +1,7 @@
 package consome.interfaces.report.v1;
 
 import consome.application.report.ReportFacade;
+import consome.infrastructure.aop.RateLimit;
 import consome.infrastructure.security.CustomUserDetails;
 import consome.interfaces.report.dto.CreateReportRequest;
 import consome.interfaces.report.dto.ReportResponse;
@@ -22,6 +23,7 @@ public class ReportV1Controller {
     private final ReportFacade reportFacade;
 
     @PostMapping
+    @RateLimit(key = "report", limit = 5, window = 1, timeUnit = java.util.concurrent.TimeUnit.HOURS)
     public ResponseEntity<ReportResponse> create(
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @RequestBody @Valid CreateReportRequest request) {

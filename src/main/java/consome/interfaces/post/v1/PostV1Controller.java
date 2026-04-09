@@ -7,6 +7,7 @@ import consome.application.post.PostResult;
 import consome.application.post.VideoUploadResult;
 import consome.domain.post.entity.Post;
 import consome.domain.post.entity.PostStat;
+import consome.infrastructure.aop.RateLimit;
 import consome.infrastructure.aop.RequireEmailVerified;
 import consome.infrastructure.security.CustomUserDetails;
 import consome.interfaces.post.dto.*;
@@ -33,6 +34,7 @@ public class PostV1Controller {
 
     @PostMapping
     @RequireEmailVerified
+    @RateLimit(key = "post", limit = 10)
     public ResponseEntity<PostResponse> post(
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @RequestBody @Valid PostRequest request) {

@@ -2,6 +2,7 @@ package consome.interfaces.advice;
 
 import consome.domain.comment.exception.CommentException;
 import consome.domain.common.exception.BusinessException;
+import consome.domain.common.exception.RateLimitException;
 import consome.domain.message.exception.MessageException;
 import consome.domain.post.exception.PostException;
 import consome.domain.report.exception.ReportException;
@@ -177,6 +178,14 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleReportException(ReportException ex) {
         return ResponseEntity
                 .status(HttpStatus.BAD_REQUEST)
+                .body(new ErrorResponse(ex.getCode(), ex.getMessage()));
+    }
+
+    // ===== Rate Limit Exceptions =====
+    @ExceptionHandler(RateLimitException.class)
+    public ResponseEntity<ErrorResponse> handleRateLimitException(RateLimitException ex) {
+        return ResponseEntity
+                .status(HttpStatus.TOO_MANY_REQUESTS)
                 .body(new ErrorResponse(ex.getCode(), ex.getMessage()));
     }
 

@@ -5,6 +5,7 @@ import consome.application.comment.CommentPageResult;
 import consome.application.comment.CommentResult;
 import consome.domain.comment.Comment;
 import consome.domain.comment.CommentStat;
+import consome.infrastructure.aop.RateLimit;
 import consome.infrastructure.aop.RequireEmailVerified;
 import consome.infrastructure.security.CustomUserDetails;
 import consome.interfaces.comment.dto.*;
@@ -37,6 +38,7 @@ public class CommentV1Controller {
 
     @PostMapping("/{postId}/comments")
     @RequireEmailVerified
+    @RateLimit(key = "comment", limit = 20)
     public ResponseEntity<CommentResponse> comment(
             @PathVariable Long postId,
             @AuthenticationPrincipal CustomUserDetails userDetails,

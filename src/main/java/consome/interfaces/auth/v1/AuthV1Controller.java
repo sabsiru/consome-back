@@ -2,6 +2,7 @@ package consome.interfaces.auth.v1;
 
 import consome.application.auth.AuthFacade;
 import consome.application.auth.TokenRefreshResult;
+import consome.infrastructure.aop.RateLimit;
 import consome.infrastructure.security.CustomUserDetails;
 import consome.interfaces.auth.dto.TokenRefreshRequest;
 import consome.interfaces.auth.dto.TokenRefreshResponse;
@@ -23,6 +24,7 @@ public class AuthV1Controller {
     private final AuthFacade authFacade;
 
     @PostMapping("/refresh")
+    @RateLimit(key = "refresh", limit = 10, byIp = true)
     public ResponseEntity<TokenRefreshResponse> refresh(@RequestBody @Valid TokenRefreshRequest request) {
         TokenRefreshResult result = authFacade.refresh(request.refreshToken());
         return ResponseEntity.ok(TokenRefreshResponse.from(result));

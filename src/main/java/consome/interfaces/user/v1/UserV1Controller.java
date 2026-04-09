@@ -2,6 +2,7 @@ package consome.interfaces.user.v1;
 
 
 import consome.application.user.*;
+import consome.infrastructure.aop.RateLimit;
 import consome.infrastructure.security.CustomUserDetails;
 import consome.interfaces.user.dto.*;
 import consome.interfaces.user.mapper.*;
@@ -25,6 +26,7 @@ public class UserV1Controller {
     private final UserFacade userFacade;
 
     @PostMapping
+    @RateLimit(key = "register", limit = 5, window = 1, timeUnit = java.util.concurrent.TimeUnit.HOURS, byIp = true)
     public ResponseEntity<UserRegisterResponse> register(@RequestBody @Valid UserRegisterRequest request) {
         String verifyToken = userFacade.register(UserRegisterMapper.toRegisterCommand(request));
         UserRegisterResponse response = UserRegisterResponseMapper.toRegisterResponse(verifyToken);
@@ -32,6 +34,7 @@ public class UserV1Controller {
     }
 
     @PostMapping("/login")
+    @RateLimit(key = "login", limit = 10, byIp = true)
     public ResponseEntity<UserLoginResponse> login(@RequestBody @Valid UserLoginRequest request) {
         UserLoginCommand command = UserLoginMapper.toLoginCommand(request);
         UserLoginResult result = userFacade.login(command);
