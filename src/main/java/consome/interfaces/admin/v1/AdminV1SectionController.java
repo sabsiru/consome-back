@@ -68,7 +68,8 @@ public class AdminV1SectionController {
             @RequestParam(defaultValue = "20") int size,
             @RequestParam(required = false) String keyword,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
+        int safeSize = Math.min(size, 100);
         return ResponseEntity.ok(adminSectionFacade.findBoardsBySectionId(
-                sectionId, keyword, PageRequest.of(page, size), userDetails.getRole()));
+                sectionId, keyword, PageRequest.of(page, safeSize), userDetails.getRole()));
     }
 }
