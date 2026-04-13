@@ -14,6 +14,8 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
+import java.util.Map;
+
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/notifications")
@@ -64,6 +66,13 @@ public class NotificationV1Controller {
             @AuthenticationPrincipal CustomUserDetails userDetails) {
         notificationFacade.deleteAll(userDetails.getUserId());
         return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/sse-token")
+    public ResponseEntity<Map<String, String>> createSseToken(
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
+        String token = notificationFacade.createSseToken(userDetails.getUserId());
+        return ResponseEntity.ok(java.util.Map.of("token", token));
     }
 
     @GetMapping(value = "/subscribe", produces = MediaType.TEXT_EVENT_STREAM_VALUE)

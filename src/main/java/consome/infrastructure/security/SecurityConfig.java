@@ -71,7 +71,7 @@ public class SecurityConfig {
                         // Messages - all require auth
                         .requestMatchers("/api/v1/messages/**").authenticated()
 
-                        // Notifications - subscribe uses token param auth
+                        // Notifications - subscribe uses one-time SSE token (not JWT)
                         .requestMatchers(HttpMethod.GET, "/api/v1/notifications/subscribe").permitAll()
                         .requestMatchers("/api/v1/notifications/**").authenticated()
 
