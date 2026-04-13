@@ -5,8 +5,8 @@ import consome.domain.notification.NotificationService;
 import consome.domain.notification.NotificationType;
 import consome.domain.notification.repository.NotificationQueryRepository;
 import consome.domain.user.UserService;
-import consome.infrastructure.jwt.JwtProvider;
 import consome.infrastructure.notification.SseEmitterRepository;
+import consome.infrastructure.redis.SseTokenRedisRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -26,7 +26,7 @@ public class NotificationFacade {
     private final NotificationQueryRepository notificationQueryRepository;
     private final UserService userService;
     private final SseEmitterRepository sseEmitterRepository;
-    private final JwtProvider jwtProvider;
+    private final SseTokenRedisRepository sseTokenRedisRepository;
 
     public void notify(Long userId, NotificationType type, Long actorId,
                        Long targetId, Long relatedId, Long referenceId, String message) {
@@ -92,11 +92,13 @@ public class NotificationFacade {
         }
     }
 
+    public String createSseToken(Long userId) {
+        return sseTokenRedisRepository.createToken(userId);
+    }
+
     public SseEmitter subscribe(String token) {
-        if (!jwtProvider.validateToken(token)) {
-            throw new IllegalArgumentException("유효하지 않은 토큰입니다.");
-        }
-        Long userId = jwtProvider.getUserId(token);
+        Long userId = sseTokenRedisRepository.consumeToken(token)
+                .orElseThrow(() -> new IllegalArgumentException("유효하지 않은 SSE 토큰입니다."));
         return sseEmitterRepository.subscribe(userId);
     }
 }
