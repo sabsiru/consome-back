@@ -45,6 +45,10 @@ public class SecurityConfig {
                         .frameOptions(frame -> frame.deny())
                         .contentTypeOptions(content -> {})
                         .cacheControl(cache -> {})
+                        .httpStrictTransportSecurity(hsts -> hsts
+                                .includeSubDomains(true)
+                                .maxAgeInSeconds(31536000)
+                        )
                 )
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(session ->
@@ -107,6 +111,9 @@ public class SecurityConfig {
                 registry.addMapping("/**")
                         .allowedOrigins(allowedOrigins.split(","))
                         .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH")
+                        .allowedHeaders("Content-Type", "Authorization", "X-Requested-With")
+                        .exposedHeaders("Authorization")
+                        .maxAge(3600)
                         .allowCredentials(true);
             }
         };
