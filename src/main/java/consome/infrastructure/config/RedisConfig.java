@@ -54,9 +54,10 @@ public class RedisConfig {
                         .allowIfSubType("consome.")
                         .allowIfSubType("java.util.")
                         .allowIfSubType("java.time.")
-                        .allowIfSubType("org.springframework.data.domain.")
+                        .allowIfSubType("java.lang.")
+                        .allowIfSubType("[L")
                         .build(),
-                ObjectMapper.DefaultTyping.NON_FINAL,
+                ObjectMapper.DefaultTyping.EVERYTHING,
                 JsonTypeInfo.As.PROPERTY
         );
 
