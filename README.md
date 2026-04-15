@@ -78,7 +78,7 @@ graph LR
 - **스레드 안전한 캐싱 적용 (`Cache Stampede` 방지):**
   빈번하게 조회되는 주요 게시판 목록에는 **`@Cacheable(sync = true)`**를 적용했습니다. 캐시가 만료되는 순간 다수의 요청이 동시에 DB로 몰리는 캐시 스탬피드 현상을 방지하고, 단 하나의 스레드만 DB에 접근하도록 하여 안정적인 응답 속도를 보장합니다.
 
-**Redis 활용 전략 (11가지 패턴):**
+**Redis 활용 전략 (12가지 패턴):**
 
 | 패턴 | 용도 | Key | TTL | 자료구조 |
 |:---:|------|-----|:---:|:---:|
@@ -93,6 +93,7 @@ graph LR
 | 9️⃣ | **인기글 후보** | `popular_post_candidates` | 5일 | Sorted Set |
 | 🔟 | **주요게시판 캐싱** | `popular-boards` (`@Cacheable`, sync=true) | 5분 | JSON |
 | 1️⃣1️⃣ | **인기글 캐싱** | `popular-posts` (`@Cacheable`, sync=true) | 5분 | JSON |
+| 1️⃣2️⃣ | **Rate Limiting** | `rate_limit:{key}:{identifier}` | 동적 (window) | String |
 
 <br>
 
@@ -196,6 +197,8 @@ sequenceDiagram
 | **NoSQL / Cache** | **Redis 7.0 (Master-Replica)**                | 인기글 후보, 세션/토큰, 캐싱 목적     |
 | **ORM / Query**   | Spring Data JPA, **QueryDSL 5.0**             | 복잡한 동적 쿼리 처리                 |
 | **Concurrency**   | **Pessimistic Lock**, Redis Distributed Lock  | 데이터 정합성 보장                    |
+| **Security**      | **OWASP HTML Sanitizer**, HSTS, CORS          | XSS/Injection 방어                    |
+| **Rate Limiting** | **@RateLimit AOP + Redis Fixed Window**       | 엔드포인트별 요청 제한                |
 | **Test**          | JUnit 5, Mockito, **Testcontainers**          | 통합 테스트 및 동시성 검증 환경       |
 | **Infra / Build** | Docker Compose, Gradle                        |                                       |
 
@@ -251,6 +254,9 @@ graph TD
 - **쪽지 및 사용자 관리:** 1:1 쪽지, 사용자 차단/신고 기능.
 - **관리자 시스템:** 게시판 구조 관리, 사용자 제재(정지), 신고 처리 등 통합 관리 기능.
 - **보안 및 인증:** JWT Access/Refresh Token Rotation, 이메일 인증, Spring Security 기반 권한 관리.
+- **Rate Limiting:** `@RateLimit` AOP + Redis Fixed Window Counter 기반 요청 제한.
+- **보안 강화:** HTML Sanitizer (OWASP), CORS/HSTS 헤더, SSE 일회용 토큰, Open Redirect 방지.
+- **광고 시스템:** 인피드/사이드바/본문하단 광고 슬롯.
 
 ---
 
@@ -264,9 +270,34 @@ graph TD
 
 ## 🔢 프로젝트 규모
 
-- **Backend:** Java 파일 약 387개 (메인 340 + 테스트 47), 도메인 엔티티 27개
-- **API:** 16개 도메인, 107개 REST API 엔드포인트
+- **Backend:** Java 파일 약 398개 (메인 349 + 테스트 49), 도메인 엔티티 27개
+- **API:** 16개 도메인, 135개 REST API 엔드포인트
 - **Scheduler:** 5종 (통계 집계, 알림 정리, 랭킹 산정, 정지 해제, 미사용 파일 정리)
+
+---
+
+## 🔒 보안 (Security)
+
+### Rate Limiting
+
+AOP 기반 `@RateLimit` 어노테이션과 Redis Fixed Window Counter를 조합하여, 엔드포인트별 요청 제한을 선언적으로 적용합니다.
+
+### 입력 검증 및 XSS 방어
+
+- **서버:** OWASP HTML Sanitizer로 사용자 입력 HTML을 필터링합니다.
+- **클라이언트:** DOMPurify로 렌더링 전 2차 방어합니다.
+
+### 인증 보안 강화
+
+- SSE 연결 시 JWT를 URL에 노출하지 않도록 **일회용 연결 토큰** 방식을 적용했습니다.
+- `@RequestParam userId` 대신 `@AuthenticationPrincipal`로 전환하여 파라미터 변조를 원천 차단합니다.
+- JWT Secret을 애플리케이션 시작 시 검증하여 하드코딩된 기본값 사용을 방지합니다.
+
+### HTTP 보안 헤더
+
+- **HSTS:** Strict-Transport-Security 헤더 적용
+- **CORS:** 허용 Origin/Header를 명시적으로 제한
+- **Open Redirect 방지:** 리다이렉트 URL 화이트리스트 검증
 
 ---
 
