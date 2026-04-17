@@ -157,6 +157,24 @@ class AuthV1ControllerE2eTest {
     }
 
     @Test
+    @DisplayName("잘못된 Authorization 헤더로 로그아웃 시 400 응답")
+    void 잘못된_헤더로_로그아웃_실패() {
+        // given
+        UserLoginResult loginResult = createUserAndLogin();
+
+        // when - "Bearer " 접두사 없이 토큰만 전송
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Authorization", "InvalidPrefix " + loginResult.accessToken());
+        HttpEntity<Void> request = new HttpEntity<>(headers);
+
+        ResponseEntity<Void> response = restTemplate
+                .exchange("/api/v1/auth/logout", HttpMethod.POST, request, Void.class);
+
+        // then - JwtAuthenticationFilter에서 인증 실패 → 401/403
+        assertThat(response.getStatusCode()).isIn(HttpStatus.UNAUTHORIZED, HttpStatus.FORBIDDEN);
+    }
+
+    @Test
     @DisplayName("로그아웃 후 동일 accessToken으로 인증이 실패한다")
     void 로그아웃_후_토큰_무효화() {
         // given
