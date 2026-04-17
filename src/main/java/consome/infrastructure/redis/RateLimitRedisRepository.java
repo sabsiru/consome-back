@@ -33,7 +33,7 @@ public class RateLimitRedisRepository {
             }
             return count <= limit;
         } catch (Exception e) {
-            log.warn("Rate limit check failed, allowing request: {}", e.getMessage());
+            log.error("Rate limit Redis failure - fail-open activated. key={}, error={}", key, e.getMessage(), e);
             return true; // Redis 장애 시 요청 허용 (fail-open)
         }
     }

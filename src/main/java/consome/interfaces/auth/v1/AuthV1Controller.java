@@ -34,6 +34,9 @@ public class AuthV1Controller {
     public ResponseEntity<Void> logout(@AuthenticationPrincipal CustomUserDetails userDetails,
                                        HttpServletRequest request) {
         String authHeader = request.getHeader("Authorization");
+        if (authHeader == null || !authHeader.startsWith("Bearer ") || authHeader.length() <= 7) {
+            return ResponseEntity.badRequest().build();
+        }
         String accessToken = authHeader.substring(7);
         authFacade.logout(userDetails.getUserId(), accessToken);
         return ResponseEntity.noContent().build();
