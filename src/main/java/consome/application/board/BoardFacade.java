@@ -14,6 +14,7 @@ import consome.domain.board.repository.BoardFavoriteRepository;
 import consome.domain.common.exception.BusinessException;
 import consome.domain.post.PostService;
 import consome.domain.post.PostSummary;
+import consome.domain.statistics.SearchStatService;
 import consome.domain.user.User;
 import consome.domain.user.UserService;
 import consome.infrastructure.redis.VisitedBoardRedisRepository;
@@ -40,6 +41,7 @@ public class BoardFacade {
     private final VisitedBoardRedisRepository visitedBoardRedisRepository;
     private final BoardFavoriteRepository boardFavoriteRepository;
     private final BoardRepository boardRepository;
+    private final SearchStatService searchStatService;
 
     public PostPagingResult getPosts(Long boardId, Pageable pageable, Long categoryId, Long userId, boolean popularOnly) {
         if (userId != null) {
@@ -110,8 +112,11 @@ public class BoardFacade {
         return boardService.searchByKeyword(keyword, limit);
     }
 
-    public PostPagingResult searchPosts(Long boardId, String keyword, String searchType, Pageable pageable) {
+    public PostPagingResult searchPosts(Long boardId, String keyword, String searchType, Pageable pageable,
+                                        Long requesterUserId, String requesterIp) {
         Board board = boardService.findById(boardId);
+
+        searchStatService.recordKeyword(keyword, requesterUserId, requesterIp);
 
         Page<PostSummary> page = postService.searchPosts(boardId, keyword, searchType, pageable);
 

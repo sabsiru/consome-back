@@ -1,5 +1,6 @@
 package consome.infrastructure.filter;
 
+import consome.domain.statistics.ActivityStatService;
 import consome.domain.statistics.entity.SiteVisit;
 import consome.domain.statistics.repository.SiteVisitRepository;
 import consome.infrastructure.redis.OnlineUserRedisRepository;
@@ -24,6 +25,7 @@ public class OnlineTrackingFilter extends OncePerRequestFilter {
 
     private final OnlineUserRedisRepository onlineUserRedisRepository;
     private final SiteVisitRepository siteVisitRepository;
+    private final ActivityStatService activityStatService;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,
@@ -50,7 +52,12 @@ public class OnlineTrackingFilter extends OncePerRequestFilter {
 
         // DB: 일일 방문자 기록 (INSERT IGNORE로 race condition 방지)
         String visitorKey = SiteVisit.buildVisitorKey(userId, ip);
-        siteVisitRepository.insertIgnore(visitorKey);
+        int inserted = siteVisitRepository.insertIgnore(visitorKey);
+
+        // 신규 방문(하루 첫 진입)만 시간대별 VISIT 카운트
+        if (inserted > 0) {
+            activityStatService.recordVisit();
+        }
     }
 
     private Long extractUserId() {

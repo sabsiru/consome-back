@@ -25,5 +25,5 @@ public interface SiteVisitRepository extends JpaRepository<SiteVisit, Long> {
     @Transactional
     @Modifying
     @Query(value = "INSERT IGNORE INTO site_visit (visitor_key, visit_date, first_visit_at) VALUES (:visitorKey, CURDATE(), NOW())", nativeQuery = true)
-    void insertIgnore(@Param("visitorKey") String visitorKey);
+    int insertIgnore(@Param("visitorKey") String visitorKey);
 }

@@ -7,6 +7,7 @@ import consome.interfaces.admin.dto.CategoryResponse;
 import consome.interfaces.board.dto.BoardPostListResponse;
 import consome.interfaces.board.dto.BoardSearchResponse;
 import consome.interfaces.board.dto.FavoriteBoardResponse;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
@@ -43,10 +44,22 @@ public class BoardV1Controller {
             @PathVariable Long boardId,
             @RequestParam String keyword,
             @RequestParam(defaultValue = "all") String type,
-            @PageableDefault(size = 20) Pageable pageable
+            @PageableDefault(size = 20) Pageable pageable,
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            HttpServletRequest request
     ) {
-        PostPagingResult result = boardFacade.searchPosts(boardId, keyword, type, pageable);
+        Long userId = userDetails != null ? userDetails.getUserId() : null;
+        String ip = extractClientIp(request);
+        PostPagingResult result = boardFacade.searchPosts(boardId, keyword, type, pageable, userId, ip);
         return ResponseEntity.ok(BoardPostListResponse.from(result));
+    }
+
+    private String extractClientIp(HttpServletRequest request) {
+        String xff = request.getHeader("X-Forwarded-For");
+        if (xff != null && !xff.isEmpty()) {
+            return xff.split(",")[0].trim();
+        }
+        return request.getRemoteAddr();
     }
 
     @GetMapping("/{boardId}/categories")

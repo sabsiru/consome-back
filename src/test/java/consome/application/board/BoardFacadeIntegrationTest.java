@@ -127,7 +127,7 @@ class BoardFacadeIntegrationTest {
             postFacade.post(PostCommand.of(boardId, categoryId, userId, "자바 기초", "다른 내용"));
 
             // when
-            PostPagingResult result = boardFacade.searchPosts(boardId, uniqueKeyword, "title", pageable);
+            PostPagingResult result = boardFacade.searchPosts(boardId, uniqueKeyword, "title", pageable, null, "127.0.0.1");
 
             // then
             assertThat(result.posts())
@@ -144,7 +144,7 @@ class BoardFacadeIntegrationTest {
             postFacade.post(PostCommand.of(boardId, categoryId, userId, "제목2", "JPA 기초"));
 
             // when
-            PostPagingResult result = boardFacade.searchPosts(boardId, uniqueKeyword, "content", pageable);
+            PostPagingResult result = boardFacade.searchPosts(boardId, uniqueKeyword, "content", pageable, null, "127.0.0.1");
 
             // then
             assertThat(result.posts())
@@ -163,7 +163,7 @@ class BoardFacadeIntegrationTest {
             commentService.comment(other.postId(), userId, null, "일반 댓글");
 
             // when
-            PostPagingResult result = boardFacade.searchPosts(boardId, uniqueKeyword, "comment", pageable);
+            PostPagingResult result = boardFacade.searchPosts(boardId, uniqueKeyword, "comment", pageable, null, "127.0.0.1");
 
             // then
             assertThat(result.posts())
@@ -182,7 +182,7 @@ class BoardFacadeIntegrationTest {
             commentService.comment(postWithComment.postId(), userId, null, uniqueKeyword + " 관련 댓글");
 
             // when
-            PostPagingResult result = boardFacade.searchPosts(boardId, uniqueKeyword, "all", pageable);
+            PostPagingResult result = boardFacade.searchPosts(boardId, uniqueKeyword, "all", pageable, null, "127.0.0.1");
 
             // then
             assertThat(result.posts())
@@ -197,7 +197,7 @@ class BoardFacadeIntegrationTest {
             String nonExistKeyword = "절대없는키워드" + System.currentTimeMillis();
 
             // when
-            PostPagingResult result = boardFacade.searchPosts(boardId, nonExistKeyword, "all", pageable);
+            PostPagingResult result = boardFacade.searchPosts(boardId, nonExistKeyword, "all", pageable, null, "127.0.0.1");
 
             // then
             assertThat(result.posts()).isEmpty();
