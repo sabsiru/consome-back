@@ -23,6 +23,8 @@ import consome.domain.post.repository.PostReactionRepository;
 import consome.domain.post.repository.PostVideoRepository;
 import consome.domain.post.repository.TempPostImageRepository;
 import consome.domain.post.repository.TempPostVideoRepository;
+import consome.domain.statistics.ActivityStatService;
+import consome.domain.statistics.ActivityType;
 import consome.domain.user.Role;
 import consome.domain.user.User;
 import consome.domain.user.UserService;
@@ -52,6 +54,7 @@ public class PostFacade {
     private final SectionService sectionService;
     private final UserService userService;
     private final HtmlSanitizer htmlSanitizer;
+    private final ActivityStatService activityStatService;
 
     @Transactional
     public PostResult post(PostCommand command) {
@@ -77,6 +80,7 @@ public class PostFacade {
             });
         }
 
+        activityStatService.recordActivity(ActivityType.POST);
         return PostResult.of(post.getId());
     }
 
@@ -109,6 +113,7 @@ public class PostFacade {
                 postImageRepository.save(postImage);
             }
         }
+        activityStatService.recordActivity(ActivityType.POST);
         return PostResult.of(post.getId());
 
     }
@@ -176,6 +181,7 @@ public class PostFacade {
         postService.like(post, userId);
         popularPostService.updateScore(post.getId());
 
+        activityStatService.recordActivity(ActivityType.POST_LIKE);
         return postService.getPostStat(post.getId());
     }
 
@@ -184,6 +190,7 @@ public class PostFacade {
         postService.dislike(post, userId);
         pointService.penalize(post.getUserId(), PointHistoryType.POST_DISLIKE);
 
+        activityStatService.recordActivity(ActivityType.POST_DISLIKE);
         return postService.getPostStat(post.getId());
     }
     public boolean hasLiked(Long postId, Long userId) {

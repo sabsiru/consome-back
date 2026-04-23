@@ -1,16 +1,21 @@
 package consome.interfaces.statistics.v1;
 
+import consome.application.statistics.HourlyActivityResult;
+import consome.application.statistics.PopularKeywordResult;
 import consome.application.statistics.StatisticsFacade;
 import consome.application.statistics.VisitedBoardResult;
 import consome.infrastructure.security.CustomUserDetails;
 import consome.interfaces.statistics.dto.AdminStatisticsResponse;
+import consome.interfaces.statistics.dto.HourlyActivityResponse;
 import consome.interfaces.statistics.dto.OnlineCountResponse;
+import consome.interfaces.statistics.dto.PopularKeywordsResponse;
 import consome.interfaces.statistics.dto.VisitedBoardsResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
@@ -51,5 +56,29 @@ public class StatisticsV1Controller {
         }
         List<VisitedBoardResult> results = statisticsFacade.getVisitedBoards(userDetails.getUserId());
         return ResponseEntity.ok(VisitedBoardsResponse.from(results));
+    }
+
+    /**
+     * 인기 검색어 TOP N (공개)
+     */
+    @GetMapping("/statistics/popular-keywords")
+    public ResponseEntity<PopularKeywordsResponse> getPopularKeywords(
+            @RequestParam(defaultValue = "hour") String period,
+            @RequestParam(defaultValue = "10") int limit
+    ) {
+        List<PopularKeywordResult> results = statisticsFacade.getPopularKeywords(period, limit);
+        return ResponseEntity.ok(PopularKeywordsResponse.of(period, limit, results));
+    }
+
+    /**
+     * 시간대별 활동량 히트맵 (관리자 전용)
+     */
+    @GetMapping("/admin/statistics/hourly-activity")
+    public ResponseEntity<HourlyActivityResponse> getHourlyActivity(
+            @RequestParam(defaultValue = "7") int days,
+            @RequestParam(defaultValue = "ALL") String type
+    ) {
+        HourlyActivityResult result = statisticsFacade.getHourlyActivity(days, type);
+        return ResponseEntity.ok(HourlyActivityResponse.from(result));
     }
 }

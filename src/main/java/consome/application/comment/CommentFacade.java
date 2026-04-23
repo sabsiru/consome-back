@@ -16,6 +16,8 @@ import consome.domain.post.PopularPostService;
 import consome.domain.post.PostService;
 import consome.domain.post.ReactionType;
 import consome.domain.post.entity.Post;
+import consome.domain.statistics.ActivityStatService;
+import consome.domain.statistics.ActivityType;
 import consome.domain.user.UserService;
 import consome.infrastructure.security.HtmlSanitizer;
 import lombok.RequiredArgsConstructor;
@@ -41,6 +43,7 @@ public class CommentFacade {
     private final SectionService sectionService;
     private final NotificationFacade notificationFacade;
     private final HtmlSanitizer htmlSanitizer;
+    private final ActivityStatService activityStatService;
 
     @Transactional
     public CommentResult comment(Long postId, Long userId, Long parentId, String content) {
@@ -66,6 +69,7 @@ public class CommentFacade {
         // 알림 트리거
         sendCommentNotification(post, comment, userId, nickname, parentId);
 
+        activityStatService.recordActivity(ActivityType.COMMENT);
         return result;
     }
 
@@ -84,6 +88,7 @@ public class CommentFacade {
     public CommentStat like(Long commentId, Long userId) {
         CommentStat stat = commentService.like(commentId, userId);
         pointService.earn(userId, PointHistoryType.COMMENT_LIKE);
+        activityStatService.recordActivity(ActivityType.COMMENT_LIKE);
         return stat;
     }
 
@@ -91,6 +96,7 @@ public class CommentFacade {
     public CommentStat dislike(Long commentId, Long userId) {
         CommentStat stat = commentService.dislike(commentId, userId);
         pointService.penalize(userId, PointHistoryType.COMMENT_DISLIKE);
+        activityStatService.recordActivity(ActivityType.COMMENT_DISLIKE);
         return stat;
     }
 
